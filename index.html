@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TORA Advanced - Investigación de Operaciones</title>
+  
+  <link rel="stylesheet" href="/src/index.css">
+  
+  <script type="module" src="/src/main.ts"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 m-0 p-0 flex h-screen overflow-hidden">
+
+  <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between p-4">
+    <div>
+      <h2 class="text-xl font-bold text-teal-400 mb-6 text-center">📊 TORA Advanced</h2>
+      <nav class="flex flex-col gap-2">
+        <button id="btn-linear" class="w-full text-left bg-slate-850 hover:bg-slate-700 p-3 rounded font-semibold text-sm transition cursor-pointer">
+          📈 Programación Lineal
+        </button>
+        <button id="btn-transport" class="w-full text-left hover:bg-slate-700 p-3 rounded font-semibold text-sm transition cursor-pointer">
+          🚚 Módulo de Transporte
+        </button>
+        <button id="btn-networks" class="w-full text-left hover:bg-slate-700 p-3 rounded font-semibold text-sm transition cursor-pointer">
+          🕸️ Optimización de Redes
+        </button>
+      </nav>
+    </div>
+    <div class="text-xs text-slate-500 text-center">v2.0 - 4to Semestre</div>
+  </aside>
+
+  <main class="flex-1 flex flex-col h-full overflow-y-auto">
+    <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+      <h1 id="app-title" class="text-xl font-bold text-slate-800">Panel de Control General</h1>
+      <span class="bg-teal-100 text-teal-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">Estado: Óptimo</span>
+    </header>
+
+    <section id="app-content" class="p-6 max-w-6xl w-full mx-auto">
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h3 class="text-lg font-bold mb-2 text-slate-700">Bienvenido al Sistema de IO</h3>
+        <p class="text-gray-600 text-sm">Selecciona un módulo en la barra lateral para comenzar a resolver tus modelos matemáticos paso a paso.</p>
+      </div>
+    </section>
+  </main>
+
+</body>
+</html>
