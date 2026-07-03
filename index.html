@@ -1,47 +1,160 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TORA Advanced - Investigación de Operaciones</title>
-  
-  <link rel="stylesheet" href="/src/index.css">
-  
-  <script type="module" src="/src/main.ts"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TORA Advanced - Plataforma de Investigación de Operaciones">
+    <title>TORA Advanced | Dashboard General</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <link rel="stylesheet" href="/src/index.css">
 </head>
-<body class="bg-gray-100 font-sans text-gray-800 m-0 p-0 flex h-screen overflow-hidden">
+<body>
 
-  <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between p-4">
-    <div>
-      <h2 class="text-xl font-bold text-teal-400 mb-6 text-center">📊 TORA Advanced</h2>
-      <nav class="flex flex-col gap-2">
-        <button id="btn-linear" class="w-full text-left bg-slate-850 hover:bg-slate-700 p-3 rounded font-semibold text-sm transition cursor-pointer">
-          📈 Programación Lineal
-        </button>
-        <button id="btn-transport" class="w-full text-left hover:bg-slate-700 p-3 rounded font-semibold text-sm transition cursor-pointer">
-          🚚 Módulo de Transporte
-        </button>
-        <button id="btn-networks" class="w-full text-left hover:bg-slate-700 p-3 rounded font-semibold text-sm transition cursor-pointer">
-          🕸️ Optimización de Redes
-        </button>
-      </nav>
+    <div class="app-layout">
+        
+        <aside class="sidebar" id="app-sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <i class="ph-fill ph-chart-polar logo-icon"></i>
+                    <h2 class="logo-text">TORA<span class="logo-highlight">Advanced</span></h2>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <span class="nav-label">MÓDULOS PRINCIPALES</span>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active" id="nav-dashboard">
+                            <i class="ph ph-squares-four"></i>
+                            <span>Panel General</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" id="nav-linear">
+                            <i class="ph ph-chart-line-up"></i>
+                            <span>Programación Lineal</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" id="nav-transport">
+                            <i class="ph ph-truck"></i>
+                            <span>Modelo de Transporte</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/src/pages/dijkstra.html" class="nav-link" id="nav-networks">
+                            <i class="ph ph-graph"></i>
+                            <span>Optimización de Redes</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="version-info">
+                    <i class="ph ph-info"></i>
+                    <span>v2.0 - 4to Semestre</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="icon-btn menu-toggle" id="btn-menu-toggle" aria-label="Abrir menú">
+                        <i class="ph ph-list"></i>
+                    </button>
+                    <h1 class="page-title" id="app-page-title">Panel de Control General</h1>
+                </div>
+                
+                <div class="topbar-right">
+                    <div class="status-badge">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Sistema Óptimo</span>
+                    </div>
+                    
+                    <button class="icon-btn" aria-label="Notificaciones">
+                        <i class="ph ph-bell"></i>
+                    </button>
+                    
+                    <div class="user-profile">
+                        <img src="https://ui-avatars.com/api/?name=Admin+IO&background=5C2E7E&color=fff&bold=true" alt="Usuario" class="avatar">
+                    </div>
+                </div>
+            </header>
+
+            <section class="content-area" id="main-app-content">
+                
+                <div class="welcome-banner animate-fade-in">
+                    <div class="banner-text">
+                        <h2>¡Bienvenido al Entorno TORA Advanced!</h2>
+                        <p>Selecciona un módulo en el menú lateral para comenzar a formular y resolver modelos matemáticos de Investigación de Operaciones.</p>
+                    </div>
+                    <div class="banner-illustration">
+                        <i class="ph-duotone ph-math-operations"></i>
+                    </div>
+                </div>
+
+                <div class="quick-access-grid mt-20">
+                    
+                    <div class="action-card animate-fade-in delay-1">
+                        <div class="card-header">
+                            <div class="card-icon linear-icon">
+                                <i class="ph ph-intersect"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h3>Método Simplex</h3>
+                            <p>Resolución gráfica y tabular para modelos de maximización y minimización.</p>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn-card outline">Próximamente</button>
+                        </div>
+                    </div>
+
+                    <div class="action-card animate-fade-in delay-2">
+                        <div class="card-header">
+                            <div class="card-icon transport-icon">
+                                <i class="ph ph-package"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h3>Vogel & Esquina Noroeste</h3>
+                            <p>Optimización de costos de envío y distribución logística para suministros.</p>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn-card outline">Próximamente</button>
+                        </div>
+                    </div>
+
+                    <div class="action-card active-card animate-fade-in delay-3">
+                        <div class="card-header">
+                            <div class="card-icon networks-icon">
+                                <i class="ph ph-share-network"></i>
+                            </div>
+                            <span class="badge-new">Disponible</span>
+                        </div>
+                        <div class="card-body">
+                            <h3>Dijkstra & Kruskal</h3>
+                            <p>Cálculo de rutas más cortas y árboles de expansión mínima (MST) en redes.</p>
+                        </div>
+                        <div class="card-footer">
+                            <a href="/src/pages/dijkstra.html" class="btn-card primary">Acceder a Redes</a>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </main>
     </div>
-    <div class="text-xs text-slate-500 text-center">v2.0 - 4to Semestre</div>
-  </aside>
 
-  <main class="flex-1 flex flex-col h-full overflow-y-auto">
-    <header class="bg-white shadow-sm p-4 flex justify-between items-center">
-      <h1 id="app-title" class="text-xl font-bold text-slate-800">Panel de Control General</h1>
-      <span class="bg-teal-100 text-teal-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">Estado: Óptimo</span>
-    </header>
-
-    <section id="app-content" class="p-6 max-w-6xl w-full mx-auto">
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <h3 class="text-lg font-bold mb-2 text-slate-700">Bienvenido al Sistema de IO</h3>
-        <p class="text-gray-600 text-sm">Selecciona un módulo en la barra lateral para comenzar a resolver tus modelos matemáticos paso a paso.</p>
-      </div>
-    </section>
-  </main>
-
+    <script type="module" src="/src/core/main.js"></script>
 </body>
 </html>
