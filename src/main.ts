@@ -1,3 +1,4 @@
+// @ts-ignore
 import './index.css';
 
 // 1. Capturar los elementos del DOM (HTML) usando selectores seguros de TypeScript
