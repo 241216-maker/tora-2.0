@@ -1,49 +1,39 @@
-// Interfaz exclusiva para las actividades CPM
-interface ActividadCPM {
-  id: string;
-  duracion: number;
-  predecesores: string[];
-  es?: number; // Early Start
-  ef?: number; // Early Finish
-  ls?: number; // Late Start
-  lf?: number; // Late Finish
-  holgura?: number;
+let proyectoActividades = [];
+
+function normalizarActividades(actividades) {
+  return actividades.map((actividad) => ({
+    ...actividad,
+    id: String(actividad.id).trim().toUpperCase(),
+    duracion: Number(actividad.duracion),
+    predecesores: Array.isArray(actividad.predecesores)
+      ? actividad.predecesores.map((pred) => String(pred).trim().toUpperCase()).filter(Boolean)
+      : [],
+    es: 0,
+    ef: 0,
+    ls: 0,
+    lf: 0,
+    holgura: 0
+  }));
 }
 
-// Lista en memoria para almacenar las actividades ingresadas por el usuario
-const proyectoActividades: ActividadCPM[] = [];
+function calcularCPM(actividades) {
+  const lista = normalizarActividades(actividades);
 
-// Función matemática que calcula el algoritmo CPM
-function calcularCPM(actividades: ActividadCPM[]): ActividadCPM[] {
-  const lista = actividades.map(a => ({ ...a, es: 0, ef: 0, ls: 0, lf: 0, holgura: 0 }));
-
-  // 1. Pasada hacia adelante (Tiempos Tempranos)
-  for (const act of lista) {
-    if (act.predecesores.length === 0) {
-      act.es = 0;
-    } else {
-      const tiemposFinPredecesores = lista
-        .filter(p => act.predecesores.includes(p.id))
-        .map(p => p.ef);
-      act.es = tiemposFinPredecesores.length > 0 ? Math.max(...tiemposFinPredecesores) : 0;
+  for (let iteracion = 0; iteracion < lista.length; iteracion += 1) {
+    for (const act of lista) {
+      const predecesores = lista.filter((p) => act.predecesores.includes(p.id));
+      act.es = predecesores.length > 0 ? Math.max(...predecesores.map((p) => p.ef)) : 0;
+      act.ef = act.es + act.duracion;
     }
-    act.ef = act.es + act.duracion;
   }
 
-  // Tiempo total estimado del proyecto
-  const tiempoTotalProyecto = lista.length > 0 ? Math.max(...lista.map(a => a.ef)) : 0;
+  const tiempoTotalProyecto = lista.length > 0 ? Math.max(...lista.map((a) => a.ef)) : 0;
 
-  // 2. Pasada hacia atrás (Tiempos Tardíos y Holguras)
-  for (let i = lista.length - 1; i >= 0; i--) {
+  for (let i = lista.length - 1; i >= 0; i -= 1) {
     const act = lista[i];
-    const sucesores = lista.filter(s => s.predecesores.includes(act.id));
-    
-    if (sucesores.length === 0) {
-      act.lf = tiempoTotalProyecto;
-    } else {
-      const tiemposInicioSucesores = sucesores.map(s => s.ls);
-      act.lf = Math.min(...tiemposInicioSucesores);
-    }
+    const sucesores = lista.filter((s) => s.predecesores.includes(act.id));
+
+    act.lf = sucesores.length > 0 ? Math.min(...sucesores.map((s) => s.ls)) : tiempoTotalProyecto;
     act.ls = act.lf - act.duracion;
     act.holgura = act.ls - act.es;
   }
@@ -51,78 +41,122 @@ function calcularCPM(actividades: ActividadCPM[]): ActividadCPM[] {
   return lista;
 }
 
-// Captura de eventos e interfaz de usuario
+function construirRutaCritica(resultados) {
+  const actividadesCriticas = resultados.filter((act) => act.holgura === 0);
+
+  if (actividadesCriticas.length === 0) {
+    return [];
+  }
+
+  const inicio = actividadesCriticas.find((act) => act.predecesores.length === 0) || actividadesCriticas[0];
+  const ruta = [inicio.id];
+  let actual = inicio;
+
+  while (true) {
+    const sucesoresCriticos = actividadesCriticas.filter((s) => s.predecesores.includes(actual.id));
+    if (sucesoresCriticos.length === 0) {
+      break;
+    }
+
+    const siguiente = sucesoresCriticos[0];
+    ruta.push(siguiente.id);
+    actual = siguiente;
+  }
+
+  return ruta;
+}
+
+function renderizarActividades(actividades, vistaActividades) {
+  if (!vistaActividades) {
+    return;
+  }
+
+  if (actividades.length === 0) {
+    vistaActividades.textContent = 'Ninguna actividad añadida aún.';
+    return;
+  }
+
+  const texto = actividades.map((act) => {
+    const cadenaPred = act.predecesores.length > 0 ? act.predecesores.join(', ') : 'Ninguno';
+    return `• Actividad [${act.id}] | Duración: ${act.duracion} | Predecesores: [${cadenaPred}]`;
+  }).join('\n');
+
+  vistaActividades.textContent = texto;
+}
+
+function renderizarResultados(resultados, vistaResultado) {
+  if (!vistaResultado) {
+    return;
+  }
+
+  const rutaCritica = construirRutaCritica(resultados);
+  const duracionTotal = resultados.length > 0 ? Math.max(...resultados.map((r) => r.ef || 0)) : 0;
+  const lineas = [
+    '=== RESULTADOS CPM ===',
+    '',
+    ...resultados.map((act) => `• Actividad [${act.id}]: ES:${act.es} | EF:${act.ef} | LS:${act.ls} | LF:${act.lf} | Holgura: ${act.holgura}`),
+    '',
+    `➔ RUTA CRÍTICA: ${rutaCritica.join(' ➔ ') || 'No definida'}`,
+    `➔ DURACIÓN TOTAL: ${duracionTotal} días.`
+  ];
+
+  vistaResultado.textContent = lineas.join('\n');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  const idInput = document.getElementById('actividadId') as HTMLInputElement;
-  const duracionInput = document.getElementById('actividadDuracion') as HTMLInputElement;
-  const predInput = document.getElementById('actividadPredecesores') as HTMLInputElement;
+  const idInput = document.getElementById('actividadId');
+  const duracionInput = document.getElementById('actividadDuracion');
+  const predInput = document.getElementById('actividadPredecesores');
   const btnAgregar = document.getElementById('btnAgregarActividad');
   const btnCalcular = document.getElementById('btnCalcularCPM');
-  
   const vistaActividades = document.getElementById('visualizacionActividades');
   const vistaResultado = document.getElementById('resultadoCPM');
 
-  // Acción: Agregar Actividad a la lista
   if (btnAgregar) {
     btnAgregar.addEventListener('click', () => {
-      const id = idInput.value.trim().toUpperCase();
-      const duracion = parseInt(duracionInput.value);
-      const predRaw = predInput.value.trim().toUpperCase();
+      const id = idInput?.value.trim().toUpperCase() || '';
+      const duracion = Number.parseInt(duracionInput?.value || '', 10);
+      const predRaw = predInput?.value.trim().toUpperCase() || '';
 
-      if (!id || isNaN(duracion)) {
-        alert('Por favor, ingresa un ID válido y la duración de la actividad.');
+      if (!id) {
+        alert('Ingresa un ID válido (Ej: A).');
         return;
       }
 
-      // Procesar predecesores separados por coma (ej: "A,B" -> ["A", "B"])
-      const predecesores = predRaw ? predRaw.split(',').map(p => p.trim()) : [];
+      if (Number.isNaN(duracion) || duracion < 0) {
+        alert('Ingresa una duración válida (0 o mayor).');
+        return;
+      }
+
+      if (proyectoActividades.some((act) => act.id === id)) {
+        alert(`La actividad [${id}] ya existe.`);
+        return;
+      }
+
+      const predecesores = predRaw
+        ? predRaw.split(',').map((p) => p.trim()).filter((p) => p !== '')
+        : [];
 
       proyectoActividades.push({ id, duracion, predecesores });
 
-      // Limpiar inputs
-      idInput.value = '';
-      duracionInput.value = '';
-      predInput.value = '';
+      if (idInput) idInput.value = '';
+      if (duracionInput) duracionInput.value = '';
+      if (predInput) predInput.value = '';
+      if (idInput) idInput.focus();
 
-      // Mostrar el estado de lo que se ha guardado
-      if (vistaActividades) {
-        vistaActividades.textContent = JSON.stringify(proyectoActividades, null, 2);
-      }
+      renderizarActividades(proyectoActividades, vistaActividades);
     });
   }
 
-  // Acción: Calcular la Ruta Crítica
-  if (btnCalcular && vistaResultado) {
+  if (btnCalcular) {
     btnCalcular.addEventListener('click', () => {
       if (proyectoActividades.length === 0) {
-        vistaResultado.textContent = 'No hay actividades registradas para procesar.';
+        alert('Añade al menos una actividad primero.');
         return;
       }
 
       const resultados = calcularCPM(proyectoActividades);
-      const rutaCritica: string[] = [];
-
-      let output = `=== RESULTADOS DEL MÉTODO DE LA RUTA CRÍTICA (CPM) ===\n\n`;
-      
-      resultados.forEach(act => {
-        output += `• Actividad [${act.id}]:\n`;
-        output += `  - Inicio Temprano (ES): ${act.es} | Fin Temprano (EF): ${act.ef}\n`;
-        output += `  - Inicio Tardío (LS): ${act.ls} | Fin Tardío (LF): ${act.lf}\n`;
-        output += `  - Holgura: ${act.holgura}\n`;
-        
-        // Si la holgura es cero, pertenece a la ruta crítica
-        if (act.holgura === 0) {
-          rutaCritica.push(act.id);
-          output += `  [¡ACTIVIDAD CRÍTICA!]\n`;
-        }
-        output += `\n`;
-      });
-
-      output += `--------------------------------------------------\n`;
-      output += `➔ RUTA CRÍTICA DEL PROYECTO: ${rutaCritica.join(' ➔ ')}\n`;
-      output += `➔ DURACIÓN TOTAL DEL PROYECTO: ${Math.max(...resultados.map(r => r.ef || 0))} unidades de tiempo.`;
-
-      vistaResultado.textContent = output;
+      renderizarResultados(resultados, vistaResultado);
     });
   }
 });
