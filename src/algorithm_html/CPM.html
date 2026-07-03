@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TORA - Algoritmo CPM</title>
+  
+  <link rel="stylesheet" href="../styles/cpm.css">
+</head>
+<body>
+
+  <div class="container">
+    
+    <header>
+      <h1>Módulo de Redes: Algoritmo CPM</h1>
+      <p>Método de la Ruta Crítica para la Gestión de Proyectos</p>
+    </header>
+
+    <main class="grid-layout">
+      
+      <section>
+        <h2>1. Registrar Actividad</h2>
+        <div class="row">
+          <input type="text" id="actividadId" placeholder="ID de Actividad (ej. A)">
+          <input type="number" id="actividadDuracion" placeholder="Duración (días/semanas)">
+          <input type="text" id="actividadPredecesores" placeholder="Predecesores (ej. B,C o vacío)">
+        </div>
+        <button id="btnAgregarActividad" class="btn-secondary">Añadir Actividad</button>
+
+        <hr>
+
+        <h2>2. Calcular Ruta Crítica</h2>
+        <button id="btnCalcularCPM" class="btn-primary">Calcular Tiempos y Holguras</button>
+      </section>
+
+      <section>
+        <h2>Lista de Actividades Registradas</h2>
+        <pre id="visualizacionActividades">Ninguna actividad añadida aún.</pre>
+
+        <h2>Resultados del Análisis CPM</h2>
+        <div id="resultadoCPM" class="resultado-box">
+          Los tiempos tempranos, tardíos y la ruta crítica aparecerán aquí...
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script type="module" src="../main.ts"></script>
+</body>
+</html>
