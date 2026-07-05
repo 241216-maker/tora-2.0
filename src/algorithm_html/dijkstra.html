@@ -1,133 +1,148 @@
-                    <!DOCTYPE html>
-                    <html lang="es">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>Algoritmo de Dijkstra - Ruta Más Corta</title>
-                        
-                        <link rel="preconnect" href="https://fonts.googleapis.com">
-                        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-                        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-                        
-                        <script src="https://d3js.org/d3.v7.min.js"></script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algoritmo de Dijkstra - Ruta Más Corta</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 
-                        <link rel="stylesheet" href="../styles/dijkstra.css">
-                    </head>
-                    <body>
+    <link rel="stylesheet" href="../styles/dijkstra.css">
+</head>
+<body>
 
-                        <header class="app-header">
-                            <div class="header-content">
-                                <div class="header-titles">
-                                    <h1 class="main-title">Algoritmo de Dijkstra</h1>
-                                    <p class="sub-title">Algoritmos de Optimización de Redes: La Ruta Más Corta</p>
-                                </div>
-                                <div class="header-badges">
-                                    <span class="badge">Investigación de Operaciones</span>
-                                    <span class="badge badge-primary">Modelos de Redes</span>
-                                </div>
-                            </div>
-                        </header>
+    <header class="app-header">
+        <div class="header-content">
+            <div class="header-titles">
+                <h1 class="main-title">Algoritmo de Dijkstra</h1>
+                <p class="sub-title">Algoritmos de Optimización de Redes: La Ruta Más Corta (Método Taha)</p>
+            </div>
+            <div class="header-badges">
+                <span class="badge">Investigación de Operaciones</span>
+                <span class="badge badge-primary">Modelos de Redes</span>
+            </div>
+        </div>
+    </header>
 
-                        <main class="app-container-vertical">
+    <main class="app-container-vertical">
 
-                            <section class="io-card animate-fade-in">
-                                <div class="panel-title">1. Dimensión del Modelo</div>
-                                <p class="panel-subtitle">Introduzca el número total de nodos de la red para estructurar la matriz de adyacencia.</p>
-                                
-                                <div class="form-row-centered">
-                                    <div class="form-group layout-inline-input">
-                                        <label class="group-label" for="node-count">Cantidad de Nodos:</label>
-                                        <input type="number" id="node-count" class="form-input text-center" min="2" max="15" placeholder="Ej. 6">
-                                    </div>
-                                    <button type="button" id="btn-generate-matrix" class="btn btn-primary btn-md">Generar Matriz</button>
-                                </div>
-                            </section>
+        <section class="io-card info-card animate-fade-in">
+            <div class="info-content">
+                <h2 class="info-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; color: var(--color-accent-1);"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    ¿Qué es y para qué sirve?
+                </h2>
+                <p class="info-text">
+                    El <strong>Algoritmo de Dijkstra</strong> es un método fundamental en la teoría de grafos y la <em>Investigación de Operaciones</em>. Su propósito principal es encontrar la <strong>ruta más corta</strong> (o de menor costo) desde un nodo de origen hacia todos los demás nodos dentro de una red.
+                </p>
+                <div class="info-tags">
+                    <span>📍 Sistemas GPS</span>
+                    <span>🌐 Enrutamiento de Redes</span>
+                    <span>🚚 Logística y Transporte</span>
+                </div>
+            </div>
+        </section>
 
-                            <section class="io-card mt-20 animate-fade-in" id="matrix-section" style="display: none;">
-                                <div class="panel-title">2. Matriz de Costos / Distancias</div>
-                                <p class="panel-subtitle">Ingrese el peso, distancia o costo de cada arista. Deje la celda vacía o con 0 si no existe una conexión directa.</p>
-                                
-                                <div class="matrix-overflow-container" id="matrix-wrapper"></div>
-                            </section>
+        <section class="io-card animate-fade-in">
+            <div class="panel-title">1. Dimensión del Modelo</div>
+            <p class="panel-subtitle">Introduzca el número total de nodos de la red para estructurar la matriz de adyacencia.</p>
+            
+            <div class="form-row-centered">
+                <div class="form-group layout-inline-input">
+                    <label class="group-label" for="node-count">Cantidad de Nodos:</label>
+                    <input type="number" id="node-count" class="form-input text-center" min="2" max="15" placeholder="Ej. 6">
+                </div>
+                <button type="button" id="btn-generate-matrix" class="btn btn-primary btn-md">Generar Matriz</button>
+            </div>
+        </section>
 
-                            <section class="io-card mt-20 animate-fade-in" id="execution-section" style="display: none;">
-                                <div class="panel-title">3. Parámetros de Ruta</div>
-                                <p class="panel-subtitle">Seleccione el nodo de origen y el nodo de destino para el cálculo de la ruta más corta.</p>
-                                
-                                <div class="form-row-grid">
-                                    <div class="form-group">
-                                        <label class="group-label" for="dijkstra-start-node">Nodo de Origen (Inicio):</label>
-                                        <select id="dijkstra-start-node" class="form-select select-large"></select>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="group-label" for="dijkstra-end-node">Nodo de Destino (Final):</label>
-                                        <select id="dijkstra-end-node" class="form-select select-large"></select>
-                                    </div>
-                                </div>
+        <section class="io-card mt-20 animate-fade-in" id="matrix-section" style="display: none;">
+            <div class="panel-title">2. Matriz de Costos / Distancias</div>
+            <p class="panel-subtitle">Ingrese el peso, distancia o costo de cada arista. Deje la celda vacía o con 0 si no existe una conexión directa.</p>
+            
+            <div class="matrix-overflow-container" id="matrix-wrapper"></div>
+        </section>
 
-                                <div class="action-buttons-group mt-20">
-                                    <button type="button" id="btn-calculate" class="btn btn-success btn-large flex-grow-2">Resolver Ruta</button>
-                                    <button type="button" id="btn-reset-all" class="btn btn-danger btn-large flex-grow-1">Reiniciar Todo</button>
-                                </div>
-                            </section>
+        <section class="io-card mt-20 animate-fade-in" id="execution-section" style="display: none;">
+            <div class="panel-title">3. Parámetros de Ruta</div>
+            <p class="panel-subtitle">Seleccione el nodo de origen y el nodo de destino para el cálculo de la ruta más corta.</p>
+            
+            <div class="form-row-grid">
+                <div class="form-group">
+                    <label class="group-label" for="dijkstra-start-node">Nodo de Origen (Inicio):</label>
+                    <select id="dijkstra-start-node" class="form-select select-large"></select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="group-label" for="dijkstra-end-node">Nodo de Destino (Final):</label>
+                    <select id="dijkstra-end-node" class="form-select select-large"></select>
+                </div>
+            </div>
 
-                            <section class="main-visualization mt-20 animate-fade-in" id="results-panel" style="display: none;">
-                                
-                                <div class="results-header">
-                                    <div class="result-title-box">
-                                        <h2>Resultados y Auditoría del Algoritmo</h2>
-                                        <p>Visualización del grafo y tabla de iteraciones de Dijkstra.</p>
-                                    </div>
-                                    <div class="action-buttons-group" style="align-items: center;">
-                                        <div class="cost-box" style="margin-left: 10px;">
-                                            <span class="cost-label">Distancia Mínima (Z)</span>
-                                            <span class="cost-value" id="total-minimum-cost">0</span>
-                                        </div>
-                                    </div>
-                                </div>
+            <div class="action-buttons-group mt-20">
+                <button type="button" id="btn-calculate" class="btn btn-success btn-large flex-grow-2">Resolver Ruta</button>
+                <button type="button" id="btn-reset-all" class="btn btn-danger btn-large flex-grow-1">Reiniciar Todo</button>
+            </div>
+        </section>
 
-                                <div class="results-content-grid">
-                                    <div class="graph-section">
-                                        <div class="graph-canvas-container">
-                                            <div id="graph-svg-container" class="svg-wrapper"></div>
-                                            <div class="floating-legend">
-                                                <h4>Leyenda del Grafo</h4>
-                                                <ul>
-                                                    <li><span class="legend-line line-path"></span><span>Ruta Óptima</span></li>
-                                                    <li><span class="legend-line line-normal"></span><span>Conexión Regular</span></li>
-                                                    <li><span class="legend-node node-start"></span><span>Nodo Origen</span></li>
-                                                    <li><span class="legend-node node-end"></span><span>Nodo Destino</span></li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
+        <section class="main-visualization mt-20 animate-fade-in" id="results-panel" style="display: none;">
+            
+            <div class="results-header">
+                <div class="result-title-box">
+                    <h2>Resultados y Auditoría del Algoritmo</h2>
+                    <p>Visualización del grafo y tabla de iteraciones de Dijkstra.</p>
+                </div>
+                <div class="action-buttons-group" style="align-items: center;">
+                    <div class="cost-box" style="margin-left: 10px;">
+                        <span class="cost-label">Distancia Mínima (Z)</span>
+                        <span class="cost-value" id="total-minimum-cost">0</span>
+                    </div>
+                </div>
+            </div>
 
-                                    <div class="table-section mt-20">
-                                        <h3>Tabla de Iteraciones</h3>
-                                        <div class="table-responsive">
-                                            <table id="dijkstra-iterations-table" class="data-table">
-                                                <thead>
-                                                    <tr id="dijkstra-table-header">
-                                                        </tr>
-                                                </thead>
-                                                <tbody id="dijkstra-table-body">
-                                                    </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
-                        </main>
-
-                        <div id="error-modal" class="modal-overlay" style="display: none;">
-                            <div class="modal-box">
-                                <h3 class="modal-title error-text">⚠️ Restricción del Modelo</h3>
-                                <p id="error-message">Ha ocurrido un error en la configuración del grafo.</p>
-                                <button id="btn-close-modal" class="btn btn-outline mt-15" type="button">Corregir Datos</button>
-                            </div>
+            <div class="results-content-grid">
+                <div class="graph-section">
+                    <div class="graph-canvas-container">
+                        <div id="graph-svg-container" class="svg-wrapper"></div>
+                        <div class="floating-legend">
+                            <h4>Leyenda del Grafo</h4>
+                            <ul>
+                                <li><span class="legend-line line-path"></span><span>Ruta Óptima</span></li>
+                                <li><span class="legend-line line-normal"></span><span>Conexión Regular</span></li>
+                                <li><span class="legend-node node-start"></span><span>Nodo Origen</span></li>
+                                <li><span class="legend-node node-end"></span><span>Nodo Destino</span></li>
+                            </ul>
                         </div>
+                    </div>
+                </div>
 
-                        <script type="module" src="/src/core/networks/dijkstra.js"></script>
-                    </body>
-                    </html>     
+                <div class="table-section mt-20">
+                    <h3>Tabla de Iteraciones</h3>
+                    <div class="table-responsive">
+                        <table id="dijkstra-iterations-table" class="data-table">
+                            <thead>
+                                <tr id="dijkstra-table-header"></tr>
+                            </thead>
+                            <tbody id="dijkstra-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="error-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <h3 class="modal-title error-text">⚠️ Restricción del Modelo</h3>
+            <p id="error-message">Ha ocurrido un error en la configuración del grafo.</p>
+            <button id="btn-close-modal" class="btn btn-outline mt-15" type="button">Corregir Datos</button>
+        </div>
+    </div>
+
+    <script type="module" src="../core/networks/dijkstra.js"></script>
+</body>
+</html>

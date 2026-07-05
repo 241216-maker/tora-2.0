@@ -13,6 +13,7 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <link rel="stylesheet" href="/src/index.css">
+    <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
 
@@ -28,131 +29,122 @@
             
             <nav class="sidebar-nav">
                 <span class="nav-label">MÓDULOS PRINCIPALES</span>
-                <ul class="nav-list">
-                    <li class="nav-item">
-                        <a href="#" class="nav-link active" id="nav-dashboard">
-                            <i class="ph ph-squares-four"></i>
-                            <span>Panel General</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" id="nav-linear">
-                            <i class="ph ph-chart-line-up"></i>
-                            <span>Programación Lineal</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" id="nav-transport">
-                            <i class="ph ph-truck"></i>
-                            <span>Modelo de Transporte</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/src/pages/dijkstra.html" class="nav-link" id="nav-networks">
-                            <i class="ph ph-graph"></i>
-                            <span>Optimización de Redes</span>
-                        </a>
-                    </li>
-                </ul>
+                <a href="#" class="nav-item active"><i class="ph ph-squares-four"></i> Dashboard General</a>
+                <a href="/src/pages/dijkstra.html" class="nav-item"><i class="ph ph-share-network"></i> Redes y Rutas</a>
+                <a href="#" class="nav-item disabled"><i class="ph ph-package"></i> Programación Lineal</a>
+                <a href="#" class="nav-item disabled"><i class="ph ph-truck"></i> Transporte y Asignación</a>
+                
+                <span class="nav-label mt-30">CONFIGURACIÓN</span>
+                <a href="#" class="nav-item" id="btn-toggle-theme"><i class="ph ph-sliders"></i> Preferencias Tech</a>
             </nav>
-            
+
             <div class="sidebar-footer">
-                <div class="version-info">
-                    <i class="ph ph-info"></i>
-                    <span>v2.0 - 4to Semestre</span>
+                <div class="system-status">
+                    <span class="status-dot online"></span>
+                    <p>Motor de Optimización Activo</p>
                 </div>
             </div>
         </aside>
 
-        <main class="main-content">
+        <div class="main-workspace-wrapper">
             
-            <header class="topbar">
-                <div class="topbar-left">
-                    <button class="icon-btn menu-toggle" id="btn-menu-toggle" aria-label="Abrir menú">
-                        <i class="ph ph-list"></i>
-                    </button>
-                    <h1 class="page-title" id="app-page-title">Panel de Control General</h1>
-                </div>
-                
-                <div class="topbar-right">
-                    <div class="status-badge">
-                        <span class="status-dot"></span>
-                        <span class="status-text">Sistema Óptimo</span>
-                    </div>
-                    
-                    <button class="icon-btn" aria-label="Notificaciones">
-                        <i class="ph ph-bell"></i>
-                    </button>
-                    
-                    <div class="user-profile">
-                        <img src="https://ui-avatars.com/api/?name=Admin+IO&background=5C2E7E&color=fff&bold=true" alt="Usuario" class="avatar">
-                    </div>
+            <header class="workspace-header">
+                <div class="welcome-box">
+                    <h1>Consola de Algoritmos</h1>
+                    <p>Selecciona un módulo matemático para iniciar el procesamiento de redes u optimización estructural.</p>
                 </div>
             </header>
 
-            <section class="content-area" id="main-app-content">
+            <div class="dashboard-grid-content">
                 
-                <div class="welcome-banner animate-fade-in">
-                    <div class="banner-text">
-                        <h2>¡Bienvenido al Entorno TORA Advanced!</h2>
-                        <p>Selecciona un módulo en el menú lateral para comenzar a formular y resolver modelos matemáticos de Investigación de Operaciones.</p>
-                    </div>
-                    <div class="banner-illustration">
-                        <i class="ph-duotone ph-math-operations"></i>
-                    </div>
-                </div>
-
-                <div class="quick-access-grid mt-20">
+                <section class="central-algorithms-zone">
+                    <h2 class="section-title">Modelos Disponibles</h2>
                     
-                    <div class="action-card animate-fade-in delay-1">
-                        <div class="card-header">
-                            <div class="card-icon linear-icon">
-                                <i class="ph ph-intersect"></i>
+                    <div class="cards-interactive-container">
+                        
+                        <div class="action-card active-card animate-fade-in">
+                            <div class="card-header">
+                                <div class="card-icon networks-icon">
+                                    <i class="ph ph-share-network"></i>
+                                </div>
+                                <span class="badge-status online">Disponible</span>
+                            </div>
+                            <div class="card-body">
+                                <h3>Dijkstra (Ruta Más Corta)</h3>
+                                <p>Cálculo iterativo automatizado empleando el Método de Taha (Etiquetas permanentes y temporales).</p>
+                            </div>
+                            <div class="card-footer">
+                                <a href="/src/algorithm_html/dijkstra.html" class="btn-card primary-glow">Ejecutar Algoritmo</a>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <h3>Método Simplex</h3>
-                            <p>Resolución gráfica y tabular para modelos de maximización y minimización.</p>
-                        </div>
-                        <div class="card-footer">
-                            <button class="btn-card outline">Próximamente</button>
-                        </div>
-                    </div>
 
-                    <div class="action-card animate-fade-in delay-2">
-                        <div class="card-header">
-                            <div class="card-icon transport-icon">
-                                <i class="ph ph-package"></i>
+                        <div class="action-card disabled-card animate-fade-in delay-1">
+                            <div class="card-header">
+                                <div class="card-icon simplex-icon">
+                                    <i class="ph ph-line-segments"></i>
+                                </div>
+                                <span class="badge-status offline">Próximamente</span>
+                            </div>
+                            <div class="card-body">
+                                <h3>Método Simplex</h3>
+                                <p>Optimización de funciones objetivo con múltiples variables de decisión y restricciones lineales estructurales.</p>
+                            </div>
+                            <div class="card-footer">
+                                <button class="btn-card locked" disabled>Bloqueado</button>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <h3>Vogel & Esquina Noroeste</h3>
-                            <p>Optimización de costos de envío y distribución logística para suministros.</p>
-                        </div>
-                        <div class="card-footer">
-                            <button class="btn-card outline">Próximamente</button>
-                        </div>
-                    </div>
 
-                    <div class="action-card active-card animate-fade-in delay-3">
-                        <div class="card-header">
-                            <div class="card-icon networks-icon">
-                                <i class="ph ph-share-network"></i>
+                        <div class="action-card disabled-card animate-fade-in delay-2">
+                            <div class="card-header">
+                                <div class="card-icon transport-icon">
+                                    <i class="ph ph-truck"></i>
+                                </div>
+                                <span class="badge-status offline">Próximamente</span>
                             </div>
-                            <span class="badge-new">Disponible</span>
+                            <div class="card-body">
+                                <h3>Esquina Noroeste y Vogel</h3>
+                                <p>Modelos de transporte logístico dirigidos a minimizar el costo total de distribución de suministros básicos.</p>
+                            </div>
+                            <div class="card-footer">
+                                <button class="btn-card locked" disabled>Bloqueado</button>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <h3>Dijkstra & Kruskal</h3>
-                            <p>Cálculo de rutas más cortas y árboles de expansión mínima (MST) en redes.</p>
+
+                    </div>
+                </section>
+
+                <aside class="right-recommendations-zone animate-fade-in">
+                    <div class="recommendation-panel-box">
+                        <div class="panel-box-header">
+                            <i class="ph-fill ph-lightbulb panel-box-icon"></i>
+                            <h3>Panel de Recomendaciones</h3>
                         </div>
-                        <div class="card-footer">
-                            <a href="/src/pages/dijkstra.html" class="btn-card primary">Acceder a Redes</a>
+                        <p class="panel-box-desc">Sugerencias inteligentes basadas en teoría de redes e Investigación de Operaciones:</p>
+                        
+                        <div class="tips-stack">
+                            <div class="tip-item">
+                                <span class="tip-number">01</span>
+                                <p><strong>¿Cuándo usar Dijkstra?</strong> Utilízalo exclusivamente en redes con costos o distancias <strong>mayores o iguales a cero</strong>. Si tienes costos negativos, se sugiere usar Bellman-Ford.</p>
+                            </div>
+                            <div class="tip-item">
+                                <span class="tip-number">02</span>
+                                <p><strong>Matriz de Adyacencia:</strong> Deja las celdas vacías o coloca un 0 si no existe una conexión directa. El sistema lo interpretará como infinito (∞) automáticamente.</p>
+                            </div>
+                            <div class="tip-item">
+                                <span class="tip-number">03</span>
+                                <p><strong>Rutas más rápidas:</strong> Para optimizar el renderizado visual de D3.js en redes masivas, ingresa un número de nodos menor a 15.</p>
+                            </div>
+                        </div>
+
+                        <div class="decorative-chart-placeholder">
+                            <div class="chart-line-glow"></div>
+                            <span>Auditoría de Redes Lista</span>
                         </div>
                     </div>
+                </aside>
 
-                </div>
-            </section>
-        </main>
+            </div>
+        </div>
     </div>
 
     <script type="module" src="/src/core/main.js"></script>

@@ -34,352 +34,392 @@ let adjMatrix = [];
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 // ==========================================
-// 3. FUNCIONES DE INTERFAZ Y EVENTOS
+// 3. GENERACIÓN DE INTERFAZ (MATRIZ)
 // ==========================================
 
-// Mostrar modal de error
-function showError(message) {
-    DOM.errorMessage.textContent = message;
-    DOM.errorModal.style.display = 'flex';
-}
-
-DOM.btnCloseModal.addEventListener('click', () => {
-    DOM.errorModal.style.display = 'none';
-});
-
-// Obtener nombre del nodo (A, B, C...)
-function getNodeName(index) {
-    return ALPHABET[index] || `N${index + 1}`;
-}
-
-// Generar Matriz
 DOM.btnGenerateMatrix.addEventListener('click', () => {
-    const count = parseInt(DOM.nodeCountInput.value);
+    numNodes = parseInt(DOM.nodeCountInput.value);
     
-    if (isNaN(count) || count < 2 || count > 15) {
-        showError("Por favor, ingrese una cantidad válida de nodos (entre 2 y 15).");
+    if (isNaN(numNodes) || numNodes < 2 || numNodes > 15) {
+        showError("Por favor, ingrese un número de nodos válido (entre 2 y 15).");
         return;
     }
-    
-    numNodes = count;
-    renderMatrix(numNodes);
-    populateSelects(numNodes);
+
+    generateMatrixUI();
+    updateSelectDropdowns();
     
     DOM.matrixSection.style.display = 'block';
     DOM.executionSection.style.display = 'block';
     DOM.resultsPanel.style.display = 'none';
 });
 
-function renderMatrix(size) {
-    DOM.matrixWrapper.innerHTML = '';
-    
-    const table = document.createElement('table');
-    table.className = 'matrix-table';
-    
-    // Header
-    const thead = document.createElement('thead');
-    const headRow = document.createElement('tr');
-    headRow.appendChild(document.createElement('th')); // Esquina vacía
-    
-    for (let i = 0; i < size; i++) {
-        const th = document.createElement('th');
-        th.textContent = getNodeName(i);
-        headRow.appendChild(th);
+function generateMatrixUI() {
+    // Cabeceras (Columnas: "A")
+    let tableHTML = '<table class="matrix-table"><thead><tr><th>De \\ A</th>';
+    for (let i = 0; i < numNodes; i++) {
+        tableHTML += `<th>${ALPHABET[i]}</th>`;
     }
-    thead.appendChild(headRow);
-    table.appendChild(thead);
-    
-    // Body
-    const tbody = document.createElement('tbody');
-    for (let i = 0; i < size; i++) {
-        const row = document.createElement('tr');
-        
-        const rowHeader = document.createElement('th');
-        rowHeader.textContent = getNodeName(i);
-        row.appendChild(rowHeader);
-        
-        for (let j = 0; j < size; j++) {
-            const td = document.createElement('td');
-            const input = document.createElement('input');
-            input.type = 'number';
-            input.min = '0';
-            input.className = 'matrix-input';
-            input.id = `cell-${i}-${j}`;
-            
+    tableHTML += '</tr></thead><tbody>';
+
+    // Filas (Cabeceras: "De")
+    for (let i = 0; i < numNodes; i++) {
+        tableHTML += `<tr><th>${ALPHABET[i]}</th>`;
+        for (let j = 0; j < numNodes; j++) {
             if (i === j) {
-                input.value = '0';
-                input.disabled = true;
+                tableHTML += `<td><input type="text" class="matrix-input" disabled value="0"></td>`;
+            } else {
+                tableHTML += `<td><input type="number" class="matrix-input" id="cell-${i}-${j}" min="0" placeholder="-"></td>`;
             }
-            
-            td.appendChild(input);
-            row.appendChild(td);
         }
-        tbody.appendChild(row);
+        tableHTML += '</tr>';
     }
-    table.appendChild(tbody);
-    DOM.matrixWrapper.appendChild(table);
+    tableHTML += '</tbody></table>';
+    
+    DOM.matrixWrapper.innerHTML = tableHTML;
 }
 
-function populateSelects(size) {
+function updateSelectDropdowns() {
     DOM.startNodeSelect.innerHTML = '';
     DOM.endNodeSelect.innerHTML = '';
     
-    for (let i = 0; i < size; i++) {
+    for (let i = 0; i < numNodes; i++) {
         const option1 = document.createElement('option');
-        option1.value = i.toString();
-        option1.textContent = `Nodo ${getNodeName(i)}`;
+        option1.value = i;
+        option1.text = `Nodo ${ALPHABET[i]}`;
+        DOM.startNodeSelect.appendChild(option1);
         
         const option2 = document.createElement('option');
-        option2.value = i.toString();
-        option2.textContent = `Nodo ${getNodeName(i)}`;
-        
-        DOM.startNodeSelect.appendChild(option1);
+        option2.value = i;
+        option2.text = `Nodo ${ALPHABET[i]}`;
         DOM.endNodeSelect.appendChild(option2);
     }
-    
     // Seleccionar el último nodo por defecto para el destino
-    if (size > 1) {
-        DOM.endNodeSelect.value = (size - 1).toString();
-    }
+    DOM.endNodeSelect.value = numNodes - 1;
 }
 
-// Extraer datos de la matriz HTML a un array 2D
 function extractMatrix() {
     adjMatrix = [];
     for (let i = 0; i < numNodes; i++) {
-        const row = [];
+        let row = [];
         for (let j = 0; j < numNodes; j++) {
             if (i === j) {
                 row.push(0);
-                continue;
-            }
-            const input = document.getElementById(`cell-${i}-${j}`);
-            const val = parseFloat(input.value);
-            
-            if (isNaN(val) || val <= 0) {
-                row.push(null); // null representa que no hay conexión directa (infinito)
             } else {
-                row.push(val);
+                const cellValue = document.getElementById(`cell-${i}-${j}`).value;
+                row.push(cellValue === "" ? Infinity : parseFloat(cellValue));
             }
         }
         adjMatrix.push(row);
     }
-    return true;
 }
 
 // ==========================================
-// 4. LÓGICA DEL ALGORITMO DE DIJKSTRA
+// 4. LÓGICA DEL ALGORITMO (MÉTODO TAHA)
 // ==========================================
+
 function solveDijkstra(matrix, start, end) {
-    const distances = new Array(numNodes).fill(Infinity);
-    const previous = new Array(numNodes).fill(null);
-    const unvisited = new Set([...Array(numNodes).keys()]);
-    const iterations = [];
+    let dist = Array(numNodes).fill(Infinity);
+    let pred = Array(numNodes).fill(null);
+    let perm = Array(numNodes).fill(false); // Nodos permanentes
     
-    distances[start] = 0;
-    let step = 1;
+    dist[start] = 0;
+    let iterations = [];
 
-    while (unvisited.size > 0) {
-        // Encontrar el nodo no visitado con la distancia mínima
-        let currentNode = null;
-        let minDistance = Infinity;
-        
-        unvisited.forEach(node => {
-            if (distances[node] < minDistance) {
-                minDistance = distances[node];
-                currentNode = node;
+    for (let step = 0; step < numNodes; step++) {
+        // Encontrar el nodo no permanente con la menor distancia
+        let u = -1;
+        let minDist = Infinity;
+        for (let i = 0; i < numNodes; i++) {
+            if (!perm[i] && dist[i] < minDist) {
+                minDist = dist[i];
+                u = i;
             }
-        });
-        
-        // Si no hay nodos alcanzables o llegamos al destino, terminamos la iteración principal
-        if (currentNode === null) break;
+        }
 
-        // Registrar estado actual para la tabla
-        iterations.push({
-            step: step++,
-            currentNode: currentNode,
-            distances: [...distances],
-            unvisited: Array.from(unvisited)
-        });
+        if (u === -1) break; // Nodos restantes son inalcanzables
 
-        unvisited.delete(currentNode);
-        
-        if (currentNode === end) break;
-        
+        perm[u] = true;
+
+        // Registrar el estado actual para la tabla
+        let currentState = {
+            selected: u,
+            labels: dist.map((d, idx) => ({
+                dist: d,
+                pred: pred[idx],
+                isPerm: perm[idx],
+                justBecamePerm: idx === u // Para resaltarlo en esta iteración
+            }))
+        };
+
         // Actualizar vecinos
-        for (let neighbor = 0; neighbor < numNodes; neighbor++) {
-            const weight = matrix[currentNode][neighbor];
-            if (weight !== null && unvisited.has(neighbor)) {
-                const altPath = distances[currentNode] + weight;
-                if (altPath < distances[neighbor]) {
-                    distances[neighbor] = altPath;
-                    previous[neighbor] = currentNode;
+        for (let v = 0; v < numNodes; v++) {
+            if (matrix[u][v] !== Infinity && matrix[u][v] > 0 && !perm[v]) {
+                if (dist[u] + matrix[u][v] < dist[v]) {
+                    dist[v] = dist[u] + matrix[u][v];
+                    pred[v] = u;
                 }
             }
         }
+        
+        iterations.push(currentState);
+        if (u === end) break; // Terminar si llegamos al destino
+    }
+
+    // Reconstruir la ruta óptima
+    let path = [];
+    let curr = end;
+    while (curr !== null && curr !== start) {
+        path.unshift(curr);
+        curr = pred[curr];
     }
     
-    // Reconstruir la ruta más corta
-    const path = [];
-    let current = end; 
-    
-    if (distances[end] !== Infinity) {
-        while (current !== null) {
-            path.unshift(current);
-            if (current === start) {
-                break;
-            }
-            current = previous[current]; 
-        }
+    if (curr === start) {
+        path.unshift(start);
+    } else {
+        path = []; // No hay ruta
     }
-    
-    return {
-        path,
-        totalDistance: distances[end],
-        iterations
+
+    return { 
+        totalDistance: dist[end], 
+        path: path, 
+        iterations: iterations,
+        finalLabels: dist.map((d, i) => ({ dist: d, pred: pred[i] }))
     };
 }
 
 // ==========================================
-// 5. VISUALIZACIÓN DE TABLA Y GRÁFICOS
+// 5. RENDERIZADO DE TABLA (FORMATO TAHA)
 // ==========================================
 
 function buildTable(iterations) {
-    // Limpiar tabla
-    DOM.tableHeader.innerHTML = '<th>Paso</th><th>Nodo Actual</th>';
+    // Cabecera: Iteración + Nodos
+    DOM.tableHeader.innerHTML = '<th>Iteración (Nodo Seleccionado)</th>';
     for (let i = 0; i < numNodes; i++) {
-        DOM.tableHeader.innerHTML += `<th>D(${getNodeName(i)})</th>`;
+        DOM.tableHeader.innerHTML += `<th>${ALPHABET[i]}</th>`;
     }
-    DOM.tableHeader.innerHTML += '<th>Nodos Restantes</th>';
-    
+
     DOM.tableBody.innerHTML = '';
-    
-    iterations.forEach(iter => {
+
+    iterations.forEach((iter, index) => {
         const tr = document.createElement('tr');
         
-        let rowHtml = `
-            <td>${iter.step}</td>
-            <td><strong>${getNodeName(iter.currentNode)}</strong></td>
-        `;
-        
-        iter.distances.forEach(dist => {
-            const displayDist = dist === Infinity ? '∞' : dist;
-            rowHtml += `<td>${displayDist}</td>`;
+        // Celda de iteración
+        const tdIter = document.createElement('td');
+        tdIter.innerHTML = `<strong>Paso ${index + 1} (Nodo ${ALPHABET[iter.selected]})</strong>`;
+        tr.appendChild(tdIter);
+
+        // Celdas de nodos
+        iter.labels.forEach((label, i) => {
+            const td = document.createElement('td');
+            
+            let distText = label.dist === Infinity ? '∞' : label.dist;
+            let predText = label.pred === null ? '-' : ALPHABET[label.pred];
+            
+            // Formato [Distancia, Predecesor]
+            let cellContent = `[${distText}, ${predText}]`;
+
+            if (label.justBecamePerm) {
+                td.innerHTML = `<span style="background-color: var(--color-light-blue); padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid var(--color-mid-blue);">${cellContent}</span>`;
+            } else if (label.isPerm) {
+                td.innerHTML = `<strong>${cellContent}</strong>`;
+                td.style.color = "var(--text-muted)";
+            } else {
+                td.textContent = cellContent;
+            }
+            
+            tr.appendChild(td);
         });
         
-        const unvisitedStr = iter.unvisited.map(getNodeName).join(', ');
-        rowHtml += `<td>{ ${unvisitedStr} }</td>`;
-        
-        tr.innerHTML = rowHtml;
         DOM.tableBody.appendChild(tr);
     });
 }
 
+// ==========================================
+// 6. RENDERIZADO DEL GRAFO (D3.JS CON FLECHAS)
+// ==========================================
+
 function drawGraph(matrix, result, startNode, endNode) {
     DOM.svgContainer.innerHTML = '';
     
-    const width = DOM.svgContainer.clientWidth || 600;
-    const height = DOM.svgContainer.clientHeight || 400;
-    const radius = 20;
+    const width = DOM.svgContainer.clientWidth || 800;
+    const height = DOM.svgContainer.clientHeight || 450;
     
-    const svg = d3.select('#graph-svg-container')
-        .append('svg')
-        .attr('width', '100%')
-        .attr('height', '100%')
-        .attr('viewBox', `0 0 ${width} ${height}`);
+    const svg = d3.select("#graph-svg-container")
+        .append("svg")
+        .attr("width", "100%")
+        .attr("height", "100%")
+        .attr("viewBox", `0 0 ${width} ${height}`);
 
-    // Disposición Circular
-    const nodesData = Array.from({ length: numNodes }, (_, i) => {
-        const angle = (i / numNodes) * 2 * Math.PI - Math.PI / 2;
-        return {
-            id: i,
-            name: getNodeName(i),
-            x: width / 2 + (width / 3) * Math.cos(angle),
-            y: height / 2 + (height / 3) * Math.sin(angle)
-        };
-    });
+    // Definir marcadores (Flechas)
+    const defs = svg.append("defs");
+    
+    // Flecha normal
+    defs.append("marker")
+        .attr("id", "arrow-normal")
+        .attr("viewBox", "0 -5 10 10")
+        .attr("refX", 22) // Ajustado al borde del nodo
+        .attr("refY", 0)
+        .attr("markerWidth", 6)
+        .attr("markerHeight", 6)
+        .attr("orient", "auto")
+        .append("path")
+        .attr("d", "M0,-5L10,0L0,5")
+        .attr("fill", "#CBD5E1");
 
-    const linksData = [];
-    // Convertir matriz a links
+    // Flecha ruta óptima (ROJA)
+    defs.append("marker")
+        .attr("id", "arrow-path")
+        .attr("viewBox", "0 -5 10 10")
+        .attr("refX", 22)
+        .attr("refY", 0)
+        .attr("markerWidth", 6)
+        .attr("markerHeight", 6)
+        .attr("orient", "auto")
+        .append("path")
+        .attr("d", "M0,-5L10,0L0,5")
+        .attr("fill", "var(--color-danger)");
+
+    let nodesData = [];
+    let linksData = [];
+
+    // Nodos
+    for (let i = 0; i < numNodes; i++) {
+        nodesData.push({ id: i, name: ALPHABET[i] });
+    }
+
+    // Aristas (Grafos dirigidos)
+    const pathEdges = new Set();
+    if (result.path.length > 0) {
+        for (let i = 0; i < result.path.length - 1; i++) {
+            pathEdges.add(`${result.path[i]}-${result.path[i+1]}`);
+        }
+    }
+
     for (let i = 0; i < numNodes; i++) {
         for (let j = 0; j < numNodes; j++) {
-            if (matrix[i][j] !== null && i !== j) {
-                // Verificar si pertenece a la ruta óptima
-                let isPath = false;
-                for (let k = 0; k < result.path.length - 1; k++) {
-                    if (result.path[k] === i && result.path[k + 1] === j) {
-                        isPath = true;
-                        break;
-                    }
-                }
-                
+            if (matrix[i][j] !== Infinity && matrix[i][j] > 0) {
+                const isOptimal = pathEdges.has(`${i}-${j}`);
                 linksData.push({
-                    source: nodesData[i],
-                    target: nodesData[j],
+                    source: i,
+                    target: j,
                     weight: matrix[i][j],
-                    isPath: isPath
+                    isOptimal: isOptimal
                 });
             }
         }
     }
 
-    // Dibujar enlaces (líneas)
-    const link = svg.selectAll('.link')
+    const simulation = d3.forceSimulation(nodesData)
+        .force("link", d3.forceLink(linksData).id(d => d.id).distance(120))
+        .force("charge", d3.forceManyBody().strength(-800))
+        .force("center", d3.forceCenter(width / 2, height / 2));
+
+    // Dibujar líneas (Aristas)
+    const link = svg.append("g")
+        .selectAll("path")
         .data(linksData)
         .enter()
-        .append('line')
-        .attr('class', (d) => d.isPath ? 'graph-link path-link' : 'graph-link normal-link')
-        .attr('x1', (d) => d.source.x)
-        .attr('y1', (d) => d.source.y)
-        .attr('x2', (d) => d.target.x)
-        .attr('y2', (d) => d.target.y)
-        .style('stroke', (d) => d.isPath ? '#10B981' : '#CBD5E1')
-        .style('stroke-width', (d) => d.isPath ? 4 : 2)
-        .attr('marker-end', (d) => d.isPath ? 'url(#arrow-path)' : 'url(#arrow-normal)');
+        .append("path")
+        .attr("fill", "none")
+        .attr("stroke", d => d.isOptimal ? "var(--color-danger)" : "#CBD5E1") // Ruta óptima en ROJO
+        .attr("stroke-width", d => d.isOptimal ? 4 : 2)
+        .attr("marker-end", d => d.isOptimal ? "url(#arrow-path)" : "url(#arrow-normal)");
 
     // Textos de los pesos
-    svg.selectAll('.weight-text')
+    const linkText = svg.append("g")
+        .selectAll("text")
         .data(linksData)
         .enter()
-        .append('text')
-        .attr('x', (d) => (d.source.x + d.target.x) / 2)
-        .attr('y', (d) => (d.source.y + d.target.y) / 2 - 5)
-        .attr('text-anchor', 'middle')
-        .style('fill', (d) => d.isPath ? '#047857' : '#64748B')
-        .style('font-weight', (d) => d.isPath ? 'bold' : 'normal')
-        .style('font-size', '12px')
-        .text((d) => d.weight);
+        .append("text")
+        .attr("font-size", "12px")
+        .attr("fill", d => d.isOptimal ? "var(--color-danger)" : "#6B7280")
+        .attr("font-weight", d => d.isOptimal ? "bold" : "normal")
+        .attr("dy", -5)
+        .text(d => d.weight);
 
-    // Dibujar Nodos
-    const node = svg.selectAll('.node')
+    // Grupos de nodos
+    const node = svg.append("g")
+        .selectAll("g")
         .data(nodesData)
         .enter()
-        .append('g')
-        .attr('class', 'node')
-        .attr('transform', (d) => `translate(${d.x},${d.y})`);
+        .append("g")
+        .call(d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended));
 
-    node.append('circle')
-        .attr('r', radius)
-        .style('fill', (d) => {
-            if (d.id === startNode) return '#3B82F6'; // Origen Azul
-            if (d.id === endNode) return '#EF4444'; // Destino Rojo
-            if (result.path.includes(d.id)) return '#10B981'; // Ruta Verde
-            return '#F8FAFC';
+    // Círculos
+    node.append("circle")
+        .attr("r", 18)
+        .attr("fill", d => {
+            if (d.id === startNode) return "#3B82F6"; // Origen
+            if (d.id === endNode) return "var(--color-danger)"; // Destino
+            if (result.path.includes(d.id)) return "var(--color-danger)"; // Nodos intermedios ruta
+            return "#FFFFFF";
         })
-        .style('stroke', '#475569')
-        .style('stroke-width', 2);
+        .attr("stroke", d => result.path.includes(d.id) ? "var(--color-danger)" : "var(--color-mid-blue)")
+        .attr("stroke-width", 3);
 
-    node.append('text')
-        .attr('dy', 5)
-        .attr('text-anchor', 'middle')
-        .style('fill', (d) => (d.id === startNode || d.id === endNode || result.path.includes(d.id)) ? '#FFFFFF' : '#1E293B')
-        .style('font-weight', 'bold')
-        .style('font-family', 'Inter, sans-serif')
-        .text((d) => d.name);
+    // Letra del nodo (A, B, C...)
+    node.append("text")
+        .attr("dy", 5)
+        .attr("text-anchor", "middle")
+        .attr("fill", d => (d.id === startNode || result.path.includes(d.id)) ? '#FFFFFF' : '#1E293B')
+        .attr("font-weight", "bold")
+        .text(d => d.name);
+
+    // Etiquetas Taha [Distancia, Predecesor] flotando al lado del nodo
+    node.append("text")
+        .attr("dx", 22)
+        .attr("dy", -15)
+        .attr("font-size", "11px")
+        .attr("font-weight", "bold")
+        .attr("fill", "var(--color-purple)")
+        .text(d => {
+            let info = result.finalLabels[d.id];
+            if (!info || info.dist === Infinity) return "";
+            let pName = info.pred === null ? "-" : ALPHABET[info.pred];
+            return `[${info.dist}, ${pName}]`;
+        });
+
+    simulation.on("tick", () => {
+        // Actualizar aristas (curvas ligeras para grafos bidireccionales, rectas para unidireccionales)
+        link.attr("d", d => {
+            const dx = d.target.x - d.source.x;
+            const dy = d.target.y - d.source.y;
+            const dr = Math.sqrt(dx * dx + dy * dy) * 2; // Ligera curva
+            return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
+        });
+
+        // Actualizar posición de pesos
+        linkText
+            .attr("x", d => (d.source.x + d.target.x) / 2)
+            .attr("y", d => (d.source.y + d.target.y) / 2);
+
+        // Actualizar posición de nodos
+        node.attr("transform", d => `translate(${d.x},${d.y})`);
+    });
+
+    function dragstarted(event, d) {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+    }
+
+    function dragged(event, d) {
+        d.fx = event.x;
+        d.fy = event.y;
+    }
+
+    function dragended(event, d) {
+        if (!event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+    }
 }
 
 // ==========================================
-// 6. EVENTOS PRINCIPALES
+// 7. EVENTOS PRINCIPALES (BOTONES)
 // ==========================================
 
 DOM.btnCalculate.addEventListener('click', () => {
@@ -395,7 +435,7 @@ DOM.btnCalculate.addEventListener('click', () => {
     const result = solveDijkstra(adjMatrix, startNode, endNode);
     
     if (result.totalDistance === Infinity) {
-        showError("No existe una ruta posible entre el nodo de origen y el destino.");
+        showError("No existe una ruta posible (dirigida) entre el origen y el destino.");
         return;
     }
     
@@ -405,8 +445,6 @@ DOM.btnCalculate.addEventListener('click', () => {
     drawGraph(adjMatrix, result, startNode, endNode);
     
     DOM.resultsPanel.style.display = 'block';
-    
-    // Desplazarse suavemente a los resultados
     DOM.resultsPanel.scrollIntoView({ behavior: 'smooth' });
 });
 
@@ -415,6 +453,15 @@ DOM.btnResetAll.addEventListener('click', () => {
     DOM.matrixSection.style.display = 'none';
     DOM.executionSection.style.display = 'none';
     DOM.resultsPanel.style.display = 'none';
-    numNodes = 0;
     adjMatrix = [];
+    numNodes = 0;
 });
+
+DOM.btnCloseModal.addEventListener('click', () => {
+    DOM.errorModal.style.display = 'none';
+});
+
+function showError(message) {
+    DOM.errorMessage.textContent = message;
+    DOM.errorModal.style.display = 'flex';
+}
