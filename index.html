@@ -27,16 +27,30 @@
                 </div>
             </div>
             
-            <nav class="sidebar-nav">
+                <nav class="sidebar-nav">
                 <span class="nav-label">MÓDULOS PRINCIPALES</span>
-                <a href="#" class="nav-item active"><i class="ph ph-squares-four"></i> Dashboard General</a>
-                <a href="/src/pages/dijkstra.html" class="nav-item"><i class="ph ph-share-network"></i> Redes y Rutas</a>
+                
+                <a href="/index.html" class="nav-item"><i class="ph ph-squares-four"></i> Dashboard General</a>
+                
+                <div class="nav-group">
+                    <div class="nav-item active-group">
+                        <i class="ph ph-share-network"></i> Redes y Rutas
+                    </div>
+                    <div class="sub-nav">
+                        <a href="/src/algorithm_html/dijkstra.html" class="sub-nav-item active">Dijkstra (Ruta Corta)</a>
+                        <a href="#" class="sub-nav-item">Bellman-Ford</a>
+                        <a href="#" class="sub-nav-item">Árbol de Expansión (Kruskal)</a>
+                        <a href="#" class="sub-nav-item">Flujo Máximo</a>
+                    </div>
+                </div>
+
                 <a href="#" class="nav-item disabled"><i class="ph ph-package"></i> Programación Lineal</a>
                 <a href="#" class="nav-item disabled"><i class="ph ph-truck"></i> Transporte y Asignación</a>
                 
                 <span class="nav-label mt-30">CONFIGURACIÓN</span>
                 <a href="#" class="nav-item" id="btn-toggle-theme"><i class="ph ph-sliders"></i> Preferencias Tech</a>
             </nav>
+
 
             <div class="sidebar-footer">
                 <div class="system-status">

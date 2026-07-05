@@ -227,3 +227,24 @@ body {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
 }
+/* =========================================================
+   SUBMENÚ LATERAL (REDES Y RUTAS)
+   ========================================================= */
+.nav-group { display: flex; flex-direction: column; }
+.active-group { color: var(--color-accent-1); font-weight: 600; }
+.sub-nav {
+    display: flex; flex-direction: column; gap: 4px;
+    margin-left: 34px; /* Lo empuja a la derecha para que parezca un subnivel */
+    margin-top: 5px; margin-bottom: 10px;
+    border-left: 1px solid var(--border-color);
+    padding-left: 12px;
+}
+.sub-nav-item {
+    font-size: 12.5px; color: var(--text-muted); text-decoration: none;
+    padding: 8px 10px; border-radius: 6px; transition: all 0.2s;
+}
+.sub-nav-item:hover { color: #fff; background: rgba(255,255,255,0.03); }
+.sub-nav-item.active {
+    color: var(--color-accent-1); font-weight: 600;
+    background: rgba(83, 224, 220, 0.05);
+}
