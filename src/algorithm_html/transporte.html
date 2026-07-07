@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TORA Advanced - Modelo de Transporte</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans antialiased text-slate-800">
+
+  <div id="main-app-content" class="p-6 max-w-7xl mx-auto">
+    </div>
+
+  <script type="module">
+    import { cargarModuloTransporte } from '../core/transport/transporte.js';
+    // Ejecución inmediata al cargar el archivo
+    document.addEventListener('DOMContentLoaded', () => {
+      cargarModuloTransporte();
+    });
+  </script>
+</body>
+</html>
