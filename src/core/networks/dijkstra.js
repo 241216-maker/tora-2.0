@@ -118,72 +118,92 @@ function extractMatrix() {
 // ==========================================
 
 function solveDijkstra(matrix, start, end) {
-    let dist = Array(numNodes).fill(Infinity);
-    let pred = Array(numNodes).fill(null);
-    let perm = Array(numNodes).fill(false); // Nodos permanentes
+    // 1. INICIALIZACIÓN DE VARIABLES
+    // Creamos arreglos del tamaño del total de nodos
+    let dist = Array(numNodes).fill(Infinity); // Todas las distancias iniciales son infinitas
+    let pred = Array(numNodes).fill(null);     // Nadie tiene un nodo predecesor al inicio
+    let perm = Array(numNodes).fill(false);    // Ningún nodo es permanente/visitado aún
     
+    // La distancia del nodo origen a sí mismo siempre es 0
     dist[start] = 0;
-    let iterations = [];
+    let iterations = []; // Almacenará el historial de cada paso para pintar la tabla en la interfaz
 
+    // 2. BUCLE PRINCIPAL (Se ejecuta una vez por cada nodo del grafo)
     for (let step = 0; step < numNodes; step++) {
-        // Encontrar el nodo no permanente con la menor distancia
+        
+        // PARTE A: Buscar el nodo no permanente con la menor distancia acumulada
         let u = -1;
         let minDist = Infinity;
         for (let i = 0; i < numNodes; i++) {
+            // Si el nodo 'i' no es permanente y su distancia es menor a la mínima encontrada...
             if (!perm[i] && dist[i] < minDist) {
-                minDist = dist[i];
-                u = i;
+                minDist = dist[i]; // Actualizamos la distancia mínima temporal
+                u = i;             // Guardamos el índice del nodo ganador
             }
         }
 
-        if (u === -1) break; // Nodos restantes son inalcanzables
+        // Si 'u' sigue siendo -1, significa que los nodos restantes son inalcanzables. Rompemos el ciclo.
+        if (u === -1) break; 
 
+        // Marcamos el nodo elegido 'u' como PERMANENTE (su distancia ya es la óptima final)
         perm[u] = true;
 
-        // Registrar el estado actual para la tabla
+        // REGISTRO DE ESTADO: Guardamos una foto de este momento para renderizarla en la UI
         let currentState = {
             selected: u,
             labels: dist.map((d, idx) => ({
                 dist: d,
                 pred: pred[idx],
                 isPerm: perm[idx],
-                justBecamePerm: idx === u // Para resaltarlo en esta iteración
+                justBecamePerm: idx === u 
             }))
         };
 
-        // Actualizar vecinos
+        // PARTE B: RELAJACIÓN DE ARISTAS (Actualizar los costos de los vecinos del nodo 'u')
         for (let v = 0; v < numNodes; v++) {
+            // Verificamos tres condiciones indispensables:
+            // 1. Que exista conexión directa en la matriz (distinta a Infinity)
+            // 2. Que el costo de la conexión sea mayor a 0 (evita ciclos sobre sí mismo)
+            // 3. Que el vecino 'v' no sea ya permanente
             if (matrix[u][v] !== Infinity && matrix[u][v] > 0 && !perm[v]) {
+                
+                // Evaluamos: ¿El camino actual (distancia a 'u' + peso hacia 'v') es más corto que el que ya conocíamos para 'v'?
                 if (dist[u] + matrix[u][v] < dist[v]) {
-                    dist[v] = dist[u] + matrix[u][v];
-                    pred[v] = u;
+                    dist[v] = dist[u] + matrix[u][v]; // Actualizamos con el nuevo costo menor
+                    pred[v] = u;                      // Guardamos que a 'v' se llega de forma óptima pasando por 'u'
                 }
             }
         }
         
-        iterations.push(currentState);
-        if (u === end) break; // Terminar si llegamos al destino
+        iterations.push(currentState); // Guardamos la iteración procesada
+        
+        // Optimización: Si el nodo que acabamos de hacer permanente es nuestro destino, terminamos antes.
+        if (u === end) break; 
     }
 
-    // Reconstruir la ruta óptima
+    // 3. RECONSTRUCCIÓN DE LA RUTA ÓPTIMA (Caminata hacia atrás)
     let path = [];
-    let curr = end;
+    let curr = end; // Empezamos desde el nodo final
+    
+    // Mientras el nodo actual tenga un predecesor y no hayamos regresado al origen...
     while (curr !== null && curr !== start) {
-        path.unshift(curr);
-        curr = pred[curr];
+        path.unshift(curr); // Insertamos el nodo al inicio del arreglo para mantener el orden correcto
+        curr = pred[curr];  // Saltamos al predecesor
     }
     
+    // Si logramos conectar de vuelta con el inicio, agregamos el origen y la ruta es válida
     if (curr === start) {
         path.unshift(start);
     } else {
-        path = []; // No hay ruta
+        path = []; // Si no conecta con el origen, significa que no existe ninguna ruta válida
     }
 
+    // Retornamos un objeto estructurado con todos los datos calculados
     return { 
-        totalDistance: dist[end], 
-        path: path, 
-        iterations: iterations,
-        finalLabels: dist.map((d, i) => ({ dist: d, pred: pred[i] }))
+        totalDistance: dist[end], // El costo total mínimo hacia el destino
+        path: path,               // El arreglo con la secuencia de nodos de la ruta
+        iterations: iterations,   // El historial paso a paso para la tabla dinámica
+        finalLabels: dist.map((d, i) => ({ dist: d, pred: pred[i] })) // Etiquetas finales de control
     };
 }
 
