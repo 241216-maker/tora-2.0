@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo de Redes: Mínima Expansión</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+
+    <link rel="stylesheet" href="../styles/Minima_Expancion.css">
+</head>
+<body>
+
+    <header class="app-header">
+        <h1 class="main-title">Módulo de Redes: Mínima Expansión</h1>
+        <p class="sub-title">Algoritmo para conectar todos los nodos optimizando la distancia o costo total</p>
+    </header>
+    <nav class="submodule-nav" style="display:flex; flex-wrap:wrap; gap:0.75rem; padding:0 20px 16px;">
+        <a href="./CPM.html" style="padding:8px 14px; border-radius:999px; background:#5b3ce6; color:#fff; text-decoration:none; font-size:0.95rem;">CPM</a>
+        <a href="./dijkstra.html" style="padding:8px 14px; border-radius:999px; background:#5b3ce6; color:#fff; text-decoration:none; font-size:0.95rem;">Dijkstra</a>
+        <a href="./Minima_Expancion.html" style="padding:8px 14px; border-radius:999px; background:#00f0ff; color:#12111c; text-decoration:none; font-size:0.95rem;">Mínima Expansión</a>
+        <a href="./FlujoMaximo.html" style="padding:8px 14px; border-radius:999px; background:#5b3ce6; color:#fff; text-decoration:none; font-size:0.95rem;">Flujo Máximo</a>
+    </nav>
+
+    <main class="dashboard-container">
+        <div class="left-column">
+            <section class="cpm-card">
+                <h2 class="card-title">1. Registrar Conexión (Arista)</h2>
+                <div class="form-group">
+                    <label>Nodo Origen:</label>
+                    <input type="text" id="edge-source" placeholder="Ej. A o Nodo1">
+                </div>
+                <div class="form-group">
+                    <label>Nodo Destino:</label>
+                    <input type="text" id="edge-target" placeholder="Ej. B o Nodo2">
+                </div>
+                <div class="form-group">
+                    <label>Peso / Distancia / Costo:</label>
+                    <input type="number" id="edge-weight" min="1" placeholder="Ej. 15">
+                </div>
+                <button type="button" id="btn-add-edge" class="btn btn-purple">Añadir Conexión</button>
+            </section>
+
+            <section class="cpm-card mt-20">
+                <h2 class="card-title">2. Resolver Árbol de Mínima Expansión</h2>
+                <p class="card-instruction">Calcula las conexiones óptimas que unen todos los puntos con el menor peso total posible.</p>
+                <button type="button" id="btn-calculate-mst" class="btn btn-neon-blue">Calcular Mínima Expansión</button>
+            </section>
+            
+            <section class="cpm-card mt-20">
+                <h2 class="card-title">Conexiones Registradas</h2>
+                <div id="edges-live-list" class="live-list-box">
+                    <p class="empty-notice">No hay conexiones en cola. Añade datos arriba.</p>
+                </div>
+            </section>
+        </div>
+
+        <div class="right-column">
+            <section class="visualization-card">
+                <h2 class="card-title">Visualización del Árbol (MST)</h2>
+                <div class="canvas-wrapper">
+                    <div id="network-svg-container"></div>
+                </div>
+            </section>
+
+            <section class="cpm-card mt-20" id="results-panel" style="display: none;">
+                <h2 class="card-title">Resultados de la Optimización</h2>
+                <div class="results-layout">
+                    <div class="results-text-block">
+                        <h3>Conexiones que forman el Árbol Óptimo</h3>
+                        <div id="mst-path-output" class="critical-output-box"></div>
+                    </div>
+                    <div class="metrics-sidebar">
+                        <div class="metric-box bg-blue-glow">
+                            <span class="metric-label">Costo/Distancia Total</span>
+                            <span id="metric-total-weight" class="metric-value">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="graph-legend">
+                    <div class="legend-item"><span class="legend-line line-normal"></span> Descartada (Morado)</div>
+                    <div class="legend-item"><span class="legend-line line-critical"></span> Incluida en Mínima Expansión (Azul Neblina)</div>
+                    <div class="legend-item"><span class="legend-node node-normal"></span> Nodo de la Red</div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="../core/networks/Minima_Expancion.js"></script>
+</body>
+</html>

@@ -1,7 +1,9 @@
 // ==========================================
 // 1. ELEMENTOS DEL DOM
 // ==========================================
-const DOM = {
+//Le indican al navegador que es un documento web moderno 
+// (HTML5) y que su contenido está en español.
+const DOM = {//
     get nodeCountInput() { return document.getElementById('node-count'); },
     get btnGenerateMatrix() { return document.getElementById('btn-generate-matrix'); },
     

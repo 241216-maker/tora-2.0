@@ -12,7 +12,7 @@
     
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <link rel="stylesheet" href="/src/index.css">
+    <link rel="stylesheet" href="./src/index.css">
 </head>
 <body>
 
@@ -48,9 +48,9 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/src/pages/dijkstra.html" class="nav-link" id="nav-networks">
+                        <a href="./src/algorithm_html/CPM.html" class="nav-link" id="nav-networks">
                             <i class="ph ph-graph"></i>
-                            <span>Optimización de Redes</span>
+                            <span>CPM - Ruta Crítica</span>
                         </a>
                     </li>
                 </ul>
@@ -144,9 +144,15 @@
                         <div class="card-body">
                             <h3>Dijkstra & Kruskal</h3>
                             <p>Cálculo de rutas más cortas y árboles de expansión mínima (MST) en redes.</p>
+                            <div class="network-links-grid" style="display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; margin-top:16px;">
+                                <a href="./src/algorithm_html/CPM.html" class="btn-card primary">CPM</a>
+                                <a href="./src/algorithm_html/dijkstra.html" class="btn-card primary">Dijkstra</a>
+                                <a href="./src/algorithm_html/Minima_Expancion.html" class="btn-card primary">Mínima Expansión</a>
+                                <a href="./src/algorithm_html/FlujoMaximo.html" class="btn-card primary">Flujo Máximo</a>
+                            </div>
                         </div>
                         <div class="card-footer">
-                            <a href="/src/pages/dijkstra.html" class="btn-card primary">Acceder a Redes</a>
+                            <a href="./src/algorithm_html/CPM.html" class="btn-card primary">Acceder a CPM</a>
                         </div>
                     </div>
 
@@ -155,6 +161,5 @@
         </main>
     </div>
 
-    <script type="module" src="/src/main.js"></script>
 </body>
 </html>

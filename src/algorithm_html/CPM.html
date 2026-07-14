@@ -1,51 +1,101 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TORA - Algoritmo CPM</title>
-  
-  <link rel="stylesheet" href="../styles/CPM.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo de Redes: Algoritmo CPM</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+
+    <link rel="stylesheet" href="../styles/CPM.css">
 </head>
 <body>
 
-  <div class="container">
-    
-    <header>
-      <h1>Módulo de Redes: Algoritmo CPM</h1>
-      <p>Método de la Ruta Crítica para la Gestión de Proyectos</p>
+    <header class="app-header">
+        <h1 class="main-title">Módulo de Redes: Algoritmo CPM</h1>
+        <p class="sub-title">Método de la Ruta Crítica para la Gestión Estructurada de Proyectos</p>
     </header>
+    <nav class="submodule-nav" style="display:flex; flex-wrap:wrap; gap:0.75rem; padding:0 20px 16px;">
+        <a href="./CPM.html" style="padding:8px 14px; border-radius:999px; background:#00f0ff; color:#12111c; text-decoration:none; font-size:0.95rem;">CPM</a>
+        <a href="./dijkstra.html" style="padding:8px 14px; border-radius:999px; background:#5b3ce6; color:#fff; text-decoration:none; font-size:0.95rem;">Dijkstra</a>
+        <a href="./Minima_Expancion.html" style="padding:8px 14px; border-radius:999px; background:#5b3ce6; color:#fff; text-decoration:none; font-size:0.95rem;">Mínima Expansión</a>
+        <a href="./FlujoMaximo.html" style="padding:8px 14px; border-radius:999px; background:#5b3ce6; color:#fff; text-decoration:none; font-size:0.95rem;">Flujo Máximo</a>
+    </nav>
 
-    <main class="grid-layout">
-      
-      <section>
-        <h2>1. Registrar Actividad</h2>
-        <div class="row">
-          <input type="text" id="actividadId" placeholder="ID de Actividad (ej. A)">
-          <input type="number" id="actividadDuracion" placeholder="Duración (días/semanas)">
-          <input type="text" id="actividadPredecesores" placeholder="Predecesores (ej. B,C o vacío)">
+    <main class="dashboard-container">
+        <div class="left-column">
+            <section class="CPM-card">
+                <h2 class="card-title">1. Registrar Actividad</h2>
+                <div class="form-group">
+                    <label>Identificador (Letra/Nombre):</label>
+                    <input type="text" id="activity-id" placeholder="Ej. A o Tarea1">
+                </div>
+                <div class="form-group">
+                    <label>Duración esperada:</label>
+                    <input type="number" id="activity-duration" min="0" placeholder="Ej. 10">
+                </div>
+                <div class="form-group">
+                    <label>Predecesores (Separados por comas):</label>
+                    <input type="text" id="activity-predecessors" placeholder="Ej. A, B (Vacío si es la primera)">
+                </div>
+                <button type="button" id="btn-add-activity" class="btn btn-purple">Añadir Actividad</button>
+            </section>
+
+            <section class="CPM-card mt-20">
+                <h2 class="card-title">2. Calcular Ruta Crítica</h2>
+                <p class="card-instruction">Procesa la red para estructurar las holguras y descubrir el camino crítico.</p>
+                <button type="button" id="btn-calculate-cpm" class="btn btn-neon-blue">Calcular Tiempos</button>
+            </section>
+            
+            <section class="CPM-card mt-20">
+                <h2 class="card-title">Lista de Actividades Registradas</h2>
+                <div id="activities-live-list" class="live-list-box">
+                    <p class="empty-notice">No hay actividades en cola. Añade tareas arriba.</p>
+                </div>
+            </section>
         </div>
-        <button id="btnAgregarActividad" class="btn-secondary">Añadir Actividad</button>
 
-        <hr>
+        <div class="right-column">
+            <section class="visualization-card">
+                <h2 class="card-title">Diagrama de Red (CPM)</h2>
+                <div class="canvas-wrapper">
+                    <div id="network-svg-container"></div>
+                </div>
+            </section>
 
-        <h2>2. Calcular Ruta Crítica</h2>
-        <button id="btnCalcularCPM" class="btn-primary">Calcular Tiempos y Holguras</button>
-      </section>
+            <section class="CPM-card mt-20" id="results-panel" style="display: none;">
+                <h2 class="card-title">Resultados del Análisis</h2>
+                <div class="results-layout">
+                    <div class="results-text-block">
+                        <h3>Actividades Críticas</h3>
+                        <div id="critical-path-output" class="critical-output-box"></div>
+                    </div>
+                    <div class="metrics-sidebar">
+                        <div class="metric-box bg-blue-glow">
+                            <span class="metric-label">Duración Total</span>
+                            <span id="metric-total-duration" class="metric-value">0 días</span>
+                        </div>
+                        <div class="metric-box bg-purple-glow">
+                            <span class="metric-label">Holgura Total Acumulada</span>
+                            <span id="metric-total-slack" class="metric-value">0 días</span>
+                        </div>
+                    </div>
+                </div>
 
-      <section>
-        <h2>Lista de Actividades Registradas</h2>
-        <pre id="visualizacionActividades">Ninguna actividad añadida aún.</pre>
-
-        <h2>Resultados del Análisis CPM</h2>
-        <div id="resultadoCPM" class="resultado-box">
-          Los tiempos tempranos, tardíos y la ruta crítica aparecerán aquí...
+                <div class="graph-legend">
+                    <div class="legend-item"><span class="legend-line line-normal"></span> Normal (Morado)</div>
+                    <div class="legend-item"><span class="legend-line line-critical"></span> Crítico (Azul Neblina)</div>
+                    <div class="legend-item"><span class="legend-node node-normal"></span> Nodo Estándar</div>
+                    <div class="legend-item"><span class="legend-node node-critical"></span> Nodo Crítico</div>
+                </div>
+            </section>
         </div>
-      </section>
-
     </main>
-  </div>
 
-  <script src="../core/networks/CPM.js"></script>
+    <script src="../core/networks/CPM.js"></script>
 </body>
 </html>
