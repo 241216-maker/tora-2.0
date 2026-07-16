@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo de Transporte: Esquina Noroeste (Con Iteraciones)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #6b21a8; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9333ea; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 font-sans min-h-screen">
+
+    <header class="border-b border-slate-800 bg-slate-900/50 p-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-fuchsia-500 tracking-tight">Módulo de Transporte: Noroeste</h1>
+            <p class="text-slate-400 text-sm mt-1">Método de la Esquina Noroeste (Step-by-Step)</p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Panel Izquierdo: Configuración -->
+        <section class="lg:col-span-4 flex flex-col gap-6">
+            <div class="bg-slate-900 rounded-xl shadow-lg border border-slate-800 p-5">
+                <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-fuchsia-500 pl-2">1. Configurar Matriz</h2>
+                
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Orígenes</label>
+                        <input type="number" id="num-orig" value="3" min="2" max="10" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white outline-none focus:border-fuchsia-500 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Destinos</label>
+                        <input type="number" id="num-dest" value="3" min="2" max="10" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white outline-none focus:border-fuchsia-500 transition-colors">
+                    </div>
+                </div>
+                
+                <button onclick="generarMatriz()" class="w-full bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-[0_0_15px_rgba(192,38,211,0.3)]">
+                    Generar Matriz
+                </button>
+            </div>
+
+            <div class="bg-slate-900 rounded-xl shadow-lg border border-slate-800 p-5">
+                <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-cyan-400 pl-2">2. Ejecutar Algoritmo</h2>
+                <button onclick="resolverEsquinaNoroeste()" class="w-full bg-transparent border-2 border-cyan-500 text-cyan-400 hover:bg-cyan-950 hover:text-cyan-300 font-semibold py-2 px-4 rounded-lg transition-colors">
+                    Calcular Asignación
+                </button>
+            </div>
+
+            <div id="panel-resultados" class="bg-slate-900 rounded-xl shadow-lg border border-slate-800 p-5 hidden sticky top-6">
+                <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-green-400 pl-2">Métricas Finales</h2>
+                <p class="text-slate-400 text-sm mb-1">Costo Total de Transporte</p>
+                <div class="text-4xl font-black text-cyan-400" id="costo-total">0</div>
+            </div>
+        </section>
+
+        <!-- Panel Derecho: Matriz e Iteraciones -->
+        <section class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- Matriz Visual -->
+            <div class="bg-slate-900 rounded-xl shadow-lg border border-slate-800 p-5">
+                <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-fuchsia-500 pl-2">Tabla de Transporte</h2>
+                <div class="overflow-x-auto">
+                    <div id="matriz-container" class="w-full text-center text-slate-400">
+                        Haz clic en "Generar Matriz" para empezar.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bitácora de Iteraciones -->
+            <div id="panel-iteraciones" class="bg-slate-900 rounded-xl shadow-lg border border-slate-800 p-5 hidden">
+                <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-cyan-400 pl-2">Bitácora de Iteraciones</h2>
+                <div id="log-container" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+                    <!-- Los logs se inyectan aquí -->
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <script>
+        let filas = 0;
+        let columnas = 0;
+
+        function generarMatriz() {
+            filas = parseInt(document.getElementById('num-orig').value);
+            columnas = parseInt(document.getElementById('num-dest').value);
+            const container = document.getElementById('matriz-container');
+            
+            let html = '<table class="w-full border-collapse border border-slate-700 text-sm">';
+            html += '<thead><tr><th class="border border-slate-700 p-2 bg-slate-950">O \\ D</th>';
+            for (let j = 0; j < columnas; j++) {
+                html += `<th class="border border-slate-700 p-2 bg-slate-950 text-cyan-400">D${j+1}</th>`;
+            }
+            html += '<th class="border border-slate-700 p-2 bg-slate-800 text-fuchsia-400">Oferta</th></tr></thead><tbody>';
+
+            for (let i = 0; i < filas; i++) {
+                html += `<tr><th class="border border-slate-700 p-2 bg-slate-950 text-cyan-400">O${i+1}</th>`;
+                for (let j = 0; j < columnas; j++) {
+                    html += `<td class="border border-slate-700 p-2 relative bg-slate-900 transition-colors" id="celda-cont-${i}-${j}">
+                                <input type="number" id="costo-${i}-${j}" placeholder="Costo" class="w-16 bg-transparent border-b border-slate-600 text-center text-white outline-none focus:border-cyan-400 text-xs">
+                                <div id="asig-${i}-${j}" class="absolute bottom-0.5 right-1 text-lg font-bold text-fuchsia-500 hidden"></div>
+                             </td>`;
+                }
+                html += `<td class="border border-slate-700 p-2 bg-slate-800">
+                            <input type="number" id="oferta-${i}" placeholder="Of." class="w-16 bg-transparent border-b border-fuchsia-600 text-center text-white outline-none font-bold">
+                         </td></tr>`;
+            }
+
+            html += `<tr><th class="border border-slate-700 p-2 bg-slate-800 text-fuchsia-400">Demanda</th>`;
+            for (let j = 0; j < columnas; j++) {
+                html += `<td class="border border-slate-700 p-2 bg-slate-800">
+                            <input type="number" id="demanda-${j}" placeholder="Dem." class="w-16 bg-transparent border-b border-fuchsia-600 text-center text-white outline-none font-bold">
+                         </td>`;
+            }
+            html += '<td class="border border-slate-700 bg-slate-950"></td></tr></tbody></table>';
+
+            container.innerHTML = html;
+            document.getElementById('panel-resultados').classList.add('hidden');
+            document.getElementById('panel-iteraciones').classList.add('hidden');
+        }
+
+        function resolverEsquinaNoroeste() {
+            if (filas === 0 || columnas === 0) return alert('Genera la matriz primero.');
+
+            let oferta = [];
+            let demanda = [];
+            let costos = [];
+            
+            let sumaOferta = 0, sumaDemanda = 0;
+
+            // Recolectar datos y limpiar UI
+            for (let i = 0; i < filas; i++) {
+                let val = parseInt(document.getElementById(`oferta-${i}`).value) || 0;
+                oferta.push(val);
+                sumaOferta += val;
+                let filaC = [];
+                for (let j = 0; j < columnas; j++) {
+                    filaC.push(parseInt(document.getElementById(`costo-${i}-${j}`).value) || 0);
+                    let asigDOM = document.getElementById(`asig-${i}-${j}`);
+                    asigDOM.classList.add('hidden');
+                    asigDOM.innerText = '';
+                    document.getElementById(`celda-cont-${i}-${j}`).classList.remove('bg-slate-800', 'border-cyan-500', 'opacity-30');
+                }
+                costos.push(filaC);
+            }
+            for (let j = 0; j < columnas; j++) {
+                let val = parseInt(document.getElementById(`demanda-${j}`).value) || 0;
+                demanda.push(val);
+                sumaDemanda += val;
+            }
+
+            if (sumaOferta !== sumaDemanda) {
+                alert(`Para este ejemplo estático, el modelo debe estar balanceado. (Of: ${sumaOferta} vs Dem: ${sumaDemanda})`);
+                return;
+            }
+
+            let costoTotal = 0;
+            let i = 0; // Fila actual
+            let j = 0; // Columna actual
+            let numIteracion = 1;
+            let logHtml = ''; 
+
+            // Bucle de Esquina Noroeste
+            while (i < filas && j < columnas) {
+                let ofertaActual = oferta[i];
+                let demandaActual = demanda[j];
+                let costoCelda = costos[i][j];
+
+                // Tomar el mínimo
+                let cantidadAsignada = Math.min(ofertaActual, demandaActual);
+                
+                // Aplicar resta
+                oferta[i] -= cantidadAsignada;
+                demanda[j] -= cantidadAsignada;
+                costoTotal += cantidadAsignada * costoCelda;
+
+                // Definir el movimiento
+                let tachadoMensaje = '';
+                let movimientoIndexI = i;
+                let movimientoIndexJ = j;
+
+                if (oferta[i] === 0 && demanda[j] === 0) {
+                    tachadoMensaje = `Se agotó tanto la Oferta del Origen ${i+1} como la Demanda del Destino ${j+1}. Avanzamos en diagonal.`;
+                    i++; j++;
+                } else if (oferta[i] === 0) {
+                    tachadoMensaje = `Se agotó la Oferta. Tachamos el Origen ${i+1} y bajamos a la siguiente fila.`;
+                    i++;
+                } else {
+                    tachadoMensaje = `Se cumplió la Demanda. Tachamos el Destino ${j+1} y avanzamos a la siguiente columna.`;
+                    j++;
+                }
+
+                // Generar HTML para el log de esta iteración
+                logHtml += `
+                <div class="bg-slate-950 border border-slate-700 rounded-lg p-4 transition-all hover:border-slate-500">
+                    <h3 class="text-fuchsia-400 font-bold mb-2 flex items-center gap-2">
+                        <span class="bg-fuchsia-900/50 text-fuchsia-300 px-2 py-0.5 rounded text-xs">Paso ${numIteracion}</span>
+                    </h3>
+                    <ul class="text-slate-300 text-sm space-y-1.5">
+                        <li><span class="text-cyan-400 font-semibold">▶ Celda Actual:</span> Origen <b>${movimientoIndexI + 1}</b> a Destino <b>${movimientoIndexJ + 1}</b> (Costo: ${costoCelda}).</li>
+                        <li><span class="text-slate-500 font-mono">Disponibilidad:</span> Oferta = ${ofertaActual} | Demanda = ${demandaActual}</li>
+                        <li><span class="text-cyan-400 font-semibold">▶ Asignación:</span> Se toma el mínimo y se asignan <b>${cantidadAsignada}</b> unidades.</li>
+                        <li><span class="text-rose-400 font-semibold">▶ Movimiento:</span> ${tachadoMensaje}</li>
+                    </ul>
+                </div>`;
+
+                // Actualizar Matriz Visual (UI)
+                let asigDOM = document.getElementById(`asig-${movimientoIndexI}-${movimientoIndexJ}`);
+                asigDOM.innerText = cantidadAsignada;
+                asigDOM.classList.remove('hidden');
+                document.getElementById(`celda-cont-${movimientoIndexI}-${movimientoIndexJ}`).classList.add('bg-slate-800');
+                
+                // Efecto visual de tachado suave en matriz
+                if(oferta[movimientoIndexI] === 0){
+                    for(let c = 0; c < columnas; c++) {
+                        let div = document.getElementById(`celda-cont-${movimientoIndexI}-${c}`);
+                        if(!div.classList.contains('bg-slate-800')) div.classList.add('opacity-30');
+                    }
+                }
+                if(demanda[movimientoIndexJ] === 0){
+                    for(let r = 0; r < filas; r++) {
+                        let div = document.getElementById(`celda-cont-${r}-${movimientoIndexJ}`);
+                        if(!div.classList.contains('bg-slate-800')) div.classList.add('opacity-30');
+                    }
+                }
+
+                numIteracion++;
+            }
+
+            // Renderizar resultados
+            document.getElementById('costo-total').innerText = costoTotal.toLocaleString();
+            document.getElementById('panel-resultados').classList.remove('hidden');
+            
+            document.getElementById('log-container').innerHTML = logHtml;
+            document.getElementById('panel-iteraciones').classList.remove('hidden');
+        }
+
+        window.onload = generarMatriz;
+    </script>
+</body>
+</html>

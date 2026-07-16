@@ -137,21 +137,23 @@
                             </div>
                         </div>
 
-                        <div class="action-card disabled-card animate-fade-in delay-1">
-                            <div class="card-header">
-                                <div class="card-icon simplex-icon">
-                                    <i class="ph ph-line-segments"></i>
-                                </div>
-                                <span class="badge-status offline">Próximamente</span>
-                            </div>
-                            <div class="card-body">
-                                <h3>Método Simplex</h3>
-                                <p>Optimización de funciones objetivo con múltiples variables de decisión y restricciones lineales estructurales.</p>
-                            </div>
-                            <div class="card-footer">
-                                <button class="btn-card locked" disabled>Bloqueado</button>
-                            </div>
-                        </div>
+                        <div class="action-card active-card animate-fade-in delay-1">
+    <div class="card-header">
+        <div class="card-icon linear-icon" style="color: var(--cyan-primary);">
+            <i class="ph ph-package"></i>
+        </div>
+        <span class="badge-status online">Disponible</span>
+    </div>
+    <div class="card-body">
+        <h3>Método Simplex Primal</h3>
+        <p>Optimización algorítmica para maximizar beneficios o minimizar costos mediante matrices algebraicas dinámicas.</p>
+    </div>
+    <div class="card-footer" style="margin-top: 15px;">
+        <a href="/src/algorithm_html/simplex.html" class="btn-card primary-glow" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; justify-content: center; width: 100%;">
+            <i class="ph ph-play"></i> Lanzar Módulo
+        </a>
+    </div>
+</div>
 
                         <div class="action-card disabled-card animate-fade-in delay-2">
                             <div class="card-header">
@@ -172,40 +174,19 @@
                     </div>
                 </section>
 
-                <aside class="right-recommendations-zone animate-fade-in">
-                    <div class="recommendation-panel-box">
-                        <div class="panel-box-header">
-                            <i class="ph-fill ph-lightbulb panel-box-icon"></i>
-                            <h3>Panel de Recomendaciones</h3>
-                        </div>
-                        <p class="panel-box-desc">Sugerencias inteligentes basadas en teoría de redes e Investigación de Operaciones:</p>
-                        
-                        <div class="tips-stack">
-                            <div class="tip-item">
-                                <span class="tip-number">01</span>
-                                <p><strong>¿Cuándo usar Dijkstra?</strong> Utilízalo exclusivamente en redes con costos o distancias <strong>mayores o iguales a cero</strong>. Si tienes costos negativos, se sugiere usar Bellman-Ford.</p>
-                            </div>
-                            <div class="tip-item">
-                                <span class="tip-number">02</span>
-                                <p><strong>Matriz de Adyacencia:</strong> Deja las celdas vacías o coloca un 0 si no existe una conexión directa. El sistema lo interpretará como infinito (∞) automáticamente.</p>
-                            </div>
-                            <div class="tip-item">
-                                <span class="tip-number">03</span>
-                                <p><strong>Rutas más rápidas:</strong> Para optimizar el renderizado visual de D3.js en redes masivas, ingresa un número de nodos menor a 15.</p>
-                            </div>
-                        </div>
+                <div class="app-layout">
+    
+    <div id="sidebar-container"></div> 
 
-                        <div class="decorative-chart-placeholder">
-                            <div class="chart-line-glow"></div>
-                            <span>Auditoría de Redes Lista</span>
-                        </div>
-                    </div>
-                </aside>
 
             </div>
         </div>
     </div>
 
     <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/core/main.js"></script>
+    <script src="../core/sidebar.js"></script>
+    
+    <script type="module" src="../core/linear_programming/simplex.js"></script>
 </body>
 </html>

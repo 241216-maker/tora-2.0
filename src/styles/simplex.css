@@ -1,0 +1,80 @@
+/* ==========================================================================
+   COMPONENTES EXCLUSIVOS DEL MÉTODO SIMPLEX (MATRICES Y PIVOTES)
+   ========================================================================== */
+
+/* Contenedor de filas de la matriz dinámica */
+.matrix-row-simplex {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Inputs numéricos para los coeficientes */
+.input-simplex-coeff {
+    width: 75px;
+    height: 38px;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s ease;
+}
+
+.input-simplex-coeff:focus {
+    border-color: var(--cyan-primary);
+    box-shadow: 0 0 8px var(--cyan-glow);
+    outline: none;
+}
+
+/* Selector de signo (<=, >=, =) */
+.simplex-sign-select {
+    width: 65px;
+    height: 38px;
+    background-color: var(--bg-input);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   ESTADOS DE ILUMINACIÓN DE TABLAS (MÉTODO ALGEBRAICO)
+   ========================================================================== */
+
+/* Fila Pivote: Variable que sale (Color Magenta translúcido según tus imágenes) */
+.data-table tbody tr.pivot-row {
+    background-color: rgba(157, 78, 221, 0.18) !important;
+    border-bottom: 2px solid var(--magenta-primary);
+}
+
+/* Columna Pivote: Variable que entra (Color Cian suave) */
+.data-table td.pivot-col {
+    background-color: rgba(83, 224, 220, 0.12) !important;
+    color: var(--cyan-primary) !important;
+    font-weight: 600;
+}
+
+/* Elemento Pivote: Intersección Crítica (Efecto de resalte total neón) */
+.data-table td.pivot-element {
+    background-color: var(--cyan-primary) !important;
+    color: #090514 !important; /* Texto oscuro para alto contraste */
+    font-weight: 800 !important;
+    box-shadow: 0 0 15px var(--cyan-primary);
+    text-shadow: none;
+}
+
+/* Badge de estado del modelo */
+.status-badge-simplex {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cyan-primary);
+    text-shadow: 0 0 8px var(--cyan-glow);
+}
