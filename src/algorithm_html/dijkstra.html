@@ -30,28 +30,15 @@
 
                         <main class="app-container-vertical">
 
-                            <section class="io-card animate-fade-in">
-                                <div class="panel-title">1. Dimensión del Modelo</div>
-                                <p class="panel-subtitle">Introduzca el número total de nodos de la red para estructurar la matriz de adyacencia.</p>
-                                
-                                <div class="form-row-centered">
-                                    <div class="form-group layout-inline-input">
-                                        <label class="group-label" for="node-count">Cantidad de Nodos:</label>
-                                        <input type="number" id="node-count" class="form-input text-center" min="2" max="15" placeholder="Ej. 6">
-                                    </div>
-                                    <button type="button" id="btn-generate-matrix" class="btn btn-primary btn-md">Generar Matriz</button>
-                                </div>
-                            </section>
-
                             <section class="io-card mt-20 animate-fade-in" id="matrix-section" style="display: none;">
-                                <div class="panel-title">2. Matriz de Costos / Distancias</div>
+                                <div class="panel-title">1. Matriz de Costos / Distancias</div>
                                 <p class="panel-subtitle">Ingrese el peso, distancia o costo de cada arista. Deje la celda vacía o con 0 si no existe una conexión directa.</p>
                                 
                                 <div class="matrix-overflow-container" id="matrix-wrapper"></div>
                             </section>
 
                             <section class="io-card mt-20 animate-fade-in" id="execution-section" style="display: none;">
-                                <div class="panel-title">3. Parámetros de Ruta</div>
+                                <div class="panel-title">2. Parámetros de Ruta</div>
                                 <p class="panel-subtitle">Seleccione el nodo de origen y el nodo de destino para el cálculo de la ruta más corta.</p>
                                 
                                 <div class="form-row-grid">

@@ -7,8 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputs = {
         source: document.getElementById('edge-source'),
         target: document.getElementById('edge-target'),
-        capacity: document.getElementById('edge-capacity'),
+        capacityForward: document.getElementById('edge-capacity-forward'),
+        capacityReverse: document.getElementById('edge-capacity-reverse'),
         btnAñadir: document.getElementById('btn-add-edge'),
+        btnBorrar: document.getElementById('btn-clear-network'),
         netSource: document.getElementById('network-source'),
         netSink: document.getElementById('network-sink'),
         btnCalcular: document.getElementById('btn-calculate-flow'),
@@ -22,21 +24,42 @@ document.addEventListener('DOMContentLoaded', () => {
     inputs.btnAñadir.addEventListener('click', () => {
         const u = inputs.source.value.trim().toUpperCase();
         const v = inputs.target.value.trim().toUpperCase();
-        const cap = parseInt(inputs.capacity.value);
+        const capForward = parseInt(inputs.capacityForward.value);
+        const capReverse = parseInt(inputs.capacityReverse.value);
 
         // Validaciones del módulo de seguridad interna
         if (!u || !v) return alert('Error: Ingrese identificadores válidos.');
         if (u === v) return alert('Error: El origen y el destino no pueden ser el mismo nodo.');
-        if (isNaN(cap) || cap <= 0) return alert('Error: La capacidad debe ser un entero positivo.');
-        if (listaAristas.some(e => e.source === u && e.target === v)) {
-            return alert('Error: Esta conexión dirigida ya ha sido registrada.');
+        if ((isNaN(capForward) || capForward < 0) || (isNaN(capReverse) || capReverse < 0)) {
+            return alert('Error: Las capacidades deben ser enteros no negativos.');
+        }
+        if (capForward === 0 && capReverse === 0) {
+            return alert('Error: Ingrese al menos una capacidad positiva entre los dos sentidos.');
+        }
+
+        const tieneIda = !Number.isNaN(capForward) && capForward > 0;
+        const tieneVuelta = !Number.isNaN(capReverse) && capReverse > 0;
+
+        if (tieneIda && listaAristas.some(e => e.source === u && e.target === v)) {
+            return alert('Error: Esta conexión i → j ya ha sido registrada.');
+        }
+        if (tieneVuelta && listaAristas.some(e => e.source === v && e.target === u)) {
+            return alert('Error: Esta conexión j → i ya ha sido registrada.');
         }
 
         // Estructuración del objeto arista en el set de datos
-        listaAristas.push({ source: u, target: v, capacity: cap, flow: 0 });
+        if (tieneIda) {
+            listaAristas.push({ source: u, target: v, capacity: capForward, flow: 0 });
+        }
+        if (tieneVuelta) {
+            listaAristas.push({ source: v, target: u, capacity: capReverse, flow: 0 });
+        }
 
         // Reseteo visual del formulario
-        inputs.source.value = ''; inputs.target.value = ''; inputs.capacity.value = '';
+        inputs.source.value = '';
+        inputs.target.value = '';
+        inputs.capacityForward.value = '';
+        inputs.capacityReverse.value = '';
         inputs.source.focus();
 
         actualizarBitacoraLateral();
@@ -48,14 +71,56 @@ document.addEventListener('DOMContentLoaded', () => {
             inputs.liveList.innerHTML = `<p class="empty-notice">No hay conexiones en la red. Añade aristas arriba.</p>`;
             return;
         }
+
         inputs.liveList.innerHTML = '';
-        listaAristas.forEach(e => {
+        listaAristas.forEach((e, index) => {
             const item = document.createElement('div');
             item.className = 'edge-item-log';
-            item.innerHTML = `• Arista: <strong>${e.source}</strong> ➔ <strong>${e.target}</strong> | Capacidad: <strong>${e.capacity}</strong>`;
+
+            const text = document.createElement('div');
+            text.className = 'edge-text';
+            text.innerHTML = `• Arista: <strong>${e.source}</strong> ➔ <strong>${e.target}</strong> | Capacidad: <strong>${e.capacity}</strong>`;
+
+            const btnDelete = document.createElement('button');
+            btnDelete.type = 'button';
+            btnDelete.className = 'edge-delete-btn';
+            btnDelete.textContent = 'Borrar';
+            btnDelete.dataset.index = index;
+
+            item.appendChild(text);
+            item.appendChild(btnDelete);
             inputs.liveList.appendChild(item);
         });
     }
+
+    inputs.liveList.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement) || !target.classList.contains('edge-delete-btn')) return;
+
+        const index = Number(target.dataset.index);
+        if (Number.isNaN(index)) return;
+
+        listaAristas.splice(index, 1);
+        actualizarBitacoraLateral();
+
+        if (listaAristas.length === 0) {
+            document.getElementById('network-svg-container').innerHTML = '';
+            inputs.resultsPanel.style.display = 'none';
+        }
+    });
+
+    inputs.btnBorrar.addEventListener('click', () => {
+        listaAristas = [];
+        inputs.source.value = '';
+        inputs.target.value = '';
+        inputs.capacityForward.value = '';
+        inputs.capacityReverse.value = '';
+        inputs.netSource.value = '';
+        inputs.netSink.value = '';
+        inputs.resultsPanel.style.display = 'none';
+        document.getElementById('network-svg-container').innerHTML = '';
+        actualizarBitacoraLateral();
+    });
 
     // =========================================================================
     // ALGORITMO LÓGICO DE EDMONDS-KARP (FORD-FULKERSON POR BFS)
@@ -159,8 +224,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const defs = svg.append('defs');
         
         // Creación geométrica de los marcadores (puntas de flechas de flujo)
-        defs.append('marker').attr('id', 'arrow-std').attr('viewBox', '0 -5 10 10').attr('refX', 22).attr('refY', 0).attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto').append('path').attr('d', 'M0,-5L10,0L0,5').attr('fill', '#bd5bf7');
-        defs.append('marker').attr('id', 'arrow-active').attr('viewBox', '0 -5 10 10').attr('refX', 22).attr('refY', 0).attr('markerWidth', 7).attr('markerHeight', 7).attr('orient', 'auto').append('path').attr('d', 'M0,-5L10,0L0,5').attr('fill', '#00f0ff');
+        defs.append('marker').attr('id', 'arrow-std').attr('viewBox', '0 -5 10 10').attr('refX', 22).attr('refY', 0).attr('markerWidth', 7).attr('markerHeight', 7).attr('markerUnits', 'strokeWidth').attr('orient', 'auto').append('path').attr('d', 'M0,-5L10,0L0,5').attr('fill', '#bd5bf7');
+        defs.append('marker').attr('id', 'arrow-active').attr('viewBox', '0 -5 10 10').attr('refX', 22).attr('refY', 0).attr('markerWidth', 8).attr('markerHeight', 8).attr('markerUnits', 'strokeWidth').attr('orient', 'auto').append('path').attr('d', 'M0,-5L10,0L0,5').attr('fill', '#00f0ff');
 
         let nodosSet = new Set();
         aristasCpm.forEach(e => { nodosSet.add(e.source); nodosSet.add(e.target); });
@@ -184,6 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const link = svg.append('g').selectAll('line').data(links).enter().append('line')
             .attr('stroke', d => d.hasFlow ? '#00f0ff' : '#bd5bf7')
             .attr('stroke-width', d => d.hasFlow ? 3.5 : 1.5)
+            .attr('stroke-linecap', 'round')
             .attr('marker-end', d => d.hasFlow ? 'url(#arrow-active)' : 'url(#arrow-std)')
             .style('filter', d => d.hasFlow ? 'drop-shadow(0px 0px 4px rgba(0,240,255,0.5))' : 'none');
 

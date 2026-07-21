@@ -23,19 +23,28 @@
                 <h2 class="card-title">1. Configurar Conexiones</h2>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="edge-source">Nodo Origen</label>
+                        <label for="edge-source">Nodo i</label>
                         <input type="text" id="edge-source" placeholder="Ej: A" maxlength="5">
                     </div>
                     <div class="form-group">
-                        <label for="edge-target">Nodo Destino</label>
+                        <label for="edge-target">Nodo j</label>
                         <input type="text" id="edge-target" placeholder="Ej: B" maxlength="5">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="edge-capacity">Capacidad Máxima</label>
-                    <input type="number" id="edge-capacity" placeholder="Ej: 15" min="1">
+                <div class="form-row two-inputs">
+                    <div class="form-group">
+                        <label for="edge-capacity-forward">Capacidad i → j</label>
+                        <input type="number" id="edge-capacity-forward" placeholder="Ej: 15" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="edge-capacity-reverse">Capacidad j → i</label>
+                        <input type="number" id="edge-capacity-reverse" placeholder="Ej: 8" min="0">
+                    </div>
                 </div>
-                <button id="btn-add-edge" class="btn-primary">Añadir Arista</button>
+                <div class="button-stack">
+                    <button id="btn-add-edge" class="btn-primary">Añadir Arista</button>
+                    <button id="btn-clear-network" class="btn-secondary" type="button">Borrar Todo</button>
+                </div>
             </section>
 
             <section class="card">

@@ -1,0 +1,77 @@
+:root {
+    --bg-main: #0b0f19;       /* Fondo oscuro global */
+    --bg-card: #111827;       /* Fondo de los paneles */
+    --text-main: #ffffff;     /* Texto principal blanco */
+    --text-muted: #9ca3af;    /* Texto secundario gris claro */
+    --primary-color: #a855f7; /* MORADO brillante para botones y resaltados */
+    --primary-hover: #9333ea; /* Morado oscuro para hover */
+    --border-card: #53ecf1;   /* Borde cyan/teal de las tarjetas (como en tu imagen) */
+    --grid-border: #6b7280;   /* Borde gris claro para que el CUADRO se note */
+    --cell-shaded: rgba(201, 144, 255, 0.35); /* MORADO translúcido para celdas tachadas */
+}
+
+* { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+body { background-color: var(--bg-main); color: var(--text-main); margin: 0; padding: 25px; }
+
+.app-header { margin-bottom: 25px; border-bottom: 1px solid #1f2937; padding-bottom: 15px; }
+.main-title { margin: 0; font-size: 1.8rem; font-weight: 700; color: var(--primary-color); }
+.sub-title { margin: 6px 0 0 0; color: var(--text-muted); font-size: 0.95rem; }
+
+.dashboard-container { display: flex; gap: 25px; max-width: 1400px; margin: 0 auto; align-items: flex-start; }
+.left-column { flex: 1; display: flex; flex-direction: column; gap: 20px; max-width: 400px; position: sticky; top: 25px; }
+.right-column { flex: 2; display: flex; flex-direction: column; gap: 20px; }
+
+/* Tarjetas estilo neón/oscuro */
+.card { background-color: var(--bg-card); border: 1px solid var(--border-card); border-radius: 8px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+.card-title { margin: 0 0 15px 0; font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
+.card-instruction { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px; }
+
+.form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 6px; }
+.form-row { display: flex; gap: 15px; }
+.form-row .form-group { flex: 1; }
+label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+
+input { background-color: #1f2937; border: 1px solid #374151; border-radius: 6px; padding: 8px; color: var(--text-main); font-size: 0.95rem; outline: none; }
+input:focus { border-color: var(--primary-color); }
+
+.btn-primary { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; transition: 0.2s; background-color: var(--primary-color); color: white; font-size: 1rem;}
+.btn-primary:hover { background-color: var(--primary-hover); }
+.mt-15 { margin-top: 15px; }
+
+/* TABLA DE INGRESO DE DATOS */
+.table-responsive { overflow-x: auto; }
+.cost-matrix { width: 100%; border-collapse: collapse; margin-top: 10px; }
+.cost-matrix th, .cost-matrix td { border: 1px solid var(--border-card); padding: 5px; text-align: center; font-size: 0.85rem; }
+.cost-matrix th { color: var(--text-muted); font-weight: 600; padding: 8px 5px; }
+.cost-matrix input.cell-cost { width: 45px; text-align: center; padding: 5px; background: transparent; border: 1px solid #374151;}
+.cost-matrix input.cell-supply, .cost-matrix input.cell-demand { width: 55px; background-color: rgba(255,255,255,0.05); border-color: var(--text-muted); font-weight: bold; text-align: center; padding: 5px; }
+
+/* ESTILOS DE RESULTADOS E ITERACIONES */
+.results-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #374151; padding-bottom: 15px; }
+.flow-output-box { color: var(--primary-color); font-size: 1.8rem; font-weight: 800; }
+.iteration-title { color: var(--text-muted); font-size: 1rem; text-transform: uppercase; margin-bottom: 15px; }
+.iterations-scroll-box { display: flex; flex-direction: column; gap: 30px; }
+
+.iter-step-card { border-bottom: 2px dashed #374151; padding-bottom: 25px; }
+.iter-header { font-weight: 700; color: var(--primary-color); margin-bottom: 5px; font-size: 1.1rem; }
+.iter-desc { font-size: 0.9rem; color: #d1d5db; margin-bottom: 15px; line-height: 1.5; }
+
+/* TABLA TEXTBOOK STYLE (VISTA DE ITERACIONES) */
+.textbook-table { border-collapse: collapse; font-size: 0.9rem; margin-bottom: 10px; color: var(--text-main); }
+.textbook-table th, .textbook-table td { padding: 0; text-align: center; }
+.textbook-table .header-cell { padding: 8px; font-weight: 600; color: var(--text-muted); }
+
+/* Borde del cuadro claramente visible */
+.textbook-table .matrix-cell { border: 1px solid var(--grid-border); width: 60px; height: 50px; position: relative; }
+
+/* Celdas tachadas en morado */
+.textbook-table .shaded-cell { background-color: var(--cell-shaded); }
+
+/* Números con alto contraste */
+.textbook-table .cost-val { position: absolute; top: 3px; right: 5px; font-size: 0.85rem; color: #d1d5db; }
+.textbook-table .assign-val { position: absolute; bottom: 3px; left: 5px; font-weight: 800; font-size: 1.1rem; color: #ffffff; }
+.textbook-table .sup-dem-cell { font-weight: 700; padding: 10px; font-size: 1rem; color: #ffffff; }
+.textbook-table .pen-cell { padding: 10px; color: #d1d5db; }
+
+/* Penalización máxima resaltada en morado */
+.textbook-table .pen-highlight { background-color: var(--primary-color); color: #ffffff; font-weight: 700; display: inline-block; padding: 3px 8px; border-radius: 4px; }

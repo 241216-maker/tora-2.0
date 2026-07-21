@@ -26,13 +26,10 @@ input:focus { outline: none; border-color: var(--neon-purple); box-shadow: 0 0 8
 .btn-purple { background-color: transparent; border: 2px solid var(--neon-purple); color: var(--text-pure-white); }
 .btn-purple:hover { background-color: var(--neon-purple); box-shadow: 0 0 15px rgba(189, 91, 247, 0.5); }
 .btn-neon-blue { background-color: var(--neon-purple); color: white; }
-.btn-neon-blue:hover { background-color: #bc60f5; box-shadow: 0 0 20px rgba(189, 91, 247, 0.6); }
+.btn-neon-blue:hover { background-color: #a846e3; box-shadow: 0 0 20px rgba(189, 91, 247, 0.6); }
 .live-list-box { background-color: #0d0c14; border: 1px dashed var(--border-color); border-radius: 8px; padding: 12px; max-height: 200px; overflow-y: auto; font-size: 0.85rem; }
 .empty-notice { color: var(--text-muted-gray); margin: 0; text-align: center; }
-.activity-item-log { border-bottom: 1px solid #1a1926; padding: 10px 8px; color: #d1ceda; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.activity-item-content { flex: 1; }
-.btn-delete-activity { background-color: transparent; border: 1px solid #e57cff; color: #7be5ff; border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 0.85rem; transition: background-color 0.2s ease; }
-.btn-delete-activity:hover { background-color: rgba(255, 123, 123, 0.15); }
+.activity-item-log { border-bottom: 1px solid #1a1926; padding: 6px 0; color: #d1ceda; }
 .canvas-wrapper { background-color: #09080e; border: 1px solid #1c1a2b; border-radius: 8px; width: 100%; height: 500px; }
 #network-svg-container { width: 100%; height: 100%; }
 .results-layout { display: flex; gap: 20px; }
@@ -52,3 +49,7 @@ input:focus { outline: none; border-color: var(--neon-purple); box-shadow: 0 0 8
 .legend-node { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
 .node-normal { background-color: #12111c; border: 2px solid var(--neon-purple); }
 .mt-20 { margin-top: 20px; }
+/* Botones pequeños para acciones dentro de la lista */
+.btn-small { width: auto; padding: 6px 8px; font-size: 0.78rem; border-radius: 6px; }
+.btn-delete { background: transparent; border: 1px solid rgba(255,255,255,0.06); color: #ff9fb0; cursor: pointer; }
+.btn-delete:hover { background: rgba(255,159,176,0.06); border-color: rgba(255,159,176,0.25); }
