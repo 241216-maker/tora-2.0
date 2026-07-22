@@ -1,6 +1,7 @@
 // =========================================================================
-// 1. CONTROLADORES DEL DOM Y SELECTORES DEL SISTEMA
+// TORA ADVANCED - MÓDULO DEL MÉTODO DE LA GRAN M (metodogranM.js)
 // =========================================================================
+
 const DOM = {
     variableCount: document.getElementById('variable-count'),
     constraintCount: document.getElementById('constraint-count'),
@@ -21,28 +22,24 @@ const DOM = {
     errorMessage: document.getElementById('error-message'),
     btnCloseModal: document.getElementById('btn-close-modal'),
 
-    // Botones de Navegación del Paso a Paso
     btnPrevStep: document.getElementById('btn-prev-step'),
     btnNextStep: document.getElementById('btn-next-step'),
     iterationCounter: document.getElementById('iteration-counter')
 };
 
-// =========================================================================
-// 2. ESTADO GLOBAL DE LAS ITERACIONES (PASO A PASO)
-// =========================================================================
+// Valor numérico de M (Suficientemente grande para el escalamiento)
+const BIG_M = 100000;
+
 let numVars = 0;
 let numConstraints = 0;
 let simplexSteps = []; 
 let currentStepIndex = 0;
 
-// =========================================================================
-// 3. LISTENERS DE INTERFAZ GENERAL
-// =========================================================================
-if (DOM.btnGenerateModel) DOM.btnGenerateModel.addEventListener('click', generarMatrizFormulario);
-if (DOM.btnResetSimplex) DOM.btnResetSimplex.addEventListener('click', reiniciarMóduloCompleto);
+// Listeners principales
+if (DOM.btnGenerateModel) DOM.btnGenerateModel.addEventListener('click', generarMatrizGranM);
+if (DOM.btnResetSimplex) DOM.btnResetSimplex.addEventListener('click', reiniciarModulo);
 if (DOM.btnCloseModal) DOM.btnCloseModal.addEventListener('click', () => DOM.errorModal.style.display = 'none');
 
-// Listeners protegidos para evitar errores si los botones no se encuentran
 if (DOM.btnPrevStep) {
     DOM.btnPrevStep.addEventListener('click', () => {
         if (currentStepIndex > 0) {
@@ -51,6 +48,7 @@ if (DOM.btnPrevStep) {
         }
     });
 }
+
 if (DOM.btnNextStep) {
     DOM.btnNextStep.addEventListener('click', () => {
         if (currentStepIndex < simplexSteps.length - 1) {
@@ -61,14 +59,14 @@ if (DOM.btnNextStep) {
 }
 
 // =========================================================================
-// 4. GENERACIÓN DINÁMICA DE LA MATRIZ DE INPUTS
+// 1. GENERACIÓN DINÁMICA DEL FORMULARIO CON OPTION DE SIGNOS (<=, >=, =)
 // =========================================================================
-function generarMatrizFormulario() {
+function generarMatrizGranM() {
     numVars = parseInt(DOM.variableCount.value);
     numConstraints = parseInt(DOM.constraintCount.value);
 
     if (isNaN(numVars) || numVars < 1 || isNaN(numConstraints) || numConstraints < 1) {
-        showError("Por favor, ingresa números válidos de variables y restricciones (mínimo 1).");
+        showError("Ingresa números válidos de variables y restricciones (mínimo 1).");
         return;
     }
 
@@ -95,6 +93,8 @@ function generarMatrizFormulario() {
         }
         html += `   <select id="r${i}-sign" class="simplex-sign-select">
                         <option value="<=">&le;</option>
+                        <option value=">=">&ge;</option>
+                        <option value="=">=</option>
                     </select>
                     <input type="number" id="r${i}-rhs" class="input-simplex-coeff" placeholder="0" style="margin-left:10px; text-align:left; padding-left:8px; width:85px;">
                  </div>`;
@@ -107,97 +107,167 @@ function generarMatrizFormulario() {
 }
 
 // =========================================================================
-// 5. MOTOR ALGEBRAICO PRINCIPAL: MÉTODO SIMPLEX PRIMAL
+// 2. MOTOR ALGEBRAICO PRINCIPAL: MÉTODO DE LA GRAN M
 // =========================================================================
 if (DOM.btnCalculateSimplex) {
     DOM.btnCalculateSimplex.addEventListener('click', () => {
-        let type = DOM.optimizationType.value;
-        let totalRows = numConstraints + 1; 
-        let totalCols = numVars + numConstraints + 1; 
+        const type = DOM.optimizationType.value; // "MAX" o "MIN"
+        
+        let slackSurplusVars = [];
+        let artificialVars = [];
+        let constraintTypes = [];
+        
+        // Determinar qué variables ($S_i, R_i$) se agregan según cada tipo de restricción
+        for (let i = 1; i <= numConstraints; i++) {
+            const sign = document.getElementById(`r${i}-sign`).value;
+            constraintTypes.push(sign);
+
+            if (sign === '<=') {
+                slackSurplusVars.push({ type: 'slack', constraintIndex: i });
+            } else if (sign === '>=') {
+                slackSurplusVars.push({ type: 'surplus', constraintIndex: i });
+                artificialVars.push({ constraintIndex: i });
+            } else if (sign === '=') {
+                artificialVars.push({ constraintIndex: i });
+            }
+        }
+
+        let headers = [];
+        for (let j = 1; j <= numVars; j++) headers.push(`X${j}`);
+        
+        // Cabeceras de Holgura / Exceso
+        let sCounter = 1;
+        slackSurplusVars.forEach(v => {
+            v.name = `S${sCounter++}`;
+            headers.push(v.name);
+        });
+
+        // Cabeceras Artificiales
+        let rCounter = 1;
+        artificialVars.forEach(v => {
+            v.name = `R${rCounter++}`;
+            headers.push(v.name);
+        });
+
+        const totalCols = headers.length + 1; // +1 para columna RHS
+        const totalRows = numConstraints + 1; // +1 para fila Z
 
         let tableau = Array(totalRows).fill(0).map(() => Array(totalCols).fill(0));
         let basis = [];
-        let headers = [];
 
-// --- Construcción de la matriz y variables de holgura (Tabla Inicial) ---
+        // Llenado de filas de restricciones y asignación de la base inicial
+        for (let i = 0; i < numConstraints; i++) {
+            // Variables de decisión originales
+            for (let j = 0; j < numVars; j++) {
+                let val = parseFloat(document.getElementById(`r${i+1}-c${j+1}`).value);
+                tableau[i][j] = isNaN(val) ? 0 : val;
+            }
 
-// 1. Agrega los nombres de las variables de holgura (S1, S2...) a las cabeceras y la base inicial
-for (let j = 1; j <= numVars; j++) headers.push(`X${j}`);
-for (let j = 1; j <= numConstraints; j++) headers.push(`S${j}`);
+            // RHS
+            let rhsVal = parseFloat(document.getElementById(`r${i+1}-rhs`).value);
+            tableau[i][totalCols - 1] = isNaN(rhsVal) ? 0 : rhsVal;
 
-for (let i = 1; i <= numConstraints; i++) {
-    basis.push(`S${i}`); // Por defecto, las variables de holgura inician en la base
-}
-basis.push("Z");
+            const sign = constraintTypes[i];
 
-// 2. Rellena las filas de las restricciones con los coeficientes del usuario
-for (let i = 0; i < numConstraints; i++) {
-    for (let j = 0; j < numVars; j++) {
-        let val = parseFloat(document.getElementById(`r${i+1}-c${j+1}`).value);
-        tableau[i][j] = isNaN(val) ? 0 : val; // Asigna el valor del coeficiente a la celda
-    }
-    // ESTA LÍNEA CLAVE: Inserta el "1" en la diagonal correspondiente para crear la Matriz Identidad de Holguras
-    tableau[i][numVars + i] = 1; 
-
-    // Asigna el valor del lado derecho (RHS / Disponibilidad) al final de la fila
-    let rhsVal = parseFloat(document.getElementById(`r${i+1}-rhs`).value);
-    tableau[i][totalCols - 1] = isNaN(rhsVal) ? 0 : rhsVal;
-}
-
-// 3. Rellena la última fila (Función Objetivo Z) cambiando los signos según el objetivo
-for (let j = 0; j < numVars; j++) {
-    let val = parseFloat(document.getElementById(`z-c${j+1}`).value);
-    let coeff = isNaN(val) ? 0 : val;
-    // Si es Maximización, pasa los valores con signo negativo a la matriz
-    tableau[totalRows - 1][j] = (type === "MAX") ? -coeff : coeff; 
-}
-tableau[totalRows - 1][totalCols - 1] = 0; // El valor inicial de Z siempre empieza en 0
-
-// 4. Guarda esta estructura limpia como la posición [0] (La Primera Iteración)
-simplexSteps = [{
-    matrix: cloneMatrix(tableau),
-    basis: [...basis],
-    headers: [...headers],
-    pivotColIndex: -1,
-    pivotRowIndex: -1,
-    ratios: Array(numConstraints).fill(null)
-}];
-
-// --- Control del bucle principal de iteraciones ---
-let isOptimal = false;     // Bandera para detener el bucle cuando se llegue al óptimo
-let currentIter = 0;       // Contador de las iteraciones realizadas
-let maxLoop = 30;          // Límite de seguridad para evitar bucles infinitos en modelos mal configurados
-
-while (!isOptimal && currentIter < maxLoop) {
-    let lastRow = tableau[totalRows - 1]; // Accede a la fila Z (la última fila de la matriz)
-    let pivotCol = -1;
-    let minVal = 0;
-
-    // Condición de optimalidad: Busca el coeficiente más negativo en la fila Z (para Maximizar)
-    for (let j = 0; j < totalCols - 1; j++) {
-        if (lastRow[j] < minVal) {
-            minVal = lastRow[j];
-            pivotCol = j; // Guarda la columna de la variable que va a entrar a la base
+            if (sign === '<=') {
+                const sObj = slackSurplusVars.find(s => s.constraintIndex === i + 1);
+                const colIdx = headers.indexOf(sObj.name);
+                tableau[i][colIdx] = 1;
+                basis.push(sObj.name);
+            } else if (sign === '>=') {
+                const sObj = slackSurplusVars.find(s => s.constraintIndex === i + 1);
+                const rObj = artificialVars.find(r => r.constraintIndex === i + 1);
+                
+                tableau[i][headers.indexOf(sObj.name)] = -1; // Superávit
+                tableau[i][headers.indexOf(rObj.name)] = 1;  // Artificial
+                basis.push(rObj.name);
+            } else if (sign === '=') {
+                const rObj = artificialVars.find(r => r.constraintIndex === i + 1);
+                tableau[i][headers.indexOf(rObj.name)] = 1;
+                basis.push(rObj.name);
+            }
         }
-    }
+        basis.push("Z");
 
-    // Si ya no hay números negativos en la fila Z, significa que alcanzamos el óptimo
-    if (pivotCol === -1) {
-        isOptimal = true; // Cambia la bandera a true para romper el bucle while
-        break;
-    }
+        // Configuración Fila Z (Función Objetivo Original + Penalizaciones Gran M)
+        for (let j = 0; j < numVars; j++) {
+            let val = parseFloat(document.getElementById(`z-c${j+1}`).value);
+            let coeff = isNaN(val) ? 0 : val;
+            // Forma estándar: Z - c1X1 - c2X2 ... = 0
+            tableau[totalRows - 1][j] = (type === "MAX") ? -coeff : coeff;
+        }
 
+        // Aplicar la penalización M a las variables artificiales en la fila Z
+        artificialVars.forEach(r => {
+            const colIdx = headers.indexOf(r.name);
+            tableau[totalRows - 1][colIdx] = (type === "MAX") ? BIG_M : -BIG_M;
+        });
+
+        // PASO CRÍTICO DE ACONDICIONAMIENTO: Eliminar las M de la Fila Z para las variables básicas iniciales
+        for (let i = 0; i < numConstraints; i++) {
+            const currentBasisVar = basis[i];
+            if (currentBasisVar.startsWith("R")) {
+                const factor = tableau[totalRows - 1][headers.indexOf(currentBasisVar)];
+                for (let j = 0; j < totalCols; j++) {
+                    tableau[totalRows - 1][j] -= factor * tableau[i][j];
+                }
+            }
+        }
+
+        // Registrar la Iteración 0 (Acondicionada)
+        simplexSteps = [{
+            matrix: cloneMatrix(tableau),
+            basis: [...basis],
+            headers: [...headers],
+            pivotColIndex: -1,
+            pivotRowIndex: -1,
+            ratios: Array(numConstraints).fill(null)
+        }];
+
+        // Bucle Iterativo Simplex
+        let isOptimal = false;
+        let currentIter = 0;
+        const maxLoop = 50;
+
+        while (!isOptimal && currentIter < maxLoop) {
+            let lastRow = tableau[totalRows - 1];
+            let pivotCol = -1;
+
+            if (type === "MAX") {
+                let minVal = -1e-6; // Criterio de entrada: más negativo
+                for (let j = 0; j < totalCols - 1; j++) {
+                    if (lastRow[j] < minVal) {
+                        minVal = lastRow[j];
+                        pivotCol = j;
+                    }
+                }
+            } else {
+                let maxVal = 1e-6; // Criterio de entrada MIN: más positivo
+                for (let j = 0; j < totalCols - 1; j++) {
+                    if (lastRow[j] > maxVal) {
+                        maxVal = lastRow[j];
+                        pivotCol = j;
+                    }
+                }
+            }
+
+            if (pivotCol === -1) {
+                isOptimal = true;
+                break;
+            }
+
+            // Prueba de la Razón Mínima (Factibilidad de Salida)
             let pivotRow = -1;
             let minRatio = Infinity;
             let currentRatios = Array(numConstraints).fill(null);
 
             for (let i = 0; i < numConstraints; i++) {
                 let colVal = tableau[i][pivotCol];
-                if (colVal > 0) { 
+                if (colVal > 1e-9) {
                     let rhsVal = tableau[i][totalCols - 1];
                     let ratio = rhsVal / colVal;
                     currentRatios[i] = ratio;
-                    if (ratio < minRatio) {
+                    if (ratio >= 0 && ratio < minRatio) {
                         minRatio = ratio;
                         pivotRow = i;
                     }
@@ -205,7 +275,7 @@ while (!isOptimal && currentIter < maxLoop) {
             }
 
             if (pivotRow === -1) {
-                showError("El modelo no está acotado. El espacio de soluciones viables es infinito.");
+                showError("El modelo no está acotado. La solución óptima tiende al infinito.");
                 return;
             }
 
@@ -213,54 +283,66 @@ while (!isOptimal && currentIter < maxLoop) {
             simplexSteps[simplexSteps.length - 1].pivotRowIndex = pivotRow;
             simplexSteps[simplexSteps.length - 1].ratios = [...currentRatios];
 
-// --- Operaciones Matemáticas de Gauss-Jordan para la Siguiente Iteración ---
+            // Reemplazo en la Base
+            basis[pivotRow] = headers[pivotCol];
 
-// Intercambio de nombres en la base: La variable de la fila pivote es reemplazada por la de la columna pivote
-basis[pivotRow] = pivotCol < numVars ? `X${pivotCol + 1}` : `S${pivotCol - numVars + 1}`;
+            // Operaciones Gauss-Jordan
+            let pivotElement = tableau[pivotRow][pivotCol];
+            for (let j = 0; j < totalCols; j++) {
+                tableau[pivotRow][j] /= pivotElement;
+            }
 
-let pivotElement = tableau[pivotRow][pivotCol]; // Identifica el número pivote (la intersección)
+            for (let i = 0; i < totalRows; i++) {
+                if (i !== pivotRow) {
+                    let factor = tableau[i][pivotCol];
+                    for (let j = 0; j < totalCols; j++) {
+                        tableau[i][j] -= factor * tableau[pivotRow][j];
+                    }
+                }
+            }
 
-// OPERACIÓN 1: Normalizar la fila pivote dividiendo cada elemento entre el número pivote
-for (let j = 0; j < totalCols; j++) {
-    tableau[pivotRow][j] /= pivotElement; // Esto garantiza que el elemento pivote se convierta en 1
-}
+            currentIter++;
 
-// OPERACIÓN 2: Hacer "ceros" en la columna pivote para todas las demás filas
-for (let i = 0; i < totalRows; i++) {
-    if (i !== pivotRow) { // Se salta la fila pivote que ya fue normalizada arriba
-        let factor = tableau[i][pivotCol]; // El valor actual en la columna de la fila que queremos alterar
-        
-        for (let j = 0; j < totalCols; j++) {
-            // Resta el producto de la fila pivote por el factor para limpiar la columna
-            tableau[i][j] -= factor * tableau[pivotRow][j]; 
+            simplexSteps.push({
+                matrix: cloneMatrix(tableau),
+                basis: [...basis],
+                headers: [...headers],
+                pivotColIndex: -1,
+                pivotRowIndex: -1,
+                ratios: Array(numConstraints).fill(null)
+            });
         }
-    }
-}
-currentIter++; // Incrementa el contador para pasar a la siguiente tabla o iteración
 
-    // Guarda una copia exacta del estado de esta nueva tabla en el historial para el Front-end
-    simplexSteps.push({
-        matrix: cloneMatrix(tableau),
-        basis: [...basis],
-        headers: [...headers],
-        pivotColIndex: -1,
-        pivotRowIndex: -1,
-        ratios: Array(numConstraints).fill(null)
-    });
-}
+        // Verificación final de factibilidad
+        let isInfeasible = false;
+        for (let i = 0; i < numConstraints; i++) {
+            if (basis[i].startsWith("R") && Math.abs(tableau[i][totalCols - 1]) > 1e-4) {
+                isInfeasible = true;
+                break;
+            }
+        }
 
         let finalZ = tableau[totalRows - 1][totalCols - 1];
-        if (DOM.optimalZValue) DOM.optimalZValue.innerText = formatNum(finalZ);
-        if (DOM.modelStatus) DOM.modelStatus.innerText = isOptimal ? "Óptimo Alcanzado" : "Límite Alcanzado";
+        if (type === "MAX") finalZ = -finalZ;
+
+        if (isInfeasible) {
+            showError("El problema NO tiene solución factible (Infactible). Al menos una variable artificial permanece en la base.");
+            if (DOM.modelStatus) DOM.modelStatus.innerText = "Infactible";
+            if (DOM.optimalZValue) DOM.optimalZValue.innerText = "N/A";
+        } else {
+            if (DOM.optimalZValue) DOM.optimalZValue.innerText = formatNum(Math.abs(finalZ));
+            if (DOM.modelStatus) DOM.modelStatus.innerText = isOptimal ? "Óptimo Alcanzado" : "Límite Excedido";
+        }
+
         if (DOM.resultsPanel) DOM.resultsPanel.style.display = 'block';
-        
+
         currentStepIndex = 0;
         renderPasoActual();
     });
 }
 
 // =========================================================================
-// 6. RENDERIZADOR PROTEGIDO DE PANELES DE TABLAS CYBERPUNK
+// 3. RENDERIZADOR Y AUXILIARES
 // =========================================================================
 function renderPasoActual() {
     if (simplexSteps.length === 0) return;
@@ -268,12 +350,10 @@ function renderPasoActual() {
     const iter = simplexSteps[currentStepIndex];
     const totalSteps = simplexSteps.length - 1;
 
-    // Actualizar texto del contador de pasos de forma segura
     if (DOM.iterationCounter) {
         DOM.iterationCounter.innerText = `TABLA: ${currentStepIndex} de ${totalSteps} ${currentStepIndex === totalSteps ? '(FINAL)' : ''}`;
     }
 
-    // MODIFICACIÓN CRÍTICA: Cambiar estilos de botones con protección ante valores "null"
     if (DOM.btnPrevStep) {
         DOM.btnPrevStep.style.opacity = currentStepIndex === 0 ? "0.3" : "1";
         DOM.btnPrevStep.style.pointerEvents = currentStepIndex === 0 ? "none" : "auto";
@@ -291,11 +371,12 @@ function renderPasoActual() {
                         <th style="padding: 12px; color: var(--text-muted); font-size:13px;">Base</th>`;
     
     iter.headers.forEach(h => {
-        html += `<th style="padding: 12px; color: var(--text-main); font-weight: 600; font-size:13px;">${h}</th>`;
+        let color = h.startsWith("R") ? "var(--magenta-primary)" : "var(--text-main)";
+        html += `<th style="padding: 12px; color: ${color}; font-weight: 600; font-size:13px;">${h}</th>`;
     });
     
     html += `           <th style="padding: 12px; color: var(--cyan-primary); font-size:13px;">RHS</th>
-                        <th style="padding: 12px; color: var(--magenta-primary); font-size:13px;">Razón</th>
+                        <th style="padding: 12px; color: #ff4d6d; font-size:13px;">Razón</th>
                     </tr>
                 </thead>
                 <tbody>`;
@@ -305,8 +386,8 @@ function renderPasoActual() {
         const isPivotRow = (i === iter.pivotRowIndex);
         let rowClass = isPivotRow ? 'class="pivot-row"' : '';
 
-        html += `<tr ${rowClass} style="border-bottom: 1px solid rgba(255,255,255,0.02); transition: background 0.2s;">
-                    <td style="padding: 12px; font-weight: 700; color: ${isZRow ? 'var(--cyan-primary)' : 'var(--text-muted)'}; background: rgba(255,255,255,0.01);">
+        html += `<tr ${rowClass} style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                    <td style="padding: 12px; font-weight: 700; color: ${isZRow ? 'var(--cyan-primary)' : 'var(--text-muted)'};">
                         ${iter.basis[i]}
                     </td>`;
 
@@ -344,15 +425,14 @@ function renderPasoActual() {
     }
 }
 
-// =========================================================================
-// 7. AUXILIARES MATEMÁTICOS Y DE LIMPIEZA
-// =========================================================================
 function cloneMatrix(matrix) {
     return matrix.map(row => [...row]);
 }
 
 function formatNum(num) {
-    if (num === 0 || Math.abs(num) < 1e-9) return "0";
+    if (Math.abs(num) < 1e-5) return "0";
+    if (Math.abs(num - BIG_M) < 1000) return "M";
+    if (Math.abs(num + BIG_M) < 1000) return "-M";
     return Number.isInteger(num) ? num.toString() : num.toFixed(2);
 }
 
@@ -365,7 +445,7 @@ function showError(msg) {
     }
 }
 
-function reiniciarMóduloCompleto() {
+function reiniciarModulo() {
     if (DOM.variableCount) DOM.variableCount.value = '';
     if (DOM.constraintCount) DOM.constraintCount.value = '';
     if (DOM.matrixSection) DOM.matrixSection.style.display = 'none';

@@ -1,0 +1,106 @@
+/* ==========================================================================
+   ESTILOS ESPECÍFICOS PARA EL MÉTODO DE LA GRAN M (granM.css)
+   ========================================================================== */
+
+/* Leyenda de tipo de variables en el panel de resultados */
+.variables-legend {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 18px;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.legend-item {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.legend-color.decision {
+    background-color: var(--text-main);
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
+}
+
+.legend-color.slack {
+    background-color: var(--cyan-primary);
+    box-shadow: 0 0 6px var(--cyan-primary);
+}
+
+.legend-color.artificial {
+    background-color: var(--magenta-primary);
+    box-shadow: 0 0 6px var(--magenta-primary);
+}
+
+/* Tarjetas informativas de reglas matemáticas (Columna derecha) */
+.rule-card {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 12px;
+    border-radius: 6px;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.rule-card:hover {
+    transform: translateX(4px);
+}
+
+.rule-equal {
+    border-left: 3px solid var(--cyan-primary);
+}
+
+.rule-greater {
+    border-left: 3px solid var(--magenta-primary);
+}
+
+.rule-exact {
+    border-left: 3px solid #ff4d6d;
+}
+
+.rule-tag {
+    font-weight: 800;
+    font-size: 10px;
+    display: block;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
+.rule-equal .rule-tag { color: var(--cyan-primary); }
+.rule-greater .rule-tag { color: var(--magenta-primary); }
+.rule-exact .rule-tag { color: #ff4d6d; }
+
+/* Resaltado de encabezados de variables artificiales en las tablas */
+.data-table th.header-artificial {
+    color: var(--magenta-primary) !important;
+    text-shadow: 0 0 8px rgba(157, 78, 221, 0.4);
+}
+
+/* Selector de signo animado */
+.simplex-sign-select {
+    background-color: var(--bg-input, #140f23);
+    color: var(--cyan-primary);
+    border: 1px solid rgba(83, 224, 220, 0.3);
+    border-radius: 6px;
+    padding: 0 8px;
+    font-weight: 700;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.simplex-sign-select:focus {
+    border-color: var(--cyan-primary);
+    box-shadow: 0 0 8px var(--cyan-glow);
+}
