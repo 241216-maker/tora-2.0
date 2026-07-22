@@ -5,277 +5,252 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TORA Advanced | Método de Dos Fases</title>
     
+    <!-- Fuentes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Iconos Phosphor -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
 
+    <!-- Renderizado Matemático (KaTeX) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+    <!-- Estilos de la aplicación -->
     <link rel="stylesheet" href="../index.css">       
     <link rel="stylesheet" href="../styles/simplex.css">
-    <link rel="stylesheet" href="../styles/granM.css">
     <link rel="stylesheet" href="../styles/dosFases.css">    
 </head>
 <body>
 
-    <div class="app-layout">
+    <!-- BARRA NAVEGACIÓN SUPERIOR UNIFICADA (SIN SIDEBAR) -->
+    <header class="module-top-bar">
+        <a href="../../index.html" class="btn-back">
+            <i class="ph ph-arrow-left"></i> Volver al Dashboard
+        </a>
+        <div class="module-title-header">
+            <i class="ph-fill ph-chart-polar logo-icon"></i>
+            <h2>TORA<span class="logo-highlight">Advanced</span> &bull; Método de Dos Fases</h2>
+        </div>
+    </header>
+
+    <!-- ESPACIO PRINCIPAL CENTRADO -->
+    <div class="main-workspace-wrapper">
         
-        <!-- SIDEBAR DE NAVEGACIÓN -->
-        <aside class="sidebar" id="app-sidebar">
-            <div class="sidebar-header">
-                <div class="logo-container">
-                    <i class="ph-fill ph-chart-polar logo-icon"></i>
-                    <h2 class="logo-text">TORA<span class="logo-highlight">Advanced</span></h2>
-                </div>
+        <header class="workspace-header">
+            <div class="welcome-box">
+                <h1>Método de Dos Fases</h1>
+                <p>Elimina errores de redondeo sustituyendo la constante <strong>M</strong>. La Fase I evalúa la factibilidad (r = 0) y la Fase II optimiza el modelo original.</p>
             </div>
+        </header>
+
+        <div class="dashboard-grid-content twophase-grid">
             
-            <nav class="sidebar-nav">
-                <span class="nav-label">MÓDULOS PRINCIPALES</span>
+            <!-- COLUMNA IZQUIERDA: CONFIGURACIÓN, MATRIZ Y RESULTADOS -->
+            <div class="workspace-left-column">
                 
-                <a href="/index.html" class="nav-item"><i class="ph ph-squares-four"></i> Dashboard General</a>
-                
-                <div class="nav-group">
-                    <div class="nav-item active-group">
-                        <i class="ph ph-package"></i> Programación Lineal
+                <!-- Tarjeta 1: Configuración del Modelo -->
+                <section class="action-card active-card">
+                    <div class="card-header">
+                        <div class="card-icon setup-icon text-cyan">
+                            <i class="ph ph-sliders-horizontal"></i>
+                        </div>
+                        <span class="badge-status online">Configuración</span>
                     </div>
-                    <div class="sub-nav">
-                        <a href="./simplex.html" class="sub-nav-item">Método Simplex Primal</a>
-                        <a href="./granM.html" class="sub-nav-item">Método de la Gran M</a>
-                        <a href="#" class="sub-nav-item active">Método de Dos Fases</a>
-                    </div>
-                </div>
-                
-                <a href="#" class="nav-item disabled"><i class="ph ph-truck"></i> Transporte y Asignación</a>
-                
-                <span class="nav-label mt-30">CONFIGURACIÓN</span>
-                <a href="#" class="nav-item" id="btn-toggle-theme"><i class="ph ph-sliders"></i> Preferencias Tech</a>
-            </nav>
-
-            <div class="sidebar-footer">
-                <div class="system-status">
-                    <span class="status-dot online"></span>
-                    <p>Motor Dos Fases Activo</p>
-                </div>
-            </div>
-        </aside>
-
-        <!-- ÁREA DE TRABAJO PRINCIPAL -->
-        <div class="main-workspace-wrapper">
-            
-            <header class="workspace-header">
-                <div class="welcome-box">
-                    <h1>Método de Dos Fases</h1>
-                    <p>Elimina errores de redondeo sustituyendo la constante $M$. Fase I encuentra factibilidad ($r=0$) y Fase II optimiza el modelo original.</p>
-                </div>
-            </header>
-
-            <div class="dashboard-grid-content" style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px; align-items: start;">
-                
-                <!-- COLUMNA IZQUIERDA: CONFIGURACIÓN, MATRIZ Y RESULTADOS -->
-                <div class="workspace-left-column" style="display: flex; flex-direction: column; gap: 20px;">
-                    
-                    <!-- Tarjeta 1: Configuración del Modelo -->
-                    <section class="action-card active-card" style="width: 100%; box-sizing: border-box;">
-                        <div class="card-header">
-                            <div class="card-icon setup-icon" style="color: var(--cyan-primary);">
-                                <i class="ph ph-sliders-horizontal"></i>
-                            </div>
-                            <span class="badge-status online">Configuración</span>
+                    <div class="card-body">
+                        <div class="card-title-row">
+                            <h3>Configuración del Modelo</h3>
+                            <button id="btn-load-example" class="btn-preset-example" title="Cargar ejemplo con =, >= y <=">
+                                <i class="ph ph-lightning"></i> Cargar Ejemplo Libros
+                            </button>
                         </div>
-                        <div class="card-body">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                <h3 style="margin: 0;">Configuración del Modelo</h3>
-                                <button id="btn-load-example" class="btn-preset-example" title="Cargar ejemplo con =, >= y <=">
-                                    <i class="ph ph-lightning"></i> Cargar Ejemplo Libros
-                                </button>
-                            </div>
 
-                            <div class="setup-form-row" style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px;">
-                                <div class="input-group" style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px;">
-                                    <label for="variable-count" style="font-size: 12px; color: var(--text-muted);">Variables de Decisión ($X_j$):</label>
-                                    <input type="number" id="variable-count" min="1" max="10" placeholder="Ej. 2" class="input-simplex-coeff" style="width: 100%; text-align: left; padding-left: 10px;">
-                                </div>
-                                <div class="input-group" style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px;">
-                                    <label for="constraint-count" style="font-size: 12px; color: var(--text-muted);">Número de Restricciones:</label>
-                                    <input type="number" id="constraint-count" min="1" max="10" placeholder="Ej. 3" class="input-simplex-coeff" style="width: 100%; text-align: left; padding-left: 10px;">
-                                </div>
-                                <div class="input-group" style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 160px;">
-                                    <label for="optimization-type" style="font-size: 12px; color: var(--text-muted);">Objetivo del Modelo:</label>
-                                    <select id="optimization-type" class="simplex-sign-select" style="width: 100%;">
-                                        <option value="MIN">Minimizar (MIN)</option>
-                                        <option value="MAX">Maximizar (MAX)</option>
-                                    </select>
-                                </div>
+                        <div class="setup-form-row">
+                            <div class="input-group">
+                                <label for="variable-count">Variables de Decisión (X<sub>j</sub>):</label>
+                                <input type="number" id="variable-count" min="1" max="10" placeholder="Ej. 2" class="input-simplex-coeff input-full-left">
                             </div>
-                            <div class="actions-row" style="display: flex; gap: 10px;">
-                                <button id="btn-generate-model" class="btn-card primary-glow" style="border: none; cursor: pointer;">
-                                    <i class="ph ph-matrix"></i> Inicializar Matriz de Dos Fases
-                                </button>
-                                <button id="btn-reset-simplex" class="btn-card locked" style="cursor: pointer; background: rgba(255,255,255,0.05); color: var(--text-main);">
-                                    <i class="ph ph-arrows-counter-clockwise"></i> Reiniciar
-                                </button>
+                            <div class="input-group">
+                                <label for="constraint-count">Número de Restricciones:</label>
+                                <input type="number" id="constraint-count" min="1" max="10" placeholder="Ej. 3" class="input-simplex-coeff input-full-left">
+                            </div>
+                            <div class="input-group">
+                                <label for="optimization-type">Objetivo del Modelo:</label>
+                                <select id="optimization-type" class="simplex-sign-select select-full">
+                                    <option value="MIN">Minimizar (MIN)</option>
+                                    <option value="MAX">Maximizar (MAX)</option>
+                                </select>
                             </div>
                         </div>
-                    </section>
-
-                    <!-- Tarjeta 2: Formulario de Matriz Dinámica -->
-                    <section id="matrix-section" class="action-card active-card" style="display: none; width: 100%; box-sizing: border-box;">
-                        <div class="card-header">
-                            <div class="card-icon matrix-icon" style="color: var(--magenta-primary);">
-                                <i class="ph ph-grid-nine"></i>
-                            </div>
-                            <span class="badge-status online">Matriz Activa</span>
-                        </div>
-                        <div class="card-body">
-                            <h3 style="margin-bottom: 5px;">Coeficientes del Sistema</h3>
-                            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">
-                                En la <strong>Fase I</strong> se construirá automáticamente la función $r = \sum R_i$ para minimizar las variables artificiales.
-                            </p>
-                            
-                            <div id="two-phase-model-wrapper"></div>
-                            
-                            <div class="actions-row mt-20" style="margin-top: 20px;">
-                                <button id="btn-calculate-twophase" class="btn-card primary-glow" style="border: none; cursor: pointer; background: var(--cyan-primary); color: #090514; font-weight: 800; box-shadow: 0 0 15px var(--cyan-primary);">
-                                    <i class="ph ph-play-circle"></i> Ejecutar Algoritmo de Dos Fases
-                                </button>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Tarjeta 3: Panel de Resultados e Iteraciones -->
-                    <section id="results-panel" class="action-card active-card" style="display: none; width: 100%; box-sizing: border-box; border-color: #53e0dc;">
-                        <div class="card-header">
-                            <div class="card-icon success-icon" style="color: #53e0dc;">
-                                <i class="ph ph-check-circle"></i>
-                            </div>
-                            <span id="model-status" class="badge-status online" style="background: rgba(83, 224, 220, 0.2); color: #53e0dc;">Proceso Concluido</span>
-                        </div>
-                        <div class="card-body">
-                            
-                            <!-- Resumen Visual del Resultado -->
-                            <div class="summary-box-twophase">
-                                <div class="summary-item">
-                                    <span class="summary-label">Resultado Fase I ($r_{min}$):</span>
-                                    <span class="summary-value" id="phase1-r-value">0.00</span>
-                                </div>
-                                <div class="summary-divider"></div>
-                                <div class="summary-item">
-                                    <span class="summary-label">Valor Óptimo Final ($Z$):</span>
-                                    <span class="summary-value highlight" id="optimal-z-value">0.00</span>
-                                </div>
-                            </div>
-
-                            <!-- Selector de Fases (Tabs UX) -->
-                            <div class="phase-tabs-container">
-                                <button id="tab-phase-1" class="phase-tab active">
-                                    <span class="phase-badge phase-badge-I">FASE I</span> Minimización de $r$
-                                </button>
-                                <button id="tab-phase-2" class="phase-tab">
-                                    <span class="phase-badge phase-badge-II">FASE II</span> Optimización de $Z$
-                                </button>
-                            </div>
-
-                            <!-- Leyenda de variables -->
-                            <div class="variables-legend" style="margin-top: 15px;">
-                                <span class="legend-item"><span class="legend-color decision"></span> Decisión ($X_j$)</span>
-                                <span class="legend-item"><span class="legend-color slack"></span> Holgura/Exceso ($S_i$)</span>
-                                <span class="legend-item"><span class="legend-color artificial"></span> Artificial ($R_i$)</span>
-                            </div>
-
-                            <!-- Banner Informativo de Transición entre Fases -->
-                            <div id="phase-transition-banner" class="phase-transition-card" style="display: none;">
-                                <div class="transition-icon"><i class="ph ph-arrows-split"></i></div>
-                                <div class="transition-text">
-                                    <strong>Transición a Fase II alcanzada:</strong> Dado que $r_{min} = 0$, el problema es factible. Se han eliminado todas las columnas de variables artificiales ($R_i$) y restaurado la función objetivo original $Z$.
-                                </div>
-                            </div>
-
-                            <div class="table-section" style="margin-top: 15px;">
-                                <div class="iteration-controls">
-                                    <button id="btn-prev-step" class="btn-card step-btn">
-                                        <i class="ph ph-arrow-left"></i> Anterior
-                                    </button>
-                                    <span id="iteration-counter" class="iteration-display">
-                                        TABLA 0 (FASE I)
-                                    </span>
-                                    <button id="btn-next-step" class="btn-card step-btn primary">
-                                        Siguiente <i class="ph ph-arrow-right"></i>
-                                    </button>
-                                </div>
-
-                                <div id="simplex-tables-container"></div>
-                            </div>
-                        </div>
-                    </section>
-
-                </div>
-
-                <!-- COLUMNA DERECHA: GUÍA TEÓRICA Y PASOS -->
-                <aside class="workspace-right-column">
-                    <div class="action-card disabled-card" style="opacity: 1; background: rgba(20, 15, 35, 0.6); border: 1px solid rgba(255,255,255,0.05);">
-                        <div class="card-header">
-                            <div class="card-icon info-icon" style="color: var(--cyan-primary);">
-                                <i class="ph ph-git-fork"></i>
-                            </div>
-                            <span class="badge-status online" style="color: var(--cyan-primary);">Estructura de Dos Fases</span>
-                        </div>
-                        <div class="card-body">
-                            <h3 style="color: var(--text-main); margin-bottom: 10px;">¿Por qué Usar Dos Fases?</h3>
-                            <p style="font-size: 13px; line-height: 1.5; color: var(--text-muted); margin-bottom: 20px;">
-                                Evita errores numéricos de desbordamiento en computadoras causados por la constante gigante $M$.
-                            </p>
-                            
-                            <div class="tips-stack" style="display: flex; flex-direction: column; gap: 12px;">
-                                
-                                <div class="rule-card rule-equal">
-                                    <span class="rule-tag">FASE I: PRUEBA DE FACTIBILIDAD</span>
-                                    <p style="margin: 0; font-size: 12px; color: var(--text-main);">
-                                        Se minimiza la función auxiliar $r = R_1 + R_2 + \dots + R_k$.
-                                    </p>
-                                    <ul style="margin: 5px 0 0 15px; padding: 0; font-size: 11px; color: var(--text-muted);">
-                                        <li>Si $r_{min} > 0$: <strong>Infactible</strong> (Se detiene).</li>
-                                        <li>Si $r_{min} = 0$: <strong>Factible</strong> (Pasa a Fase II).</li>
-                                    </ul>
-                                </div>
-
-                                <div class="rule-card rule-greater">
-                                    <span class="rule-tag">TRANSICIÓN DE MATRIZ</span>
-                                    <p style="margin: 0; font-size: 12px; color: var(--text-main);">
-                                        Se eliminan por completo las columnas $R_i$ de la tabla final de la Fase I.
-                                    </p>
-                                </div>
-
-                                <div class="rule-card rule-exact">
-                                    <span class="rule-tag">FASE II: OPTIMIZACIÓN REAL</span>
-                                    <p style="margin: 0; font-size: 12px; color: var(--text-main);">
-                                        Se reintroduce la función $Z$ original, se acondiciona el renglón $Z$ con la base actual y se aplica Simplex Primal estándar.
-                                    </p>
-                                </div>
-
-                            </div>
-
-                            <div class="decorative-chart-placeholder" style="margin-top: 20px; padding: 12px; background: rgba(9,5,20,0.4); border-radius: 6px; text-align: center; border: 1px dashed rgba(255,255,255,0.1);">
-                                <span style="font-size: 11px; color: var(--cyan-primary); font-weight: 600;">Sin constante $M \implies$ Alta Precisión Flotante</span>
-                                <div class="chart-line-glow" style="height: 2px; background: linear-gradient(90deg, transparent, var(--cyan-primary), transparent); margin-top: 8px; box-shadow: 0 0 8px var(--cyan-primary);"></div>
-                            </div>
+                        <div class="actions-row">
+                            <button id="btn-generate-model" class="btn-card primary-glow">
+                                <i class="ph ph-matrix"></i> Inicializar Matriz de Dos Fases
+                            </button>
+                            <button id="btn-reset-simplex" class="btn-card btn-reset">
+                                <i class="ph ph-arrows-counter-clockwise"></i> Reiniciar
+                            </button>
                         </div>
                     </div>
-                </aside>
+                </section>
+
+                <!-- Tarjeta 2: Formulario de Matriz Dinámica -->
+                <section id="matrix-section" class="action-card active-card display-none">
+                    <div class="card-header">
+                        <div class="card-icon matrix-icon text-magenta">
+                            <i class="ph ph-grid-nine"></i>
+                        </div>
+                        <span class="badge-status online">Matriz Activa</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Coeficientes del Sistema</h3>
+                        <p class="section-description">
+                            En la <strong>Fase I</strong> se construirá automáticamente la función de minimización de variables artificiales.
+                        </p>
+                        
+                        <div id="two-phase-model-wrapper"></div>
+                        
+                        <div class="actions-row mt-20">
+                            <button id="btn-calculate-twophase" class="btn-card primary-glow btn-execute">
+                                <i class="ph ph-play-circle"></i> Ejecutar Algoritmo de Dos Fases
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tarjeta 3: Panel de Resultados e Iteraciones -->
+                <section id="results-panel" class="action-card active-card display-none border-cyan">
+                    <div class="card-header">
+                        <div class="card-icon success-icon text-cyan">
+                            <i class="ph ph-check-circle"></i>
+                        </div>
+                        <span id="model-status" class="badge-status online badge-cyan">Proceso Concluido</span>
+                    </div>
+                    <div class="card-body">
+                        
+                        <!-- Resumen Visual del Resultado -->
+                        <div class="summary-box-twophase">
+                            <div class="summary-item">
+                                <span class="summary-label">Resultado Fase I (r<sub>min</sub>):</span>
+                                <span class="summary-value" id="phase1-r-value">0.00</span>
+                            </div>
+                            <div class="summary-divider"></div>
+                            <div class="summary-item">
+                                <span class="summary-label">Valor Óptimo Final (Z):</span>
+                                <span class="summary-value highlight" id="optimal-z-value">0.00</span>
+                            </div>
+                        </div>
+
+                        <!-- Selector de Fases (Tabs UX) -->
+                        <div class="phase-tabs-container">
+                            <button id="tab-phase-1" class="phase-tab active">
+                                <span class="phase-badge phase-badge-I">FASE I</span> Minimización de r
+                            </button>
+                            <button id="tab-phase-2" class="phase-tab">
+                                <span class="phase-badge phase-badge-II">FASE II</span> Optimización de Z
+                            </button>
+                        </div>
+
+                        <!-- Leyenda de variables -->
+                        <div class="variables-legend mt-15">
+                            <span class="legend-item"><span class="legend-color decision"></span> Decisión (X<sub>j</sub>)</span>
+                            <span class="legend-item"><span class="legend-color slack"></span> Holgura/Exceso (S<sub>i</sub>)</span>
+                            <span class="legend-item"><span class="legend-color artificial"></span> Artificial (R<sub>i</sub>)</span>
+                        </div>
+
+                        <!-- Banner Informativo de Transición entre Fases -->
+                        <div id="phase-transition-banner" class="phase-transition-card display-none">
+                            <div class="transition-icon"><i class="ph ph-arrows-split"></i></div>
+                            <div class="transition-text">
+                                <strong>Transición a Fase II alcanzada:</strong> Dado que r<sub>min</sub> = 0, el problema es factible. Se han eliminado todas las columnas de variables artificiales (R<sub>i</sub>) y restaurado la función objetivo original Z.
+                            </div>
+                        </div>
+
+                        <div class="table-section mt-15">
+                            <div class="iteration-controls">
+                                <button id="btn-prev-step" class="btn-card step-btn">
+                                    <i class="ph ph-arrow-left"></i> Anterior
+                                </button>
+                                <span id="iteration-counter" class="iteration-display">
+                                    TABLA 0 (FASE I)
+                                </span>
+                                <button id="btn-next-step" class="btn-card step-btn primary">
+                                    Siguiente <i class="ph ph-arrow-right"></i>
+                                </button>
+                            </div>
+
+                            <div id="simplex-tables-container"></div>
+                        </div>
+                    </div>
+                </section>
 
             </div>
+
+            <!-- COLUMNA DERECHA: GUÍA TEÓRICA Y PASOS -->
+            <aside class="workspace-right-column">
+                <div class="action-card sidebar-guide-card">
+                    <div class="card-header">
+                        <div class="card-icon info-icon text-cyan">
+                            <i class="ph ph-git-fork"></i>
+                        </div>
+                        <span class="badge-status online text-cyan">Estructura de Dos Fases</span>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="guide-title">¿Por qué Usar Dos Fases?</h3>
+                        <p class="guide-description">
+                            Evita errores numéricos de desbordamiento en computadoras causados por la constante gigante M.
+                        </p>
+                        
+                        <div class="tips-stack">
+                            
+                            <div class="tip-item cyan-border">
+                                <span class="tip-tag cyan">FASE I: PRUEBA DE FACTIBILIDAD</span>
+                                <p class="rule-body">
+                                    Se minimiza la función auxiliar r = R₁ + R₂ + ... + R<sub>k</sub>.
+                                </p>
+                                <ul class="rule-list">
+                                    <li>Si r<sub>min</sub> &gt; 0: <strong>Infactible</strong> (Se detiene).</li>
+                                    <li>Si r<sub>min</sub> = 0: <strong>Factible</strong> (Pasa a Fase II).</li>
+                                </ul>
+                            </div>
+
+                            <div class="tip-item magenta-border">
+                                <span class="tip-tag magenta">TRANSICIÓN DE MATRIZ</span>
+                                <p class="rule-body">
+                                    Se eliminan por completo las columnas R<sub>i</sub> de la tabla final de la Fase I.
+                                </p>
+                            </div>
+
+                            <div class="tip-item cyan-border">
+                                <span class="tip-tag cyan">FASE II: OPTIMIZACIÓN REAL</span>
+                                <p class="rule-body">
+                                    Se reintroduce la función Z original, se acondiciona el renglón Z con la base actual y se aplica Simplex Primal estándar.
+                                </p>
+                            </div>
+
+                        </div>
+
+                        <div class="decorative-chart-placeholder">
+                            <span class="chart-tag">Sin constante M &rarr; Alta Precisión Flotante</span>
+                            <div class="chart-line-glow"></div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
         </div>
     </div>
 
     <!-- MODAL DE DIAGNÓSTICO -->
-    <div id="error-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(9,5,20,0.8); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 9999;">
-        <div class="modal-box" style="background: #140f23; border: 1px solid var(--magenta-primary); padding: 25px; border-radius: 8px; max-width: 400px; text-align: center; box-shadow: 0 0 30px rgba(157, 78, 221, 0.2);">
-            <h3 class="modal-title error-text" style="color: #ff4d6d; margin-top: 0; font-size: 18px;">⚠️ Estado del Proceso</h3>
-            <p id="error-message" style="color: var(--text-muted); font-size: 14px; line-height: 1.5;">Notificación del sistema.</p>
-            <button id="btn-close-modal" class="btn-card" style="margin-top: 15px; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: white; cursor: pointer; padding: 8px 16px; border-radius: 4px;">Cerrar</button>
+    <div id="error-modal" class="modal-overlay display-none">
+        <div class="modal-box">
+            <h3 class="modal-title error-text">⚠️ Estado del Proceso</h3>
+            <p id="error-message">Notificación del sistema.</p>
+            <button id="btn-close-modal" class="btn-card btn-close-modal">Cerrar</button>
         </div>
     </div>
 
-    <script src="../core/sidebar.js"></script>
     <script type="module" src="../core/linear/dosFases.js"></script>
 </body>
 </html>

@@ -1,8 +1,18 @@
 /* ==========================================================================
-   LAYOUT Y BARRAS NAVEGACIONALES DEL MÓDULO SIMPLEX
+   MÓDULO MÉTODO GRÁFICO - ESTILOS Y LAYOUT CENTRADO (SIN SIDEBAR)
    ========================================================================== */
 
-/* Barra Superior de Navegación */
+:root {
+    --cyan-primary: #53e0dc;
+    --cyan-glow: rgba(83, 224, 220, 0.4);
+    --magenta-primary: #9d4ed7;
+    --text-main: #ffffff;
+    --text-muted: #8e8a9f;
+}
+
+/* ==========================================================================
+   BARRA SUPERIOR DE NAVEGACIÓN (UNIFICADA)
+   ========================================================================== */
 .module-top-bar {
     display: flex;
     align-items: center;
@@ -28,7 +38,7 @@
     border-radius: 6px;
     background: rgba(83, 224, 220, 0.08);
     border: 1px solid rgba(83, 224, 220, 0.2);
-    transition: all 0.2s;
+    transition: all 0.2s ease;
 }
 
 .btn-back:hover {
@@ -51,13 +61,21 @@
     font-size: 16px;
     font-weight: 700;
     color: var(--text-main);
+    margin: 0;
 }
 
-/* Espacio Principal */
+.logo-highlight {
+    color: var(--magenta-primary);
+}
+
+/* ==========================================================================
+   ESPACIO PRINCIPAL CENTRADO
+   ========================================================================== */
 .main-workspace-wrapper {
     max-width: 1350px;
     margin: 0 auto;
     padding: 30px 24px;
+    box-sizing: border-box;
 }
 
 .workspace-header {
@@ -67,16 +85,18 @@
 .workspace-header h1 {
     font-size: 26px;
     font-weight: 800;
-    color: #fff;
+    color: #ffffff;
     margin-bottom: 4px;
 }
 
 .workspace-header p {
     font-size: 14px;
     color: var(--text-muted);
+    margin: 0;
 }
 
-.dashboard-grid-content {
+/* GRID PRINCIPAL (2 COLUMNAS: TRABAJO Y GUÍA) */
+.dashboard-grid-content.grafico-grid {
     display: grid;
     grid-template-columns: 2.2fr 1fr;
     gap: 25px;
@@ -89,9 +109,54 @@
     gap: 20px;
 }
 
+/* UTILITY CLASSES */
+.display-none {
+    display: none !important;
+}
+
+.mt-10 { margin-top: 10px; }
+.mt-15 { margin-top: 15px; }
+.mt-20 { margin-top: 20px; }
+
+.text-cyan { color: var(--cyan-primary) !important; }
+.text-magenta { color: var(--magenta-primary) !important; }
+.border-cyan { border-color: var(--cyan-primary) !important; }
+
+.badge-cyan {
+    background: rgba(83, 224, 220, 0.2) !important;
+    color: var(--cyan-primary) !important;
+}
+
 /* ==========================================================================
-   FORMULARIOS Y COMPONENTES DE ENTRADA
+   FORMULARIOS Y COMPONENTES ENTRADA
    ========================================================================== */
+.card-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.btn-preset-example {
+    background: rgba(83, 224, 220, 0.1);
+    border: 1px solid rgba(83, 224, 220, 0.3);
+    color: var(--cyan-primary);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-preset-example:hover {
+    background: var(--cyan-primary);
+    color: #090514;
+}
+
 .setup-form-row {
     display: flex;
     gap: 15px;
@@ -113,7 +178,7 @@
     font-weight: 500;
 }
 
-.input-simplex-coeff {
+.input-simplex-coeff, .simplex-sign-select {
     width: 100%;
     height: 40px;
     background-color: rgba(9, 5, 20, 0.6);
@@ -123,25 +188,14 @@
     padding: 0 12px;
     font-weight: 600;
     font-family: inherit;
-    transition: all 0.2s;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
 }
 
-.input-simplex-coeff:focus {
+.input-simplex-coeff:focus, .simplex-sign-select:focus {
     border-color: var(--cyan-primary);
     box-shadow: 0 0 10px var(--cyan-glow);
     outline: none;
-}
-
-.simplex-sign-select {
-    width: 100%;
-    height: 40px;
-    background-color: rgba(9, 5, 20, 0.6);
-    color: var(--text-main);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    padding: 0 10px;
-    cursor: pointer;
-    font-weight: 600;
 }
 
 .actions-row {
@@ -159,113 +213,128 @@
     background: rgba(255, 255, 255, 0.1);
 }
 
-.primary-glow-magenta {
-    background: linear-gradient(135deg, var(--magenta-primary), #7209b7);
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 0 15px rgba(157, 78, 221, 0.4);
-}
-
 /* ==========================================================================
-   MATRIZ DINÁMICA DE ENTRADA
+   RESUMEN, CANVAS Y VÉRTICES (MÉTODO GRÁFICO)
    ========================================================================== */
-.matrix-row-simplex {
+.summary-box-grafico {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-}
-
-.matrix-row-simplex .input-simplex-coeff {
-    width: 75px;
-    text-align: center;
-}
-
-/* ==========================================================================
-   TABLAS Y CONTROL DE ITERACIONES
-   ========================================================================== */
-.summary-box {
+    justify-content: space-around;
     background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     padding: 16px;
     border-radius: 8px;
     margin-bottom: 20px;
-    border-left: 4px solid var(--cyan-primary);
 }
 
-.summary-label {
-    font-size: 13px;
-    color: var(--text-muted);
+.summary-value.highlight-magenta {
+    color: var(--magenta-primary);
+    text-shadow: 0 0 10px rgba(157, 78, 215, 0.4);
 }
 
-.summary-value {
-    font-size: 28px;
-    color: var(--cyan-primary);
-    margin-top: 4px;
-    font-weight: 800;
+.canvas-card-wrapper {
+    background: rgba(9, 5, 20, 0.6);
+    border: 1px solid rgba(83, 224, 220, 0.2);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
-.iteration-controls {
+.canvas-toolbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    background: rgba(255, 255, 255, 0.02);
-    padding: 12px 20px;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.btn-step {
-    padding: 8px 16px;
-    border-radius: 6px;
+.canvas-title {
     font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    display: inline-flex;
+    font-weight: 700;
+    color: var(--cyan-primary);
+    display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text-main);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.2s;
 }
 
-.btn-step.primary {
+.canvas-controls {
+    display: flex;
+    gap: 6px;
+}
+
+.canvas-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.canvas-btn:hover {
     background: var(--cyan-primary);
     color: #090514;
-    border: none;
+    border-color: var(--cyan-primary);
+    box-shadow: 0 0 10px var(--cyan-glow);
+}
+
+.canvas-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    background: radial-gradient(circle at center, rgba(20, 15, 35, 0.8) 0%, rgba(9, 5, 20, 0.95) 100%);
+}
+
+#graph-canvas {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    cursor: crosshair;
+}
+
+.lines-legend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.legend-card-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.line-color-indicator {
+    width: 14px;
+    height: 4px;
+    border-radius: 2px;
+    box-shadow: 0 0 6px currentColor;
+}
+
+.vertex-optimal-row {
+    background: rgba(83, 224, 220, 0.12) !important;
     font-weight: 700;
 }
 
-#iteration-counter {
-    color: var(--cyan-primary);
-    font-size: 14px;
-    font-weight: 700;
-}
-
-/* Resaltados de la Tabla Simplex */
-.data-table tbody tr.pivot-row {
-    background-color: rgba(157, 78, 221, 0.18) !important;
-    border-bottom: 2px solid var(--magenta-primary);
-}
-
-.data-table td.pivot-col {
-    background-color: rgba(83, 224, 220, 0.12) !important;
+.vertex-optimal-row td {
     color: var(--cyan-primary) !important;
-    font-weight: 600;
-}
-
-.data-table td.pivot-element {
-    background-color: var(--cyan-primary) !important;
-    color: #090514 !important;
-    font-weight: 800 !important;
-    box-shadow: 0 0 15px var(--cyan-primary);
 }
 
 /* ==========================================================================
-   PANEL TEÓRICO DERECHO Y MODAL
+   PANEL TEÓRICO Y MODAL
    ========================================================================== */
 .theory-card {
     background: rgba(20, 15, 35, 0.6);
@@ -323,7 +392,7 @@
     box-shadow: 0 0 8px var(--cyan-primary);
 }
 
-/* Modal */
+/* MODAL */
 .modal-overlay {
     position: fixed;
     top: 0;

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TORA Advanced | Método Gráfico</title>
+    
+    <!-- Fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Iconos Phosphor -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+
+    <!-- Estilos de la aplicación -->
+    <link rel="stylesheet" href="../index.css">       
+    <link rel="stylesheet" href="../styles/metodografico.css">    
+</head>
+<body>
+
+    <!-- BARRA NAVEGACIÓN SUPERIOR UNIFICADA (SIN SIDEBAR) -->
+    <header class="module-top-bar">
+        <a href="../../index.html" class="btn-back">
+            <i class="ph ph-arrow-left"></i> Volver al Dashboard
+        </a>
+        <div class="module-title-header">
+            <i class="ph-fill ph-chart-polar logo-icon"></i>
+            <h2>TORA<span class="logo-highlight">Advanced</span> &bull; Método Gráfico</h2>
+        </div>
+    </header>
+
+    <!-- ESPACIO PRINCIPAL CENTRADO -->
+    <div class="main-workspace-wrapper">
+        
+        <header class="workspace-header">
+            <div class="welcome-box">
+                <h1>Método Gráfico (PL 2D)</h1>
+                <p>Visualización bidimensional del espacio de soluciones factibles, trazado de semiplanos y evaluación geométrica de puntos de esquina (x₁, x₂).</p>
+            </div>
+        </header>
+
+        <div class="dashboard-grid-content grafico-grid">
+            
+            <!-- COLUMNA IZQUIERDA: CONFIGURACIÓN, MATRIZ Y CANVAS -->
+            <div class="workspace-left-column">
+                
+                <!-- CONFIGURACIÓN DEL MODELO -->
+                <section class="action-card active-card">
+                    <div class="card-header">
+                        <div class="card-icon setup-icon text-cyan">
+                            <i class="ph ph-sliders-horizontal"></i>
+                        </div>
+                        <span class="badge-status online">Configuración 2D</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-title-row">
+                            <h3>Parámetros del Sistema</h3>
+                            <button id="btn-load-reddy" class="btn-preset-example" title="Cargar problema clásico de Reddy Mikks">
+                                <i class="ph ph-lightning"></i> Cargar Reddy Mikks
+                            </button>
+                        </div>
+
+                        <div class="setup-form-row">
+                            <div class="input-group">
+                                <label for="constraint-count">Número de Restricciones:</label>
+                                <input type="number" id="constraint-count" min="1" max="8" value="4" placeholder="Ej. 4" class="input-simplex-coeff">
+                            </div>
+                            <div class="input-group">
+                                <label for="optimization-type">Objetivo del Modelo:</label>
+                                <select id="optimization-type" class="simplex-sign-select">
+                                    <option value="MAX">Maximizar (MAX)</option>
+                                    <option value="MIN">Minimizar (MIN)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="actions-row">
+                            <button id="btn-generate-model" class="btn-card primary-glow">
+                                <i class="ph ph-vector"></i> Generar Formulario 2D
+                            </button>
+                            <button id="btn-reset-graphic" class="btn-card btn-reset">
+                                <i class="ph ph-arrows-counter-clockwise"></i> Reiniciar
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MATRIZ DE COEFICIENTES (OCULTA INICIALMENTE) -->
+                <section id="matrix-section" class="action-card active-card display-none">
+                    <div class="card-header">
+                        <div class="card-icon matrix-icon text-magenta">
+                            <i class="ph ph-function"></i>
+                        </div>
+                        <span class="badge-status online">Ecuaciones Activas</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Definición de Función Objetivo y Restricciones</h3>
+                        <p class="section-description">
+                            Ingresa los coeficientes correspondientes a las variables de decisión x₁ (eje horizontal) y x₂ (eje vertical).
+                        </p>
+                        
+                        <div id="graphic-model-wrapper"></div>
+                        
+                        <div class="actions-row mt-20">
+                            <button id="btn-calculate-graphic" class="btn-card primary-glow btn-execute">
+                                <i class="ph ph-play-circle"></i> Graficar y Resolver
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PLANO CARTESIANO Y RESULTADOS (OCULTO INICIALMENTE) -->
+                <section id="results-panel" class="action-card active-card display-none border-cyan">
+                    <div class="card-header">
+                        <div class="card-icon success-icon text-cyan">
+                            <i class="ph ph-graph"></i>
+                        </div>
+                        <span id="model-status" class="badge-status online badge-cyan">Solución Encontrada</span>
+                    </div>
+                    <div class="card-body">
+                        
+                        <!-- Resumen Visual de Solución Óptima -->
+                        <div class="summary-box-grafico">
+                            <div class="summary-item">
+                                <span class="summary-label">Coordenada Óptima (x₁*, x₂*):</span>
+                                <span class="summary-value highlight" id="optimal-coords-value">(0.00, 0.00)</span>
+                            </div>
+                            <div class="summary-divider"></div>
+                            <div class="summary-item">
+                                <span class="summary-label">Valor Óptimo (Z*):</span>
+                                <span class="summary-value highlight-magenta" id="optimal-z-value">0.00</span>
+                            </div>
+                        </div>
+
+                        <!-- Lienzo del Plano Cartesiano Interactivo -->
+                        <div class="canvas-card-wrapper">
+                            <div class="canvas-toolbar">
+                                <span class="canvas-title"><i class="ph ph-crosshair"></i> Plano Cartesiano X₁ vs X₂</span>
+                                <div class="canvas-controls">
+                                    <button id="btn-zoom-in" class="canvas-btn" title="Acercar"><i class="ph ph-magnifying-glass-plus"></i></button>
+                                    <button id="btn-zoom-out" class="canvas-btn" title="Alejar"><i class="ph ph-magnifying-glass-minus"></i></button>
+                                    <button id="btn-zoom-reset" class="canvas-btn" title="Restablecer vista"><i class="ph ph-arrows-out-cardinal"></i></button>
+                                </div>
+                            </div>
+                            <div class="canvas-container">
+                                <canvas id="graph-canvas" width="700" height="450"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Leyenda de Ecuaciones y Líneas -->
+                        <div id="lines-legend-container" class="lines-legend-grid mt-15"></div>
+
+                        <!-- Tabla de Vértices -->
+                        <div class="table-section mt-20">
+                            <h4>Evaluación de Puntos de Esquina (Vértices)</h4>
+                            <div class="matrix-table-wrapper mt-10">
+                                <table class="data-table" id="vertices-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="th-base">Vértice</th>
+                                            <th class="header-var-default">x₁</th>
+                                            <th class="header-var-default">x₂</th>
+                                            <th class="th-sol">Valor Z</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="vertices-table-body">
+                                        <!-- Se genera dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- COLUMNA DERECHA: GUÍA TEÓRICA -->
+            <aside class="workspace-right-column">
+                <div class="action-card theory-card">
+                    <div class="card-header">
+                        <div class="card-icon info-icon text-cyan">
+                            <i class="ph ph-lightbulb"></i>
+                        </div>
+                        <span class="badge-status online text-cyan">Metodología 2D</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Pasos del Método Gráfico</h3>
+                        <p class="theory-desc">
+                            Procedimiento visual aplicable a modelos de Programación Lineal estructurados en dos variables de decisión.
+                        </p>
+                        
+                        <div class="tips-stack">
+                            <div class="tip-item cyan-border">
+                                <span class="tip-tag cyan">PASO 01: SEMIPLANOS</span>
+                                <p>Se convierte cada desigualdad en ecuación lineal para trazar la recta límite hallando sus intercepciones.</p>
+                            </div>
+
+                            <div class="tip-item magenta-border">
+                                <span class="tip-tag magenta">PASO 02: PRUEBA DE ORIGEN</span>
+                                <p>Se evalúa (0,0) en cada desigualdad. Si satisface la relación, el semiplano incluye el origen.</p>
+                            </div>
+
+                            <div class="tip-item cyan-border">
+                                <span class="tip-tag cyan">PASO 03: POLÍGONO FACTIBLE</span>
+                                <p>La intersección simultánea de todos los semiplanos en el primer cuadrante define la región factible.</p>
+                            </div>
+
+                            <div class="tip-item magenta-border">
+                                <span class="tip-tag magenta">PASO 04: VÉRTICE ÓPTIMO</span>
+                                <p>La solución óptima siempre se encuentra en uno de los puntos de esquina del polígono.</p>
+                            </div>
+                        </div>
+
+                        <div class="decorative-chart-placeholder">
+                            <span>Motor Gráfico 2D Activo</span>
+                            <div class="chart-line-glow"></div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+        </div>
+    </div>
+
+    <!-- MODAL DE ERRORES Y DIAGNÓSTICO -->
+    <div id="error-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <h3 class="modal-title error-text">⚠️ Estado del Proceso</h3>
+            <p id="error-message">Notificación del sistema.</p>
+            <button id="btn-close-modal" class="btn-card btn-reset">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Script ejecutor -->
+    <script type="module" src="../core/linear/metodografico.js"></script>
+</body>
+</html>

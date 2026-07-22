@@ -5,229 +5,203 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TORA Advanced | Método de la Gran M</title>
     
+    <!-- Fuentes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Iconos Phosphor (Carga segura vía CSS) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
 
+    <!-- Renderizado Matemático (KaTeX) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+    <!-- Estilos de la aplicación -->
     <link rel="stylesheet" href="../index.css">       
     <link rel="stylesheet" href="../styles/simplex.css">
     <link rel="stylesheet" href="../styles/granM.css">    
 </head>
 <body>
 
-    <div class="app-layout">
+    <!-- BARRA NAVEGACIÓN SUPERIOR UNIFICADA -->
+    <header class="module-top-bar">
+        <a href="../../index.html" class="btn-back">
+            <i class="ph ph-arrow-left"></i> Volver al Dashboard
+        </a>
+        <div class="module-title-header">
+            <i class="ph-fill ph-chart-polar logo-icon"></i>
+            <h2>TORA<span class="logo-highlight">Advanced</span> &bull; Método de la Gran M</h2>
+        </div>
+    </header>
+
+    <div class="main-workspace-wrapper">
         
-        <!-- SIDEBAR DE NAVEGACIÓN -->
-        <aside class="sidebar" id="app-sidebar">
-            <div class="sidebar-header">
-                <div class="logo-container">
-                    <i class="ph-fill ph-chart-polar logo-icon"></i>
-                    <h2 class="logo-text">TORA<span class="logo-highlight">Advanced</span></h2>
-                </div>
+        <header class="workspace-header">
+            <div class="welcome-box">
+                <h1>Método de la Gran M</h1>
+                <p>Programación Lineal: Optimización con restricciones complejas ($\le$, $\ge$, $=$) mediante penalizaciones algebraicas $M$.</p>
             </div>
+        </header>
+
+        <div class="dashboard-grid-content">
             
-            <nav class="sidebar-nav">
-                <span class="nav-label">MÓDULOS PRINCIPALES</span>
+            <!-- COLUMNA IZQUIERDA: CONFIGURACIÓN, MATRIZ Y RESULTADOS -->
+            <div class="workspace-left-column">
                 
-                <a href="/index.html" class="nav-item"><i class="ph ph-squares-four"></i> Dashboard General</a>
-                
-                <div class="nav-group">
-                    <div class="nav-item active-group">
-                        <i class="ph ph-package"></i> Programación Lineal
+                <!-- Tarjeta 1: Configuración del Modelo -->
+                <section class="action-card active-card">
+                    <div class="card-header">
+                        <div class="card-icon setup-icon">
+                            <i class="ph ph-sliders-horizontal"></i>
+                        </div>
+                        <span class="badge-status online">Configuración</span>
                     </div>
-                    <div class="sub-nav">
-                        <a href="./simplex.html" class="sub-nav-item">Método Simplex Primal</a>
-                        <a href="#" class="sub-nav-item active">Método de la Gran M</a>
-                        <a href="#" class="sub-nav-item">Método de Dos Fases</a>
-                    </div>
-                </div>
-                
-                <a href="#" class="nav-item disabled"><i class="ph ph-truck"></i> Transporte y Asignación</a>
-                
-                <span class="nav-label mt-30">CONFIGURACIÓN</span>
-                <a href="#" class="nav-item" id="btn-toggle-theme"><i class="ph ph-sliders"></i> Preferencias Tech</a>
-            </nav>
-
-            <div class="sidebar-footer">
-                <div class="system-status">
-                    <span class="status-dot online"></span>
-                    <p>Motor de Optimización Activo</p>
-                </div>
-            </div>
-        </aside>
-
-        <!-- ÁREA DE TRABAJO PRINCIPAL -->
-        <div class="main-workspace-wrapper">
-            
-            <header class="workspace-header">
-                <div class="welcome-box">
-                    <h1>Método de la Gran M</h1>
-                    <p>Programación Lineal: Optimización con restricciones complejas (&le;, &ge;, =) mediante penalizaciones algebraicas M.</p>
-                </div>
-            </header>
-
-            <div class="dashboard-grid-content" style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px; align-items: start;">
-                
-                <!-- COLUMNA IZQUIERDA: CONFIGURACIÓN, MATRIZ Y RESULTADOS -->
-                <div class="workspace-left-column" style="display: flex; flex-direction: column; gap: 20px;">
-                    
-                    <!-- Tarjeta 1: Configuración del Modelo -->
-                    <section class="action-card active-card" style="width: 100%; box-sizing: border-box;">
-                        <div class="card-header">
-                            <div class="card-icon setup-icon" style="color: var(--cyan-primary);">
-                                <i class="ph ph-sliders-horizontal"></i>
+                    <div class="card-body">
+                        <h3>Configuración del Modelo</h3>
+                        <div class="setup-form-row">
+                            <div class="input-group">
+                                <label for="variable-count">Número de Variables ($X_j$):</label>
+                                <input type="number" id="variable-count" min="1" max="10" placeholder="Ej. 2" class="input-simplex-coeff">
                             </div>
-                            <span class="badge-status online">Configuración</span>
-                        </div>
-                        <div class="card-body">
-                            <h3 style="margin-bottom: 15px;">Configuración del Modelo</h3>
-                            <div class="setup-form-row" style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px;">
-                                <div class="input-group" style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px;">
-                                    <label for="variable-count" style="font-size: 12px; color: var(--text-muted);">Número de Variables ($X_j$):</label>
-                                    <input type="number" id="variable-count" min="1" max="10" placeholder="Ej. 2" class="input-simplex-coeff" style="width: 100%; text-align: left; padding-left: 10px;">
-                                </div>
-                                <div class="input-group" style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px;">
-                                    <label for="constraint-count" style="font-size: 12px; color: var(--text-muted);">Número de Restricciones:</label>
-                                    <input type="number" id="constraint-count" min="1" max="10" placeholder="Ej. 3" class="input-simplex-coeff" style="width: 100%; text-align: left; padding-left: 10px;">
-                                </div>
-                                <div class="input-group" style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 160px;">
-                                    <label for="optimization-type" style="font-size: 12px; color: var(--text-muted);">Objetivo del Modelo:</label>
-                                    <select id="optimization-type" class="simplex-sign-select" style="width: 100%;">
-                                        <option value="MAX">Maximizar (MAX)</option>
-                                        <option value="MIN">Minimizar (MIN)</option>
-                                    </select>
-                                </div>
+                            <div class="input-group">
+                                <label for="constraint-count">Número de Restricciones:</label>
+                                <input type="number" id="constraint-count" min="1" max="10" placeholder="Ej. 3" class="input-simplex-coeff">
                             </div>
-                            <div class="actions-row" style="display: flex; gap: 10px;">
-                                <button id="btn-generate-model" class="btn-card primary-glow" style="border: none; cursor: pointer;">
-                                    <i class="ph ph-matrix"></i> Inicializar Matriz Gran M
-                                </button>
-                                <button id="btn-reset-simplex" class="btn-card locked" style="cursor: pointer; background: rgba(255,255,255,0.05); color: var(--text-main);">
-                                    <i class="ph ph-arrows-counter-clockwise"></i> Reiniciar Todo
-                                </button>
+                            <div class="input-group">
+                                <label for="optimization-type">Objetivo del Modelo:</label>
+                                <select id="optimization-type" class="simplex-sign-select">
+                                    <option value="MAX">Maximizar (MAX)</option>
+                                    <option value="MIN">Minimizar (MIN)</option>
+                                </select>
                             </div>
                         </div>
-                    </section>
-
-                    <!-- Tarjeta 2: Formulario de Matriz Dinámica -->
-                    <section id="matrix-section" class="action-card active-card" style="display: none; width: 100%; box-sizing: border-box;">
-                        <div class="card-header">
-                            <div class="card-icon matrix-icon" style="color: var(--magenta-primary);">
-                                <i class="ph ph-grid-nine"></i>
-                            </div>
-                            <span class="badge-status online">Matriz Activa</span>
-                        </div>
-                        <div class="card-body">
-                            <h3 style="margin-bottom: 5px;">Coeficientes y Restricciones</h3>
-                            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Selecciona el signo adecuado para cada restricción (&le;, &ge;, =). El sistema agregará automáticamente las variables de exceso ($S_i$) o artificiales ($R_i$).</p>
-                            
-                            <div id="simplex-model-wrapper"></div>
-                            
-                            <div class="actions-row mt-20" style="margin-top: 20px;">
-                                <button id="btn-calculate-simplex" class="btn-card primary-glow" style="border: none; cursor: pointer; background: var(--magenta-primary); box-shadow: 0 0 15px var(--magenta-primary);">
-                                    <i class="ph ph-play"></i> Resolver con Gran M
-                                </button>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Tarjeta 3: Panel de Resultados e Iteraciones -->
-                    <section id="results-panel" class="action-card active-card" style="display: none; width: 100%; box-sizing: border-box; border-color: #53e0dc;">
-                        <div class="card-header">
-                            <div class="card-icon success-icon" style="color: #53e0dc;">
-                                <i class="ph ph-check-circle"></i>
-                            </div>
-                            <span id="model-status" class="badge-status online" style="background: rgba(83, 224, 220, 0.2); color: #53e0dc;">Óptimo Alcanzado</span>
-                        </div>
-                        <div class="card-body">
-                            <div class="summary-box" style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #53e0dc;">
-                                <p class="summary-label" style="font-size: 13px; color: var(--text-muted); margin: 0;">Valor Óptimo de la Función Objetivo ($Z$):</p>
-                                <h2 class="summary-value" id="optimal-z-value" style="font-size: 28px; color: #53e0dc; margin: 5px 0 0 0; font-weight: 800;">0.00</h2>
-                            </div>
-                            
-                            <!-- Leyenda de colores interactiva -->
-                            <div class="variables-legend">
-                                <span class="legend-item"><span class="legend-color decision"></span> Decisión ($X_j$)</span>
-                                <span class="legend-item"><span class="legend-color slack"></span> Holgura / Exceso ($S_i$)</span>
-                                <span class="legend-item"><span class="legend-color artificial"></span> Artificial ($R_i$)</span>
-                            </div>
-
-                            <div class="table-section">
-                                <h3 class="table-title" style="font-size: 16px; margin-bottom: 15px;"><i class="ph ph-list-numbers"></i> Tablas de Iteraciones (Gran M)</h3>
-                                
-                                <div class="iteration-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 12px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-                                    <button id="btn-prev-step" class="btn-card" style="background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; padding: 8px 16px; border-radius: 4px; display: flex; align-items: center; gap: 8px;">
-                                        <i class="ph ph-arrow-left"></i> Anterior
-                                    </button>
-                                    <span id="iteration-counter" style="color: var(--cyan-primary); font-size: 14px; font-weight: 700; font-family: 'Inter', sans-serif; letter-spacing: 0.5px;">
-                                        TABLA: 0 de 0
-                                    </span>
-                                    <button id="btn-next-step" class="btn-card primary-glow" style="border: none; cursor: pointer; padding: 8px 16px; border-radius: 4px; display: flex; align-items: center; gap: 8px; background: var(--cyan-primary); color: #090514; font-weight: 700;">
-                                        Siguiente <i class="ph ph-arrow-right"></i>
-                                    </button>
-                                </div>
-
-                                <div id="simplex-tables-container"></div>
-                            </div>
-                        </div>
-                    </section>
-
-                </div>
-
-                <!-- COLUMNA DERECHA: EXPLICACIÓN TEÓRICA Y GUÍA DE REGLAS -->
-                <aside class="workspace-right-column">
-                    <div class="action-card disabled-card" style="opacity: 1; background: rgba(20, 15, 35, 0.6); border: 1px solid rgba(255,255,255,0.05);">
-                        <div class="card-header">
-                            <div class="card-icon info-icon" style="color: var(--cyan-primary);">
-                                <i class="ph ph-lightbulb"></i>
-                            </div>
-                            <span class="badge-status online" style="color: var(--cyan-primary);">Fundamento Teórico</span>
-                        </div>
-                        <div class="card-body">
-                            <h3 style="color: var(--text-main); margin-bottom: 10px;">Reglas de la Gran M</h3>
-                            <p style="font-size: 13px; line-height: 1.5; color: var(--text-muted); margin-bottom: 20px;">
-                                La técnica de la Gran M penaliza las variables artificiales en la función objetivo asignándoles un valor extremadamente grande ($M \to \infty$).
-                            </p>
-                            
-                            <div class="tips-stack" style="display: flex; flex-direction: column; gap: 15px;">
-                                <div class="tip-item rule-card rule-equal">
-                                    <span class="rule-tag">RESTRICCIÓN &le;</span>
-                                    <p style="margin: 0; font-size: 12px; color: var(--text-main);">Agrega una variable de <strong>Holgura ($+S_i$)</strong>. Entra a la base inicial de forma natural.</p>
-                                </div>
-                                <div class="tip-item rule-card rule-greater">
-                                    <span class="rule-tag">RESTRICCIÓN &ge;</span>
-                                    <p style="margin: 0; font-size: 12px; color: var(--text-main);">Resta un <strong>Exceso ($-S_i$)</strong> y suma una <strong>Artificial ($+R_i$)</strong> para formar la base inicial.</p>
-                                </div>
-                                <div class="tip-item rule-card rule-exact">
-                                    <span class="rule-tag">RESTRICCIÓN =</span>
-                                    <p style="margin: 0; font-size: 12px; color: var(--text-main);">Suma directamente una variable <strong>Artificial ($+R_i$)</strong> como prótesis algebraica.</p>
-                                </div>
-                            </div>
-
-                            <div class="decorative-chart-placeholder" style="margin-top: 25px; padding: 15px; background: rgba(9,5,20,0.4); border-radius: 6px; text-align: center; border: 1px dashed rgba(255,255,255,0.1);">
-                                <span style="font-size: 11px; color: var(--magenta-primary); font-weight: 600; letter-spacing: 0.5px;">Penalización en Fila Z: -M (Max) | +M (Min)</span>
-                                <div class="chart-line-glow" style="height: 2px; background: linear-gradient(90deg, transparent, var(--magenta-primary), transparent); margin-top: 8px; box-shadow: 0 0 8px var(--magenta-primary);"></div>
-                            </div>
+                        <div class="actions-row">
+                            <button id="btn-generate-model" class="btn-card primary-glow">
+                                <i class="ph ph-matrix"></i> Inicializar Matriz Gran M
+                            </button>
+                            <button id="btn-reset-simplex" class="btn-card btn-reset">
+                                <i class="ph ph-arrows-counter-clockwise"></i> Reiniciar Todo
+                            </button>
                         </div>
                     </div>
-                </aside>
+                </section>
+
+                <!-- Tarjeta 2: Formulario de Matriz Dinámica -->
+                <section id="matrix-section" class="action-card active-card" style="display: none;">
+                    <div class="card-header">
+                        <div class="card-icon matrix-icon">
+                            <i class="ph ph-grid-nine"></i>
+                        </div>
+                        <span class="badge-status online">Matriz Activa</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Coeficientes y Restricciones</h3>
+                        <p class="section-desc">Selecciona el signo adecuado para cada restricción ($\le$, $\ge$, $=$). El sistema agregará automáticamente las variables de exceso ($S_i$) o artificiales ($R_i$).</p>
+                        
+                        <div id="simplex-model-wrapper"></div>
+                        
+                        <div class="actions-row mt-20">
+                            <button id="btn-calculate-simplex" class="btn-card primary-glow-magenta">
+                                <i class="ph ph-play"></i> Resolver con Gran M
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tarjeta 3: Panel de Resultados e Iteraciones -->
+                <section id="results-panel" class="action-card active-card" style="display: none;">
+                    <div class="card-header">
+                        <div class="card-icon success-icon">
+                            <i class="ph ph-check-circle"></i>
+                        </div>
+                        <span id="model-status" class="badge-status online">Óptimo Alcanzado</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="summary-box">
+                            <p class="summary-label">Valor Óptimo de la Función Objetivo ($Z$):</p>
+                            <h2 class="summary-value" id="optimal-z-value">0.00</h2>
+                        </div>
+                        
+                        <!-- Leyenda de colores -->
+                        <div class="variables-legend">
+                            <span class="legend-item"><span class="legend-color decision"></span> Decisión ($X_j$)</span>
+                            <span class="legend-item"><span class="legend-color slack"></span> Holgura / Exceso ($S_i$)</span>
+                            <span class="legend-item"><span class="legend-color artificial"></span> Artificial ($R_i$)</span>
+                        </div>
+
+                        <div class="table-section">
+                            <h3 class="table-title"><i class="ph ph-list-numbers"></i> Tablas de Iteraciones (Gran M)</h3>
+                            
+                            <div class="iteration-controls">
+                                <button id="btn-prev-step" class="btn-step">
+                                    <i class="ph ph-arrow-left"></i> Anterior
+                                </button>
+                                <span id="iteration-counter">TABLA: 0 de 0</span>
+                                <button id="btn-next-step" class="btn-step primary">
+                                    Siguiente <i class="ph ph-arrow-right"></i>
+                                </button>
+                            </div>
+
+                            <div id="simplex-tables-container"></div>
+                        </div>
+                    </div>
+                </section>
 
             </div>
+
+            <!-- COLUMNA DERECHA: EXPLICACIÓN TEÓRICA Y GUÍA DE REGLAS -->
+            <aside class="workspace-right-column">
+                <div class="action-card theory-card">
+                    <div class="card-header">
+                        <div class="card-icon info-icon">
+                            <i class="ph ph-lightbulb"></i>
+                        </div>
+                        <span class="badge-status online">Fundamento Teórico</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Reglas de la Gran M</h3>
+                        <p class="theory-desc">
+                            La técnica de la Gran M penaliza las variables artificiales en la función objetivo asignándoles un valor extremadamente grande ($M \to \infty$).
+                        </p>
+                        
+                        <div class="tips-stack">
+                            <div class="tip-item rule-card rule-equal">
+                                <span class="rule-tag">RESTRICCIÓN &le;</span>
+                                <p>Agrega una variable de <strong>Holgura ($+S_i$)</strong>. Entra a la base inicial de forma natural.</p>
+                            </div>
+                            <div class="tip-item rule-card rule-greater">
+                                <span class="rule-tag">RESTRICCIÓN &ge;</span>
+                                <p>Resta un <strong>Exceso ($-S_i$)</strong> y suma una <strong>Artificial ($+R_i$)</strong> para formar la base inicial.</p>
+                            </div>
+                            <div class="tip-item rule-card rule-exact">
+                                <span class="rule-tag">RESTRICCIÓN =</span>
+                                <p>Suma directamente una variable <strong>Artificial ($+R_i$)</strong> como prótesis algebraica.</p>
+                            </div>
+                        </div>
+
+                        <div class="decorative-chart-placeholder gran-m-tag">
+                            <span>Penalización en Fila Z: -M (Max) | +M (Min)</span>
+                            <div class="chart-line-glow magenta-glow"></div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
         </div>
     </div>
 
     <!-- MODAL PARA ERRORES / INFACTIBILIDAD -->
-    <div id="error-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(9,5,20,0.8); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 9999;">
-        <div class="modal-box" style="background: #140f23; border: 1px solid var(--magenta-primary); padding: 25px; border-radius: 8px; max-width: 400px; text-align: center; box-shadow: 0 0 30px rgba(157, 78, 221, 0.2);">
-            <h3 class="modal-title error-text" style="color: #ff4d6d; margin-top: 0; font-size: 18px;">⚠️ Diagnóstico del Modelo</h3>
-            <p id="error-message" style="color: var(--text-muted); font-size: 14px; line-height: 1.5;">El problema ingresado presenta infactibilidad o es no acotado.</p>
-            <button id="btn-close-modal" class="btn-card" style="margin-top: 15px; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: white; cursor: pointer; padding: 8px 16px; border-radius: 4px;">Revisar Parámetros</button>
+    <div id="error-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <h3 class="modal-title error-text">⚠️ Diagnóstico del Modelo</h3>
+            <p id="error-message">El problema ingresado presenta infactibilidad o es no acotado.</p>
+            <button id="btn-close-modal" class="btn-card btn-reset">Revisar Parámetros</button>
         </div>
     </div>
 
-    <script src="../core/sidebar.js"></script>
+    <!-- SCRIPT DEL ALGORITMO -->
     <script type="module" src="../core/linear/metodogranM.js"></script>
 </body>
 </html>

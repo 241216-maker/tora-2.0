@@ -27,7 +27,7 @@ const DOM = {
     iterationCounter: document.getElementById('iteration-counter')
 };
 
-// Valor numérico de M (Suficientemente grande para el escalamiento)
+// Valor numérico para representar la constante Big M en los cálculos
 const BIG_M = 100000;
 
 let numVars = 0;
@@ -59,7 +59,7 @@ if (DOM.btnNextStep) {
 }
 
 // =========================================================================
-// 1. GENERACIÓN DINÁMICA DEL FORMULARIO CON OPTION DE SIGNOS (<=, >=, =)
+// 1. GENERACIÓN DINÁMICA DEL FORMULARIO CON SELECCIÓN DE SIGNOS (<=, >=, =)
 // =========================================================================
 function generarMatrizGranM() {
     numVars = parseInt(DOM.variableCount.value);
@@ -96,7 +96,7 @@ function generarMatrizGranM() {
                         <option value=">=">&ge;</option>
                         <option value="=">=</option>
                     </select>
-                    <input type="number" id="r${i}-rhs" class="input-simplex-coeff" placeholder="0" style="margin-left:10px; text-align:left; padding-left:8px; width:85px;">
+                    <input type="number" id="r${i}-rhs" class="input-simplex-coeff" placeholder="0" style="margin-left:10px; text-align:center; width:85px;">
                  </div>`;
     }
     html += `</div>`;
@@ -117,9 +117,10 @@ if (DOM.btnCalculateSimplex) {
         let artificialVars = [];
         let constraintTypes = [];
         
-        // Determinar qué variables ($S_i, R_i$) se agregan según cada tipo de restricción
+        // Identificar variables adicionales por cada tipo de restricción
         for (let i = 1; i <= numConstraints; i++) {
-            const sign = document.getElementById(`r${i}-sign`).value;
+            const signSelect = document.getElementById(`r${i}-sign`);
+            const sign = signSelect ? signSelect.value : '<=';
             constraintTypes.push(sign);
 
             if (sign === '<=') {
@@ -135,14 +136,12 @@ if (DOM.btnCalculateSimplex) {
         let headers = [];
         for (let j = 1; j <= numVars; j++) headers.push(`X${j}`);
         
-        // Cabeceras de Holgura / Exceso
         let sCounter = 1;
         slackSurplusVars.forEach(v => {
             v.name = `S${sCounter++}`;
             headers.push(v.name);
         });
 
-        // Cabeceras Artificiales
         let rCounter = 1;
         artificialVars.forEach(v => {
             v.name = `R${rCounter++}`;
@@ -155,15 +154,13 @@ if (DOM.btnCalculateSimplex) {
         let tableau = Array(totalRows).fill(0).map(() => Array(totalCols).fill(0));
         let basis = [];
 
-        // Llenado de filas de restricciones y asignación de la base inicial
+        // Llenado de matriz con coeficientes y lados derechos
         for (let i = 0; i < numConstraints; i++) {
-            // Variables de decisión originales
             for (let j = 0; j < numVars; j++) {
                 let val = parseFloat(document.getElementById(`r${i+1}-c${j+1}`).value);
                 tableau[i][j] = isNaN(val) ? 0 : val;
             }
 
-            // RHS
             let rhsVal = parseFloat(document.getElementById(`r${i+1}-rhs`).value);
             tableau[i][totalCols - 1] = isNaN(rhsVal) ? 0 : rhsVal;
 
@@ -178,8 +175,8 @@ if (DOM.btnCalculateSimplex) {
                 const sObj = slackSurplusVars.find(s => s.constraintIndex === i + 1);
                 const rObj = artificialVars.find(r => r.constraintIndex === i + 1);
                 
-                tableau[i][headers.indexOf(sObj.name)] = -1; // Superávit
-                tableau[i][headers.indexOf(rObj.name)] = 1;  // Artificial
+                tableau[i][headers.indexOf(sObj.name)] = -1;
+                tableau[i][headers.indexOf(rObj.name)] = 1;
                 basis.push(rObj.name);
             } else if (sign === '=') {
                 const rObj = artificialVars.find(r => r.constraintIndex === i + 1);
@@ -189,21 +186,20 @@ if (DOM.btnCalculateSimplex) {
         }
         basis.push("Z");
 
-        // Configuración Fila Z (Función Objetivo Original + Penalizaciones Gran M)
+        // Fila Z: Función Objetivo
         for (let j = 0; j < numVars; j++) {
             let val = parseFloat(document.getElementById(`z-c${j+1}`).value);
             let coeff = isNaN(val) ? 0 : val;
-            // Forma estándar: Z - c1X1 - c2X2 ... = 0
             tableau[totalRows - 1][j] = (type === "MAX") ? -coeff : coeff;
         }
 
-        // Aplicar la penalización M a las variables artificiales en la fila Z
+        // Penalización M para variables artificiales
         artificialVars.forEach(r => {
             const colIdx = headers.indexOf(r.name);
             tableau[totalRows - 1][colIdx] = (type === "MAX") ? BIG_M : -BIG_M;
         });
 
-        // PASO CRÍTICO DE ACONDICIONAMIENTO: Eliminar las M de la Fila Z para las variables básicas iniciales
+        // Acondicionamiento Gauss-Jordan de la fila Z inicial
         for (let i = 0; i < numConstraints; i++) {
             const currentBasisVar = basis[i];
             if (currentBasisVar.startsWith("R")) {
@@ -214,7 +210,7 @@ if (DOM.btnCalculateSimplex) {
             }
         }
 
-        // Registrar la Iteración 0 (Acondicionada)
+        // Guardar iteración inicial
         simplexSteps = [{
             matrix: cloneMatrix(tableau),
             basis: [...basis],
@@ -224,7 +220,7 @@ if (DOM.btnCalculateSimplex) {
             ratios: Array(numConstraints).fill(null)
         }];
 
-        // Bucle Iterativo Simplex
+        // Bucle de iteraciones Simplex
         let isOptimal = false;
         let currentIter = 0;
         const maxLoop = 50;
@@ -234,7 +230,7 @@ if (DOM.btnCalculateSimplex) {
             let pivotCol = -1;
 
             if (type === "MAX") {
-                let minVal = -1e-6; // Criterio de entrada: más negativo
+                let minVal = -1e-6;
                 for (let j = 0; j < totalCols - 1; j++) {
                     if (lastRow[j] < minVal) {
                         minVal = lastRow[j];
@@ -242,7 +238,7 @@ if (DOM.btnCalculateSimplex) {
                     }
                 }
             } else {
-                let maxVal = 1e-6; // Criterio de entrada MIN: más positivo
+                let maxVal = 1e-6;
                 for (let j = 0; j < totalCols - 1; j++) {
                     if (lastRow[j] > maxVal) {
                         maxVal = lastRow[j];
@@ -256,7 +252,7 @@ if (DOM.btnCalculateSimplex) {
                 break;
             }
 
-            // Prueba de la Razón Mínima (Factibilidad de Salida)
+            // Prueba de la razón mínima
             let pivotRow = -1;
             let minRatio = Infinity;
             let currentRatios = Array(numConstraints).fill(null);
@@ -283,7 +279,7 @@ if (DOM.btnCalculateSimplex) {
             simplexSteps[simplexSteps.length - 1].pivotRowIndex = pivotRow;
             simplexSteps[simplexSteps.length - 1].ratios = [...currentRatios];
 
-            // Reemplazo en la Base
+            // Cambio de base
             basis[pivotRow] = headers[pivotCol];
 
             // Operaciones Gauss-Jordan
@@ -313,7 +309,7 @@ if (DOM.btnCalculateSimplex) {
             });
         }
 
-        // Verificación final de factibilidad
+        // Verificación de infactibilidad
         let isInfeasible = false;
         for (let i = 0; i < numConstraints; i++) {
             if (basis[i].startsWith("R") && Math.abs(tableau[i][totalCols - 1]) > 1e-4) {
@@ -326,7 +322,7 @@ if (DOM.btnCalculateSimplex) {
         if (type === "MAX") finalZ = -finalZ;
 
         if (isInfeasible) {
-            showError("El problema NO tiene solución factible (Infactible). Al menos una variable artificial permanece en la base.");
+            showError("El problema NO tiene solución factible. Permanece al menos una variable artificial en la base.");
             if (DOM.modelStatus) DOM.modelStatus.innerText = "Infactible";
             if (DOM.optimalZValue) DOM.optimalZValue.innerText = "N/A";
         } else {
@@ -342,7 +338,7 @@ if (DOM.btnCalculateSimplex) {
 }
 
 // =========================================================================
-// 3. RENDERIZADOR Y AUXILIARES
+// 3. RENDERIZADO Y AUXILIARES
 // =========================================================================
 function renderPasoActual() {
     if (simplexSteps.length === 0) return;

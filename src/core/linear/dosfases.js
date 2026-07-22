@@ -42,93 +42,105 @@ let phase2Steps = [];
 let activePhase = 1; // 1 o 2
 let currentStepIndex = 0;
 
-// Listeners de Eventos Principales
-if (DOM.btnGenerateModel) DOM.btnGenerateModel.addEventListener('click', generarMatrizDosFases);
-if (DOM.btnResetSimplex) DOM.btnResetSimplex.addEventListener('click', reiniciarModulo);
-if (DOM.btnLoadExample) DOM.btnLoadExample.addEventListener('click', cargarEjemploLibro);
-if (DOM.btnCloseModal) DOM.btnCloseModal.addEventListener('click', () => DOM.errorModal.style.display = 'none');
+// Configuración de Listeners de Eventos
+function initEventListeners() {
+    if (DOM.btnGenerateModel) DOM.btnGenerateModel.addEventListener('click', generarMatrizDosFases);
+    if (DOM.btnResetSimplex) DOM.btnResetSimplex.addEventListener('click', reiniciarModulo);
+    if (DOM.btnLoadExample) DOM.btnLoadExample.addEventListener('click', cargarEjemploLibro);
+    if (DOM.btnCloseModal) DOM.btnCloseModal.addEventListener('click', () => DOM.errorModal.style.display = 'none');
+    if (DOM.btnCalculateTwoPhase) DOM.btnCalculateTwoPhase.addEventListener('click', ejecutarDosFases);
 
-if (DOM.tabPhase1) {
-    DOM.tabPhase1.addEventListener('click', () => {
-        if (phase1Steps.length > 0) {
-            activePhase = 1;
-            currentStepIndex = 0;
-            actualizarPestañasUX();
-            renderPasoActual();
-        }
-    });
+    if (DOM.tabPhase1) {
+        DOM.tabPhase1.addEventListener('click', () => {
+            if (phase1Steps.length > 0) {
+                activePhase = 1;
+                currentStepIndex = 0;
+                actualizarPestañasUX();
+                renderPasoActual();
+            }
+        });
+    }
+
+    if (DOM.tabPhase2) {
+        DOM.tabPhase2.addEventListener('click', () => {
+            if (phase2Steps.length > 0) {
+                activePhase = 2;
+                currentStepIndex = 0;
+                actualizarPestañasUX();
+                renderPasoActual();
+            }
+        });
+    }
+
+    if (DOM.btnPrevStep) {
+        DOM.btnPrevStep.addEventListener('click', () => {
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                renderPasoActual();
+            }
+        });
+    }
+
+    if (DOM.btnNextStep) {
+        DOM.btnNextStep.addEventListener('click', () => {
+            const currentStepsList = (activePhase === 1) ? phase1Steps : phase2Steps;
+            if (currentStepIndex < currentStepsList.length - 1) {
+                currentStepIndex++;
+                renderPasoActual();
+            }
+        });
+    }
 }
 
-if (DOM.tabPhase2) {
-    DOM.tabPhase2.addEventListener('click', () => {
-        if (phase2Steps.length > 0) {
-            activePhase = 2;
-            currentStepIndex = 0;
-            actualizarPestañasUX();
-            renderPasoActual();
-        }
-    });
-}
-
-if (DOM.btnPrevStep) {
-    DOM.btnPrevStep.addEventListener('click', () => {
-        if (currentStepIndex > 0) {
-            currentStepIndex--;
-            renderPasoActual();
-        }
-    });
-}
-
-if (DOM.btnNextStep) {
-    DOM.btnNextStep.addEventListener('click', () => {
-        const currentStepsList = (activePhase === 1) ? phase1Steps : phase2Steps;
-        if (currentStepIndex < currentStepsList.length - 1) {
-            currentStepIndex++;
-            renderPasoActual();
-        }
-    });
-}
+document.addEventListener('DOMContentLoaded', initEventListeners);
 
 // =========================================================================
 // 1. GENERACIÓN DINÁMICA DEL FORMULARIO DE MATRIZ
 // =========================================================================
 function generarMatrizDosFases() {
-    numVars = parseInt(DOM.variableCount.value);
-    numConstraints = parseInt(DOM.constraintCount.value);
+    numVars = parseInt(DOM.variableCount.value, 10);
+    numConstraints = parseInt(DOM.constraintCount.value, 10);
 
     if (isNaN(numVars) || numVars < 1 || isNaN(numConstraints) || numConstraints < 1) {
         showError("Ingresa un número válido de variables y restricciones (mínimo 1).");
         return;
     }
 
-    let html = `<div class="objective-function-setup" style="margin-bottom:25px;">
-                    <h4 style="color:var(--cyan-primary); margin-bottom:10px; font-size:14px;">Función Objetivo Original (Z)</h4>
-                    <div class="matrix-row-simplex">
-                        <span style="color:var(--text-main); font-weight:700; margin-right:5px;">Z = </span>`;
+    let html = `
+        <div class="objective-function-setup">
+            <h4>Función Objetivo Original ($Z$)</h4>
+            <div class="matrix-row-simplex">
+                <span class="z-label">Z = </span>`;
     
     for (let j = 1; j <= numVars; j++) {
-        html += `<input type="number" id="z-c${j}" class="input-simplex-coeff" placeholder="0">
-                 <span style="color:var(--text-muted); margin-right:10px;">X<sub>${j}</sub> ${j < numVars ? '+' : ''}</span>`;
+        html += `
+            <input type="number" id="z-c${j}" class="input-simplex-coeff" placeholder="0" step="any">
+            <span class="var-label">X<sub>${j}</sub> ${j < numVars ? '+' : ''}</span>`;
     }
-    html += `   </div>
-             </div>
-             <div class="constraints-setup">
-                <h4 style="color:var(--magenta-primary); margin-bottom:10px; font-size:14px;">Restricciones del Sistema</h4>`;
+    
+    html += `
+            </div>
+        </div>
+        <div class="constraints-setup">
+            <h4>Restricciones del Sistema</h4>`;
 
     for (let i = 1; i <= numConstraints; i++) {
-        html += `<div class="matrix-row-simplex">
-                    <span style="color:var(--text-muted); font-size:12px; min-width:30px;">R${i}:</span>`;
+        html += `
+            <div class="matrix-row-simplex">
+                <span class="row-label">R${i}:</span>`;
         for (let j = 1; j <= numVars; j++) {
-            html += `<input type="number" id="r${i}-c${j}" class="input-simplex-coeff" placeholder="0">
-                     <span style="color:var(--text-muted); margin-right:10px;">X<sub>${j}</sub> ${j < numVars ? '+' : ''}</span>`;
+            html += `
+                <input type="number" id="r${i}-c${j}" class="input-simplex-coeff" placeholder="0" step="any">
+                <span class="var-label">X<sub>${j}</sub> ${j < numVars ? '+' : ''}</span>`;
         }
-        html += `   <select id="r${i}-sign" class="simplex-sign-select">
-                        <option value="=">=</option>
-                        <option value=">=">&ge;</option>
-                        <option value="<=">&le;</option>
-                    </select>
-                    <input type="number" id="r${i}-rhs" class="input-simplex-coeff" placeholder="0" style="margin-left:10px; text-align:left; padding-left:8px; width:85px;">
-                 </div>`;
+        html += `
+                <select id="r${i}-sign" class="simplex-sign-select">
+                    <option value="=">=</option>
+                    <option value=">=">&ge;</option>
+                    <option value="<=">&le;</option>
+                </select>
+                <input type="number" id="r${i}-rhs" class="input-simplex-coeff rhs-input" placeholder="0" step="any">
+            </div>`;
     }
     html += `</div>`;
 
@@ -138,7 +150,7 @@ function generarMatrizDosFases() {
 }
 
 // =========================================================================
-// 2. FUNCIÓN DE PRECARGA: EJEMPLO DE LIBRO (Ejemplo 3.4-2)
+// 2. FUNCIÓN DE PRECARGA: EJEMPLO DE LIBRO (Ejemplo Clásico de Dos Fases)
 // =========================================================================
 function cargarEjemploLibro() {
     DOM.variableCount.value = 2;
@@ -171,12 +183,8 @@ function cargarEjemploLibro() {
 }
 
 // =========================================================================
-// 3. MOTOR ALGEBRAICO PRINCIPAL: DOS FASES
+// 3. MOTOR ALGEBRAICO PRINCIPAL: MÉTODO DE DOS FASES
 // =========================================================================
-if (DOM.btnCalculateTwoPhase) {
-    DOM.btnCalculateTwoPhase.addEventListener('click', ejecutarDosFases);
-}
-
 function ejecutarDosFases() {
     const optType = DOM.optimizationType.value; // "MAX" o "MIN"
     phase1Steps = [];
@@ -186,7 +194,7 @@ function ejecutarDosFases() {
     let artificialVars = [];
     let constraintTypes = [];
 
-    // Identificar variables necesarias según signos de restricción
+    // Identificar variables adicionales
     for (let i = 1; i <= numConstraints; i++) {
         const sign = document.getElementById(`r${i}-sign`).value;
         constraintTypes.push(sign);
@@ -201,10 +209,9 @@ function ejecutarDosFases() {
         }
     }
 
-    // Si no hay variables artificiales, la Fase I no es necesaria
     const hasArtificials = artificialVars.length > 0;
 
-    // --- CONSTRUCCIÓN CABECERAS FASE I ---
+    // --- CONSTRUCCIÓN CABECERAS Y MATRIZ FASE I ---
     let headersP1 = [];
     for (let j = 1; j <= numVars; j++) headersP1.push(`X${j}`);
 
@@ -220,13 +227,13 @@ function ejecutarDosFases() {
         headersP1.push(v.name);
     });
 
-    const totalColsP1 = headersP1.length + 1; // +1 Columna RHS
-    const totalRowsP1 = numConstraints + 1;   // +1 Fila r
+    const totalColsP1 = headersP1.length + 1; // +1 Columna RHS (Solución)
+    let totalRowsP1 = numConstraints + 1;     // +1 Fila r
 
     let tableauP1 = Array(totalRowsP1).fill(0).map(() => Array(totalColsP1).fill(0));
     let basisP1 = [];
 
-    // Llenado de restricciones en la matriz de la Fase I
+    // Cargar Restricciones en Tabla
     for (let i = 0; i < numConstraints; i++) {
         for (let j = 0; j < numVars; j++) {
             let val = parseFloat(document.getElementById(`r${i+1}-c${j+1}`).value);
@@ -255,15 +262,14 @@ function ejecutarDosFases() {
     }
     basisP1.push("r");
 
-    // Configurar Fila de Objetivo Fase I: Minimizar r = sum(R_i)
-    // En forma canonical: r - R1 - R2 ... = 0
+    // Configuración Fila r (Minimizar r = Suma R_i)
     if (hasArtificials) {
         artificialVars.forEach(r => {
             const colIdx = headersP1.indexOf(r.name);
             tableauP1[totalRowsP1 - 1][colIdx] = -1;
         });
 
-        // ACONDICIONAMIENTO FASE I: Sumar filas de R_i a la fila r
+        // Acondicionamiento Gaussiano: Eliminar coeficientes de R_i de la fila r
         for (let i = 0; i < numConstraints; i++) {
             if (basisP1[i].startsWith("R")) {
                 for (let j = 0; j < totalColsP1; j++) {
@@ -273,7 +279,7 @@ function ejecutarDosFases() {
         }
     }
 
-    // Registrar Iteración 0 (Fase I)
+    // Registrar Tabla Inicial (Fase I)
     phase1Steps.push({
         matrix: cloneMatrix(tableauP1),
         basis: [...basisP1],
@@ -285,7 +291,7 @@ function ejecutarDosFases() {
     });
 
     // =========================================================================
-    // EJECUCIÓN SIMPLEX - FASE I (Minimizar r)
+    // SIMPLEX - FASE I
     // =========================================================================
     let isOptimalP1 = false;
     let iterP1 = 0;
@@ -293,7 +299,7 @@ function ejecutarDosFases() {
     while (!isOptimalP1 && iterP1 < 50 && hasArtificials) {
         let lastRow = tableauP1[totalRowsP1 - 1];
         let pivotCol = -1;
-        let maxVal = 1e-6; // Criterio de entrada para Minimización en Fila r acondicionada
+        let maxVal = 1e-6; // Entrada de mayor valor positivo en fila r
 
         for (let j = 0; j < totalColsP1 - 1; j++) {
             if (lastRow[j] > maxVal) {
@@ -307,7 +313,7 @@ function ejecutarDosFases() {
             break;
         }
 
-        // Prueba de la Razón Mínima
+        // Prueba de Razón Mínima
         let pivotRow = -1;
         let minRatio = Infinity;
         let currentRatios = Array(numConstraints).fill(null);
@@ -326,7 +332,7 @@ function ejecutarDosFases() {
         }
 
         if (pivotRow === -1) {
-            showError("Fase I no acotada. Revisa los datos ingresados.");
+            showError("Fase I no acotada. Verifica las restricciones ingresadas.");
             return;
         }
 
@@ -334,7 +340,7 @@ function ejecutarDosFases() {
         phase1Steps[phase1Steps.length - 1].pivotRowIndex = pivotRow;
         phase1Steps[phase1Steps.length - 1].ratios = [...currentRatios];
 
-        // Pivoteo Gauss-Jordan
+        // Operación Pivote Gauss-Jordan
         basisP1[pivotRow] = headersP1[pivotCol];
         let pivotElement = tableauP1[pivotRow][pivotCol];
 
@@ -367,13 +373,12 @@ function ejecutarDosFases() {
     const minRValue = Math.abs(tableauP1[totalRowsP1 - 1][totalColsP1 - 1]);
     if (DOM.phase1RValue) DOM.phase1RValue.innerText = formatNum(minRValue);
 
-    // VERIFICACIÓN DE FACTIBILIDAD DE FASE I
+    // Evaluación de Factibilidad
     if (hasArtificials && minRValue > 1e-4) {
-        showError("El problema NO tiene solución factible (Infactible). El valor mínimo de r es mayor a cero (r = " + formatNum(minRValue) + ").");
+        showError(`El problema NO tiene solución factible (Infactible). El valor de r_min = ${formatNum(minRValue)} > 0.`);
         if (DOM.modelStatus) {
             DOM.modelStatus.innerText = "Infactible";
-            DOM.modelStatus.style.color = "#ff4d6d";
-            DOM.modelStatus.style.background = "rgba(255, 77, 109, 0.2)";
+            DOM.modelStatus.className = "badge-status online badge-error";
         }
         DOM.resultsPanel.style.display = 'block';
         activePhase = 1;
@@ -383,18 +388,44 @@ function ejecutarDosFases() {
     }
 
     // =========================================================================
-    // TRANSICIÓN Y PREPARACIÓN DE FASE II
+    // TRANSICIÓN Y PREPARACIÓN A FASE II
     // =========================================================================
-    // 1. Eliminar columnas de variables artificiales R_i
+    
+    // Limpieza de Variables Artificiales que sigan en la Base con valor 0 (Degeneración)
+    for (let i = 0; i < numConstraints; i++) {
+        if (basisP1[i].startsWith("R")) {
+            // Intentar pivotear con una variable legítima no básica
+            let candidateCol = -1;
+            for (let j = 0; j < headersP1.length; j++) {
+                if (!headersP1[j].startsWith("R") && Math.abs(tableauP1[i][j]) > 1e-6) {
+                    candidateCol = j;
+                    break;
+                }
+            }
+            if (candidateCol !== -1) {
+                basisP1[i] = headersP1[candidateCol];
+                let pivotElement = tableauP1[i][candidateCol];
+                for (let j = 0; j < totalColsP1; j++) tableauP1[i][j] /= pivotElement;
+                for (let k = 0; k < totalRowsP1; k++) {
+                    if (k !== i) {
+                        let factor = tableauP1[k][candidateCol];
+                        for (let j = 0; j < totalColsP1; j++) tableauP1[k][j] -= factor * tableauP1[i][j];
+                    }
+                }
+            }
+        }
+    }
+
+    // 1. Omitir columnas de variables artificiales R_i
     let headersP2 = headersP1.filter(h => !h.startsWith("R"));
-    const totalColsP2 = headersP2.length + 1; // +1 RHS
+    const totalColsP2 = headersP2.length + 1; // +1 Columna RHS
     const totalRowsP2 = numConstraints + 1;   // +1 Fila Z
 
     let tableauP2 = Array(totalRowsP2).fill(0).map(() => Array(totalColsP2).fill(0));
     let basisP2 = basisP1.slice(0, numConstraints);
     basisP2.push("Z");
 
-    // Copiar cuerpo de la matriz resultante de Fase I omitiendo R_i
+    // Copiar cuerpo de matriz resultante omitiendo columnas R_i
     for (let i = 0; i < numConstraints; i++) {
         for (let j = 0; j < headersP2.length; j++) {
             let origColIdx = headersP1.indexOf(headersP2[j]);
@@ -403,15 +434,15 @@ function ejecutarDosFases() {
         tableauP2[i][totalColsP2 - 1] = tableauP1[i][totalColsP1 - 1]; // RHS
     }
 
-    // 2. Colocar la Función Objetivo Original Z en la última fila
+    // 2. Insertar Coeficientes de la Función Objetivo Original Z
     for (let j = 0; j < numVars; j++) {
         let val = parseFloat(document.getElementById(`z-c${j+1}`).value);
         let coeff = isNaN(val) ? 0 : val;
-        // Z - c1X1 - c2X2 ... = 0
+        // Forma Estándar: Z - c1*X1 - c2*X2 ... = 0
         tableauP2[totalRowsP2 - 1][j] = (optType === "MAX") ? -coeff : coeff;
     }
 
-    // 3. ACONDICIONAMIENTO FASE II: Eliminar coeficientes de variables básicas en fila Z
+    // 3. Acondicionamiento Gauss-Jordan de la Fila Z según la Base Actual
     for (let i = 0; i < numConstraints; i++) {
         const basicVarName = basisP2[i];
         const colIdxInP2 = headersP2.indexOf(basicVarName);
@@ -437,7 +468,7 @@ function ejecutarDosFases() {
     });
 
     // =========================================================================
-    // EJECUCIÓN SIMPLEX - FASE II (Optimizar Z)
+    // SIMPLEX - FASE II (Optimización Final)
     // =========================================================================
     let isOptimalP2 = false;
     let iterP2 = 0;
@@ -487,7 +518,7 @@ function ejecutarDosFases() {
         }
 
         if (pivotRow === -1) {
-            showError("El problema no está acotado en la Fase II.");
+            showError("El problema no está acotado (solución no acotada en Fase II).");
             return;
         }
 
@@ -531,13 +562,12 @@ function ejecutarDosFases() {
     if (DOM.optimalZValue) DOM.optimalZValue.innerText = formatNum(Math.abs(finalZ));
     if (DOM.modelStatus) {
         DOM.modelStatus.innerText = "Óptimo Alcanzado";
-        DOM.modelStatus.style.color = "#53e0dc";
-        DOM.modelStatus.style.background = "rgba(83, 224, 220, 0.2)";
+        DOM.modelStatus.className = "badge-status online badge-cyan";
     }
 
     DOM.resultsPanel.style.display = 'block';
     
-    // Iniciar por defecto mostrando la Fase II si ya concluyó, o Fase I
+    // Iniciar desplegando por defecto la Fase II
     activePhase = 2;
     currentStepIndex = 0;
     actualizarPestañasUX();
@@ -545,7 +575,7 @@ function ejecutarDosFases() {
 }
 
 // =========================================================================
-// 4. RENDERIZADO VISUAL Y CONTROL DE PASOS
+// 4. RENDERIZADO VISUAL Y TABLAS DE ITERACIÓN
 // =========================================================================
 function actualizarPestañasUX() {
     if (activePhase === 1) {
@@ -580,22 +610,22 @@ function renderPasoActual() {
     }
 
     let html = `
-        <div class="matrix-table-wrapper" style="overflow-x: auto; background: rgba(9,5,20,0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 15px;">
-            <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: center;">
+        <div class="matrix-table-wrapper">
+            <table class="data-table">
                 <thead>
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02);">
-                        <th style="padding: 12px; color: var(--text-muted); font-size:13px;">Base</th>`;
+                    <tr>
+                        <th class="th-base">Base</th>`;
     
     iter.headers.forEach(h => {
-        let color = "var(--text-main)";
-        if (h.startsWith("R")) color = "var(--magenta-primary)";
-        if (h.startsWith("S")) color = "var(--cyan-primary)";
+        let colorClass = "header-var-default";
+        if (h.startsWith("R")) colorClass = "header-var-artificial";
+        if (h.startsWith("S")) colorClass = "header-var-slack";
         
-        html += `<th style="padding: 12px; color: ${color}; font-weight: 600; font-size:13px;">${h}</th>`;
+        html += `<th class="${colorClass}">${h}</th>`;
     });
     
-    html += `           <th style="padding: 12px; color: var(--cyan-primary); font-size:13px;">Solución</th>
-                        <th style="padding: 12px; color: #ff4d6d; font-size:13px;">Razón</th>
+    html += `           <th class="th-sol">Solución</th>
+                        <th class="th-ratio">Razón</th>
                     </tr>
                 </thead>
                 <tbody>`;
@@ -605,8 +635,8 @@ function renderPasoActual() {
         const isPivotRow = (i === iter.pivotRowIndex);
         let rowClass = isPivotRow ? 'class="pivot-row"' : '';
 
-        html += `<tr ${rowClass} style="border-bottom: 1px solid rgba(255,255,255,0.02);">
-                    <td style="padding: 12px; font-weight: 700; color: ${isObjRow ? 'var(--cyan-primary)' : 'var(--text-muted)'};">
+        html += `<tr ${rowClass}>
+                    <td class="td-base ${isObjRow ? 'text-cyan' : ''}">
                         ${iter.basis[i]}
                     </td>`;
 
@@ -620,16 +650,16 @@ function renderPasoActual() {
                 cellClass = 'class="pivot-col"';
             }
 
-            html += `<td ${cellClass} style="padding: 12px;">${formatNum(iter.matrix[i][j])}</td>`;
+            html += `<td ${cellClass}>${formatNum(iter.matrix[i][j])}</td>`;
         }
 
         if (!isObjRow) {
             let ratioVal = (iter.ratios && iter.ratios[i] !== undefined && iter.ratios[i] !== null)
                 ? (isFinite(iter.ratios[i]) && iter.ratios[i] >= 0 ? formatNum(iter.ratios[i]) : '&infin;')
                 : '-';
-            html += `<td style="color: #ff4d6d; font-weight: 600; padding: 12px;">${ratioVal}</td>`;
+            html += `<td class="td-ratio">${ratioVal}</td>`;
         } else {
-            html += `<td style="color: var(--text-muted); padding: 12px;">-</td>`;
+            html += `<td class="td-ratio-empty">-</td>`;
         }
 
         html += `</tr>`;
@@ -645,7 +675,7 @@ function renderPasoActual() {
 }
 
 // =========================================================================
-// 5. FUNCIONES AUXILIARES
+// 5. FUNCIONES AUXILIARES DE SOPORTE
 // =========================================================================
 function cloneMatrix(matrix) {
     return matrix.map(row => [...row]);

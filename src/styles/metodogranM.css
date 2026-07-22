@@ -2,6 +2,13 @@
    ESTILOS ESPECÍFICOS PARA EL MÉTODO DE LA GRAN M (granM.css)
    ========================================================================== */
 
+.section-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 15px;
+    line-height: 1.4;
+}
+
 /* Leyenda de tipo de variables en el panel de resultados */
 .variables-legend {
     display: flex;
@@ -12,6 +19,7 @@
     background: rgba(255, 255, 255, 0.02);
     border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.05);
+    flex-wrap: wrap;
 }
 
 .legend-item {
@@ -81,6 +89,15 @@
 .rule-greater .rule-tag { color: var(--magenta-primary); }
 .rule-exact .rule-tag { color: #ff4d6d; }
 
+.decorative-chart-placeholder.gran-m-tag span {
+    color: var(--magenta-primary);
+}
+
+.chart-line-glow.magenta-glow {
+    background: linear-gradient(90deg, transparent, var(--magenta-primary), transparent);
+    box-shadow: 0 0 8px var(--magenta-primary);
+}
+
 /* Resaltado de encabezados de variables artificiales en las tablas */
 .data-table th.header-artificial {
     color: var(--magenta-primary) !important;
@@ -89,7 +106,7 @@
 
 /* Selector de signo animado */
 .simplex-sign-select {
-    background-color: var(--bg-input, #140f23);
+    background-color: rgba(9, 5, 20, 0.6);
     color: var(--cyan-primary);
     border: 1px solid rgba(83, 224, 220, 0.3);
     border-radius: 6px;
@@ -98,6 +115,7 @@
     font-size: 14px;
     outline: none;
     transition: all 0.2s ease;
+    height: 40px;
 }
 
 .simplex-sign-select:focus {

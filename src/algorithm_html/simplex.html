@@ -3,222 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TORA Advanced | Método Simplex</title>
+    <title>TORA Advanced | Método Simplex Primal</title>
     
+    <!-- Fuentes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Iconos Phosphor (Carga segura vía CSS) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
 
+    <!-- Renderizado Matemático (KaTeX) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+    <!-- Estilos de la aplicación -->
     <link rel="stylesheet" href="../index.css">       
     <link rel="stylesheet" href="../styles/simplex.css">    
 </head>
 <body>
 
-    <div class="app-layout">
+    <!-- BARRA NAVEGACIÓN SUPERIOR UNIFICADA -->
+    <header class="module-top-bar">
+        <a href="../../index.html" class="btn-back">
+            <i class="ph ph-arrow-left"></i> Volver al Dashboard
+        </a>
+        <div class="module-title-header">
+            <i class="ph-fill ph-chart-polar logo-icon"></i>
+            <h2>TORA<span class="logo-highlight">Advanced</span> &bull; Simplex Primal</h2>
+        </div>
+    </header>
+
+    <div class="main-workspace-wrapper">
         
-        <aside class="sidebar" id="app-sidebar">
-            <div class="sidebar-header">
-                <div class="logo-container">
-                    <i class="ph-fill ph-chart-polar logo-icon"></i>
-                    <h2 class="logo-text">TORA<span class="logo-highlight">Advanced</span></h2>
-                </div>
+        <header class="workspace-header">
+            <div class="welcome-box">
+                <h1>Método Simplex Primal</h1>
+                <p>Programación Lineal: Optimización Algebraica de Operaciones estructurales.</p>
             </div>
+        </header>
+
+        <div class="dashboard-grid-content">
             
-            <nav class="sidebar-nav">
-                <span class="nav-label">MÓDULOS PRINCIPALES</span>
+            <!-- COLUMNA IZQUIERDA: TRABAJO ALGEBRAICO -->
+            <div class="workspace-left-column">
                 
-                <a href="/index.html" class="nav-item"><i class="ph ph-squares-four"></i> Dashboard General</a>
-                
-                <div class="nav-group">
-                    <div class="nav-item">
-                        <i class="ph ph-share-network"></i> Redes y Rutas
-                    </div>
-                    <div class="sub-nav">
-                        <a href="/src/algorithm_html/dijkstra.html" class="sub-nav-item">Dijkstra (Ruta Corta)</a>
-                        <a href="#" class="sub-nav-item">Bellman-Ford</a>
-                        <a href="#" class="sub-nav-item">Árbol de Expansión (Kruskal)</a>
-                        <a href="#" class="sub-nav-item">Flujo Máximo</a>
-                    </div>
-                </div>
-
-                <div class="nav-group">
-                    <div class="nav-item active-group">
-                        <i class="ph ph-package"></i> Programación Lineal
-                    </div>
-                    <div class="sub-nav">
-                        <a href="#" class="sub-nav-item active">Método Simplex Primal</a>
-                    </div>
-                </div>
-                
-                <a href="#" class="nav-item disabled"><i class="ph ph-truck"></i> Transporte y Asignación</a>
-                
-                <span class="nav-label mt-30">CONFIGURACIÓN</span>
-                <a href="#" class="nav-item" id="btn-toggle-theme"><i class="ph ph-sliders"></i> Preferencias Tech</a>
-            </nav>
-
-            <div class="sidebar-footer">
-                <div class="system-status">
-                    <span class="status-dot online"></span>
-                    <p>Motor de Optimización Activo</p>
-                </div>
-            </div>
-        </aside>
-
-        <div class="main-workspace-wrapper">
-            
-            <header class="workspace-header">
-                <div class="welcome-box">
-                    <h1>Método Simplex Primal</h1>
-                    <p>Programación Lineal: Optimización Algebraica de Operaciones estructurales.</p>
-                </div>
-            </header>
-
-            <div class="dashboard-grid-content" style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px; align-items: start;">
-                
-                <div class="workspace-left-column" style="display: flex; flex-direction: column; gap: 20px;">
-                    
-                    <section class="action-card active-card" style="width: 100%; box-sizing: border-box;">
-                        <div class="card-header">
-                            <div class="card-icon setup-icon" style="color: var(--cyan-primary);">
-                                <i class="ph ph-sliders-horizontal"></i>
-                            </div>
-                            <span class="badge-status online">Configuración</span>
+                <!-- CONFIGURACIÓN DEL MODELO -->
+                <section class="action-card active-card">
+                    <div class="card-header">
+                        <div class="card-icon setup-icon">
+                            <i class="ph ph-sliders-horizontal"></i>
                         </div>
-                        <div class="card-body">
-                            <h3 style="margin-bottom: 15px;">Configuración del Modelo</h3>
-                            <div class="setup-form-row" style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px;">
-                                <div class="input-group" style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px;">
-                                    <label for="variable-count" style="font-size: 12px; color: var(--text-muted);">Número de Variables:</label>
-                                    <input type="number" id="variable-count" min="1" max="10" placeholder="Ej. 2" class="input-simplex-coeff" style="width: 100%; text-align: left; padding-left: 10px;">
-                                </div>
-                                <div class="input-group" style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px;">
-                                    <label for="constraint-count" style="font-size: 12px; color: var(--text-muted);">Número de Restricciones:</label>
-                                    <input type="number" id="constraint-count" min="1" max="10" placeholder="Ej. 2" class="input-simplex-coeff" style="width: 100%; text-align: left; padding-left: 10px;">
-                                </div>
-                                <div class="input-group" style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 160px;">
-                                    <label for="optimization-type" style="font-size: 12px; color: var(--text-muted);">Objetivo del Modelo:</label>
-                                    <select id="optimization-type" class="simplex-sign-select" style="width: 100%;">
-                                        <option value="MAX">Maximizar (MAX)</option>
-                                        <option value="MIN">Minimizar (MIN)</option>
-                                    </select>
-                                </div>
+                        <span class="badge-status online">Configuración</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Configuración del Modelo</h3>
+                        <div class="setup-form-row">
+                            <div class="input-group">
+                                <label for="variable-count">Número de Variables:</label>
+                                <input type="number" id="variable-count" min="1" max="10" placeholder="Ej. 2" class="input-simplex-coeff">
                             </div>
-                            <div class="actions-row" style="display: flex; gap: 10px;">
-                                <button id="btn-generate-model" class="btn-card primary-glow" style="border: none; cursor: pointer;">
-                                    <i class="ph ph-matrix"></i> Inicializar Matriz
+                            <div class="input-group">
+                                <label for="constraint-count">Número de Restricciones:</label>
+                                <input type="number" id="constraint-count" min="1" max="10" placeholder="Ej. 2" class="input-simplex-coeff">
+                            </div>
+                            <div class="input-group">
+                                <label for="optimization-type">Objetivo del Modelo:</label>
+                                <select id="optimization-type" class="simplex-sign-select">
+                                    <option value="MAX">Maximizar (MAX)</option>
+                                    <option value="MIN">Minimizar (MIN)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="actions-row">
+                            <button id="btn-generate-model" class="btn-card primary-glow">
+                                <i class="ph ph-matrix"></i> Inicializar Matriz
+                            </button>
+                            <button id="btn-reset-simplex" class="btn-card btn-reset">
+                                <i class="ph ph-arrows-counter-clockwise"></i> Reiniciar Todo
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MATRIZ DE COEFICIENTES (OCULTA INICIALMENTE) -->
+                <section id="matrix-section" class="action-card active-card" style="display: none;">
+                    <div class="card-header">
+                        <div class="card-icon matrix-icon">
+                            <i class="ph ph-grid-nine"></i>
+                        </div>
+                        <span class="badge-status online">Matriz Activa</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Coeficientes y Restricciones</h3>
+                        <div id="simplex-model-wrapper"></div>
+                        <div class="actions-row mt-20">
+                            <button id="btn-calculate-simplex" class="btn-card primary-glow-magenta">
+                                <i class="ph ph-play"></i> Resolver con Simplex
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PANEL DE RESULTADOS E ITERACIONES (OCULTO INICIALMENTE) -->
+                <section id="results-panel" class="action-card active-card" style="display: none;">
+                    <div class="card-header">
+                        <div class="card-icon success-icon">
+                            <i class="ph ph-check-circle"></i>
+                        </div>
+                        <span id="model-status" class="badge-status online">Óptimo</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="summary-box">
+                            <p class="summary-label">Valor Óptimo de la Función Objetivo ($Z$):</p>
+                            <h2 class="summary-value" id="optimal-z-value">0.00</h2>
+                        </div>
+                        
+                        <div class="table-section">
+                            <h3 class="table-title"><i class="ph ph-list-numbers"></i> Tablas de Iteraciones Simplex</h3>
+                            <div class="iteration-controls">
+                                <button id="btn-prev-step" class="btn-step">
+                                    <i class="ph ph-arrow-left"></i> Anterior
                                 </button>
-                                <button id="btn-reset-simplex" class="btn-card locked" style="cursor: pointer; background: rgba(255,255,255,0.05); color: var(--text-main);">
-                                    <i class="ph ph-arrows-counter-clockwise"></i> Reiniciar Todo
+                                <span id="iteration-counter">Iteración: 0 / 0</span>
+                                <button id="btn-next-step" class="btn-step primary">
+                                    Siguiente <i class="ph ph-arrow-right"></i>
                                 </button>
                             </div>
-                        </div>
-                    </section>
 
-                    <section id="matrix-section" class="action-card active-card" style="display: none; width: 100%; box-sizing: border-box;">
-                        <div class="card-header">
-                            <div class="card-icon matrix-icon" style="color: var(--magenta-primary);">
-                                <i class="ph ph-grid-nine"></i>
-                            </div>
-                            <span class="badge-status online">Matriz Activa</span>
-                        </div>
-                        <div class="card-body">
-                            <h3 style="margin-bottom: 15px;">Coeficientes y Restricciones</h3>
-                            <div id="simplex-model-wrapper"></div>
-                            <div class="actions-row mt-20" style="margin-top: 20px;">
-                                <button id="btn-calculate-simplex" class="btn-card primary-glow" style="border: none; cursor: pointer; background: var(--magenta-primary); box-shadow: 0 0 15px var(--magenta-primary);">
-                                    <i class="ph ph-play"></i> Resolver con Simplex
-                                </button>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section id="results-panel" class="action-card active-card" style="display: none; width: 100%; box-sizing: border-box; border-color: #53e0dc;">
-                        <div class="card-header">
-                            <div class="card-icon success-icon" style="color: #53e0dc;">
-                                <i class="ph ph-check-circle"></i>
-                            </div>
-                            <span id="model-status" class="badge-status online" style="background: rgba(83, 224, 220, 0.2); color: #53e0dc;">Óptimo</span>
-                        </div>
-                        <div class="card-body">
-                            <div class="summary-box" style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #53e0dc;">
-                                <p class="summary-label" style="font-size: 13px; color: var(--text-muted); margin: 0;">Valor Óptimo de la Función Objetivo (Z):</p>
-                                <h2 class="summary-value" id="optimal-z-value" style="font-size: 28px; color: #53e0dc; margin: 5px 0 0 0; font-weight: 800;">0.00</h2>
-                            </div>
-                            
-                            <div class="table-section">
-                                <h3 class="table-title" style="font-size: 16px; margin-bottom: 15px;"><i class="ph ph-list-numbers"></i> Tablas de Iteraciones Simplex</h3>
-                                <div class="iteration-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 12px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-    <button id="btn-prev-step" class="btn-card" style="background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; padding: 8px 16px; border-radius: 4px; display: flex; align-items: center; gap: 8px;">
-        <i class="ph ph-arrow-left"></i> Anterior
-    </button>
-    <span id="iteration-counter" style="color: var(--cyan-primary); font-size: 14px; font-weight: 700; font-family: 'Inter', sans-serif; letter-spacing: 0.5px;">
-        Iteración: 0 / 0
-    </span>
-    <button id="btn-next-step" class="btn-card primary-glow" style="border: none; cursor: pointer; padding: 8px 16px; border-radius: 4px; display: flex; align-items: center; gap: 8px; background: var(--cyan-primary); color: #090514; font-weight: 700;">
-        Siguiente <i class="ph ph-arrow-right"></i>
-    </button>
-</div>
-
-<div id="simplex-tables-container"></div>
-                                <div id="simplex-tables-container"></div>
-                            </div>
-                        </div>
-                    </section>
-
-                </div>
-
-                <aside class="workspace-right-column">
-                    <div class="action-card disabled-card" style="opacity: 1; background: rgba(20, 15, 35, 0.6); border: 1px solid rgba(255,255,255,0.05);">
-                        <div class="card-header">
-                            <div class="card-icon info-icon" style="color: var(--cyan-primary);">
-                                <i class="ph ph-lightbulb"></i>
-                            </div>
-                            <span class="badge-status online" style="color: var(--cyan-primary);">Teoría</span>
-                        </div>
-                        <div class="card-body">
-                            <h3 style="color: var(--text-main); margin-bottom: 10px;">Criterios Matemáticos</h3>
-                            <p style="font-size: 13px; line-height: 1.5; color: var(--text-muted); margin-bottom: 20px;">
-                                El <strong>Método Simplex</strong> evalúa los puntos extremos algebraicos en las fronteras del área de solución para optimizar recursos eficientemente.
-                            </p>
-                            
-                            <div class="tips-stack" style="display: flex; flex-direction: column; gap: 15px;">
-                                <div class="tip-item" style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 6px; border-left: 3px solid var(--cyan-primary);">
-                                    <span style="font-weight: 800; color: var(--cyan-primary); font-size: 11px; display: block; margin-bottom: 3px;">CRITERIO 01</span>
-                                    <p style="margin: 0; font-size: 12px; color: var(--text-main);"><strong>Condición de Entrada:</strong> Entra a la base la variable con el coeficiente neto más negativo en la fila Z (para Maximización).</p>
-                                </div>
-                                <div class="tip-item" style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 6px; border-left: 3px solid var(--magenta-primary);">
-                                    <span style="font-weight: 800; color: var(--magenta-primary); font-size: 11px; display: block; margin-bottom: 3px;">CRITERIO 02</span>
-                                    <p style="margin: 0; font-size: 12px; color: var(--text-main);"><strong>Condición de Salida:</strong> Abandona la base la fila con la menor razón aritmética estrictamente positiva (RHS ÷ Pivote).</p>
-                                </div>
-                                <div class="tip-item" style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 6px; border-left: 3px solid var(--cyan-primary);">
-                                    <span style="font-weight: 800; color: var(--cyan-primary); font-size: 11px; display: block; margin-bottom: 3px;">CRITERIO 03</span>
-                                    <p style="margin: 0; font-size: 12px; color: var(--text-main);"><strong>Holguras Activas:</strong> El algoritmo introduce variables de holgura para transformar desigualdades de tipo (&le;) en ecuaciones puras.</p>
-                                </div>
-                            </div>
-
-                            <div class="decorative-chart-placeholder" style="margin-top: 25px; padding: 15px; background: rgba(9,5,20,0.4); border-radius: 6px; text-align: center; border: 1px dashed rgba(255,255,255,0.1);">
-                                <span style="font-size: 11px; color: var(--cyan-primary); font-weight: 600; letter-spacing: 0.5px;">Matriz Identidad Inicial Activa</span>
-                                <div class="chart-line-glow" style="height: 2px; background: linear-gradient(90deg, transparent, var(--cyan-primary), transparent); margin-top: 8px; box-shadow: 0 0 8px var(--cyan-primary);"></div>
-                            </div>
+                            <div id="simplex-tables-container"></div>
                         </div>
                     </div>
-                </aside>
+                </section>
 
             </div>
+
+            <!-- COLUMNA DERECHA: PANELES TEÓRICOS -->
+            <aside class="workspace-right-column">
+                <div class="action-card theory-card">
+                    <div class="card-header">
+                        <div class="card-icon info-icon">
+                            <i class="ph ph-lightbulb"></i>
+                        </div>
+                        <span class="badge-status online">Teoría</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Criterios Matemáticos</h3>
+                        <p class="theory-desc">
+                            El <strong>Método Simplex</strong> evalúa los puntos extremos algebraicos en las fronteras del área de solución para optimizar recursos eficientemente.
+                        </p>
+                        
+                        <div class="tips-stack">
+                            <div class="tip-item cyan-border">
+                                <span class="tip-tag cyan">CRITERIO 01</span>
+                                <p><strong>Condición de Entrada:</strong> Entra a la base la variable con el coeficiente neto más negativo en la fila $Z$ (para Maximización).</p>
+                            </div>
+                            <div class="tip-item magenta-border">
+                                <span class="tip-tag magenta">CRITERIO 02</span>
+                                <p><strong>Condición de Salida:</strong> Abandona la base la fila con la menor razón aritmética estrictamente positiva ($\text{RHS} \div \text{Pivote}$).</p>
+                            </div>
+                            <div class="tip-item cyan-border">
+                                <span class="tip-tag cyan">CRITERIO 03</span>
+                                <p><strong>Holguras Activas:</strong> El algoritmo introduce variables de holgura para transformar desigualdades de tipo ($\le$) en ecuaciones puras.</p>
+                            </div>
+                        </div>
+
+                        <div class="decorative-chart-placeholder">
+                            <span>Matriz Identidad Inicial Activa</span>
+                            <div class="chart-line-glow"></div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
         </div>
     </div>
 
-    <div id="error-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(9,5,20,0.8); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 9999;">
-        <div class="modal-box" style="background: #140f23; border: 1px solid var(--magenta-primary); padding: 25px; border-radius: 8px; max-width: 400px; text-align: center; box-shadow: 0 0 30px rgba(157, 78, 221, 0.2);">
-            <h3 class="modal-title error-text" style="color: #ff4d6d; margin-top: 0; font-size: 18px;">⚠️ Anomalía en el Modelo</h3>
-            <p id="error-message" style="color: var(--text-muted); font-size: 14px; line-height: 1.5;">El modelo ingresado presenta degeneración o una solución no acotada.</p>
-            <button id="btn-close-modal" class="btn-card" style="margin-top: 15px; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: white; cursor: pointer; padding: 8px 16px; border-radius: 4px;">Revisar Coeficientes</button>
+    <!-- MODAL DE ERRORES -->
+    <div id="error-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <h3 class="modal-title error-text">⚠️ Anomalía en el Modelo</h3>
+            <p id="error-message">El modelo ingresado presenta degeneración o una solución no acotada.</p>
+            <button id="btn-close-modal" class="btn-card btn-reset">Revisar Coeficientes</button>
         </div>
     </div>
 
-    <script src="../core/sidebar.js"></script>
+    <!-- SCRIPT DEL ALGORITMO -->
     <script type="module" src="../core/linear/simplex.js"></script>
 </body>
 </html>
