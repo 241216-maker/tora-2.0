@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TORA Advanced | Método Simplex Primal</title>
+    <title>TORA Advanced | Método Simplex</title>
     
     <!-- Fuentes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Iconos Phosphor (Carga segura vía CSS) -->
+    <!-- Iconos Phosphor -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
 
@@ -31,7 +31,7 @@
         </a>
         <div class="module-title-header">
             <i class="ph-fill ph-chart-polar logo-icon"></i>
-            <h2>TORA<span class="logo-highlight">Advanced</span> &bull; Simplex Primal</h2>
+            <h2>TORA<span class="logo-highlight">Advanced</span> &bull; Método Simplex</h2>
         </div>
     </header>
 
@@ -39,8 +39,8 @@
         
         <header class="workspace-header">
             <div class="welcome-box">
-                <h1>Método Simplex Primal</h1>
-                <p>Programación Lineal: Optimización Algebraica de Operaciones estructurales.</p>
+                <h1>Método Simplex</h1>
+                <p>Optimización lineal algebraica de recursos y toma de decisiones.</p>
             </div>
         </header>
 
@@ -98,6 +98,13 @@
                     <div class="card-body">
                         <h3>Coeficientes y Restricciones</h3>
                         <div id="simplex-model-wrapper"></div>
+                        
+                        <!-- MODELO EN FORMA DE ECUACIÓN (GENERADO DINÁMICAMENTE) -->
+                        <div id="equation-form-preview" class="equation-box-container" style="display: none;">
+                            <h4 class="sub-section-title"><i class="ph ph-brackets-curly"></i> Modelo Expresado en Forma de Ecuación:</h4>
+                            <div id="equation-form-content" class="equation-display"></div>
+                        </div>
+
                         <div class="actions-row mt-20">
                             <button id="btn-calculate-simplex" class="btn-card primary-glow-magenta">
                                 <i class="ph ph-play"></i> Resolver con Simplex
@@ -115,12 +122,27 @@
                         <span id="model-status" class="badge-status online">Óptimo</span>
                     </div>
                     <div class="card-body">
+                        
+                        <!-- TARJETA DEL VALOR ÓPTIMO DE Z -->
                         <div class="summary-box">
                             <p class="summary-label">Valor Óptimo de la Función Objetivo ($Z$):</p>
                             <h2 class="summary-value" id="optimal-z-value">0.00</h2>
                         </div>
-                        
-                        <div class="table-section">
+
+                        <!-- TABLA 1: LECTURA DE SOLUCIÓN ÓPTIMA DE VARIABLES -->
+                        <div class="analysis-block">
+                            <h3 class="table-title"><i class="ph ph-user-check"></i> Lectura de la Solución Óptima</h3>
+                            <div id="optimal-solution-table-wrapper"></div>
+                        </div>
+
+                        <!-- TABLA 2: CLASIFICACIÓN DE RESTRICCIONES Y ESTADO DE RECURSOS -->
+                        <div class="analysis-block mt-20">
+                            <h3 class="table-title"><i class="ph ph-chart-bar"></i> Clasificación de Restricciones del Modelo</h3>
+                            <div id="resource-status-table-wrapper"></div>
+                        </div>
+
+                        <!-- TABLAS SIMPLEX ITERATIVAS PASO A PASO -->
+                        <div class="table-section mt-25">
                             <h3 class="table-title"><i class="ph ph-list-numbers"></i> Tablas de Iteraciones Simplex</h3>
                             <div class="iteration-controls">
                                 <button id="btn-prev-step" class="btn-step">
@@ -134,43 +156,51 @@
 
                             <div id="simplex-tables-container"></div>
                         </div>
+
                     </div>
                 </section>
 
             </div>
 
-            <!-- COLUMNA DERECHA: PANELES TEÓRICOS -->
+            <!-- COLUMNA DERECHA: DETALLES Y GUÍA INTUITIVA -->
             <aside class="workspace-right-column">
                 <div class="action-card theory-card">
                     <div class="card-header">
                         <div class="card-icon info-icon">
-                            <i class="ph ph-lightbulb"></i>
+                            <i class="ph ph-info"></i>
                         </div>
-                        <span class="badge-status online">Teoría</span>
+                        <span class="badge-status online">Detalles del Sistema</span>
                     </div>
                     <div class="card-body">
-                        <h3>Criterios Matemáticos</h3>
+                        <h3>Ficha Técnica del Algoritmo</h3>
                         <p class="theory-desc">
-                            El <strong>Método Simplex</strong> evalúa los puntos extremos algebraicos en las fronteras del área de solución para optimizar recursos eficientemente.
+                            Espacio diseñado para resolver problemas de optimización lineal sin complicaciones matemáticas abstractas.
                         </p>
                         
                         <div class="tips-stack">
                             <div class="tip-item cyan-border">
-                                <span class="tip-tag cyan">CRITERIO 01</span>
-                                <p><strong>Condición de Entrada:</strong> Entra a la base la variable con el coeficiente neto más negativo en la fila $Z$ (para Maximización).</p>
+                                <span class="tip-tag cyan">CAPACIDAD DE VARIABLES</span>
+                                <p>Admite hasta <strong>10 variables de decisión</strong> ($x_1, x_2, \dots, x_{10}$) de forma simultánea.</p>
                             </div>
+
                             <div class="tip-item magenta-border">
-                                <span class="tip-tag magenta">CRITERIO 02</span>
-                                <p><strong>Condición de Salida:</strong> Abandona la base la fila con la menor razón aritmética estrictamente positiva ($\text{RHS} \div \text{Pivote}$).</p>
+                                <span class="tip-tag magenta">LÍMITE DE RESTRICCIONES</span>
+                                <p>Soporta hasta <strong>10 restricciones operativas</strong> con variables de holgura automáticas ($s_1, s_2, \dots$).</p>
                             </div>
+
                             <div class="tip-item cyan-border">
-                                <span class="tip-tag cyan">CRITERIO 03</span>
-                                <p><strong>Holguras Activas:</strong> El algoritmo introduce variables de holgura para transformar desigualdades de tipo ($\le$) en ecuaciones puras.</p>
+                                <span class="tip-tag cyan">PRECISIÓN NUMÉRICA</span>
+                                <p>Maneja hasta <strong>2 decimales redondeados</strong> en la interfaz visual manteniendo precisión flotante interna.</p>
+                            </div>
+
+                            <div class="tip-item magenta-border">
+                                <span class="tip-tag magenta">CLASIFICACIÓN DE RECURSOS</span>
+                                <p>Identifica de forma automática si un recurso es <strong>Escaso</strong> (Holgura $= 0$) o <strong>Abundante</strong> (Holgura $> 0$).</p>
                             </div>
                         </div>
 
                         <div class="decorative-chart-placeholder">
-                            <span>Matriz Identidad Inicial Activa</span>
+                            <span>Módulo Simplex Listo para Uso</span>
                             <div class="chart-line-glow"></div>
                         </div>
                     </div>

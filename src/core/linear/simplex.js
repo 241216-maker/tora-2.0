@@ -12,9 +12,15 @@ const DOM = {
     simplexModelWrapper: document.getElementById('simplex-model-wrapper'),
     btnCalculateSimplex: document.getElementById('btn-calculate-simplex'),
     
+    equationFormPreview: document.getElementById('equation-form-preview'),
+    equationFormContent: document.getElementById('equation-form-content'),
+
     resultsPanel: document.getElementById('results-panel'),
     optimalZValue: document.getElementById('optimal-z-value'),
     modelStatus: document.getElementById('model-status'),
+    
+    optimalSolutionTableWrapper: document.getElementById('optimal-solution-table-wrapper'),
+    resourceStatusTableWrapper: document.getElementById('resource-status-table-wrapper'),
     simplexTablesContainer: document.getElementById('simplex-tables-container'),
     
     errorModal: document.getElementById('error-modal'),
@@ -42,7 +48,6 @@ if (DOM.btnGenerateModel) DOM.btnGenerateModel.addEventListener('click', generar
 if (DOM.btnResetSimplex) DOM.btnResetSimplex.addEventListener('click', reiniciarMóduloCompleto);
 if (DOM.btnCloseModal) DOM.btnCloseModal.addEventListener('click', () => DOM.errorModal.style.display = 'none');
 
-// Listeners protegidos para evitar errores si los botones no se encuentran
 if (DOM.btnPrevStep) {
     DOM.btnPrevStep.addEventListener('click', () => {
         if (currentStepIndex > 0) {
@@ -67,8 +72,8 @@ function generarMatrizFormulario() {
     numVars = parseInt(DOM.variableCount.value);
     numConstraints = parseInt(DOM.constraintCount.value);
 
-    if (isNaN(numVars) || numVars < 1 || isNaN(numConstraints) || numConstraints < 1) {
-        showError("Por favor, ingresa números válidos de variables y restricciones (mínimo 1).");
+    if (isNaN(numVars) || numVars < 1 || numVars > 10 || isNaN(numConstraints) || numConstraints < 1 || numConstraints > 10) {
+        showError("Por favor, ingresa entre 1 y 10 para variables y restricciones.");
         return;
     }
 
@@ -79,7 +84,7 @@ function generarMatrizFormulario() {
     
     for (let j = 1; j <= numVars; j++) {
         html += `<input type="number" id="z-c${j}" class="input-simplex-coeff" placeholder="0">
-                 <span style="color:var(--text-muted); margin-right:10px;">X<sub>${j}</sub> ${j < numVars ? '+' : ''}</span>`;
+                 <span style="color:var(--text-muted); margin-right:10px;">x<sub>${j}</sub> ${j < numVars ? '+' : ''}</span>`;
     }
     html += `   </div>
              </div>
@@ -91,7 +96,7 @@ function generarMatrizFormulario() {
                     <span style="color:var(--text-muted); font-size:12px; min-width:30px;">R${i}:</span>`;
         for (let j = 1; j <= numVars; j++) {
             html += `<input type="number" id="r${i}-c${j}" class="input-simplex-coeff" placeholder="0">
-                     <span style="color:var(--text-muted); margin-right:10px;">X<sub>${j}</sub> ${j < numVars ? '+' : ''}</span>`;
+                     <span style="color:var(--text-muted); margin-right:10px;">x<sub>${j}</sub> ${j < numVars ? '+' : ''}</span>`;
         }
         html += `   <select id="r${i}-sign" class="simplex-sign-select">
                         <option value="<=">&le;</option>
@@ -104,14 +109,56 @@ function generarMatrizFormulario() {
     DOM.simplexModelWrapper.innerHTML = html;
     DOM.matrixSection.style.display = 'block';
     DOM.resultsPanel.style.display = 'none';
+    if (DOM.equationFormPreview) DOM.equationFormPreview.style.display = 'none';
 }
 
 // =========================================================================
-// 5. MOTOR ALGEBRAICO PRINCIPAL: MÉTODO SIMPLEX PRIMAL
+// 5. CONSTRUCTOR DEL MODELO EN FORMA DE ECUACIÓN
+// =========================================================================
+function construirFormaEcuacion(type) {
+    let zStr = `${type === 'MAX' ? 'Maximizar' : 'Minimizar'} z = `;
+    let zTerms = [];
+    
+    for (let j = 1; j <= numVars; j++) {
+        let val = parseFloat(document.getElementById(`z-c${j}`).value) || 0;
+        zTerms.push(`${val}x<sub>${j}</sub>`);
+    }
+    for (let j = 1; j <= numConstraints; j++) {
+        zTerms.push(`0s<sub>${j}</sub>`);
+    }
+    zStr += zTerms.join(' + ') + '<br><br><strong>Sujeto a:</strong><br>';
+
+    let reqs = [];
+    for (let i = 1; i <= numConstraints; i++) {
+        let terms = [];
+        for (let j = 1; j <= numVars; j++) {
+            let val = parseFloat(document.getElementById(`r${i}-c${j}`).value) || 0;
+            terms.push(`${val}x<sub>${j}</sub>`);
+        }
+        terms.push(`s<sub>${i}</sub>`);
+        let rhs = parseFloat(document.getElementById(`r${i}-rhs`).value) || 0;
+        reqs.push(terms.join(' + ') + ` = ${rhs}`);
+    }
+
+    zStr += reqs.join('<br>');
+    
+    let allVars = [];
+    for (let j = 1; j <= numVars; j++) allVars.push(`x<sub>${j}</sub>`);
+    for (let i = 1; i <= numConstraints; i++) allVars.push(`s<sub>${i}</sub>`);
+    zStr += `<br><br>${allVars.join(', ')} &ge; 0`;
+
+    if (DOM.equationFormContent) DOM.equationFormContent.innerHTML = zStr;
+    if (DOM.equationFormPreview) DOM.equationFormPreview.style.display = 'block';
+}
+
+// =========================================================================
+// 6. MOTOR ALGEBRAICO PRINCIPAL: MÉTODO SIMPLEX
 // =========================================================================
 if (DOM.btnCalculateSimplex) {
     DOM.btnCalculateSimplex.addEventListener('click', () => {
         let type = DOM.optimizationType.value;
+        construirFormaEcuacion(type);
+
         let totalRows = numConstraints + 1; 
         let totalCols = numVars + numConstraints + 1; 
 
@@ -119,73 +166,64 @@ if (DOM.btnCalculateSimplex) {
         let basis = [];
         let headers = [];
 
-// --- Construcción de la matriz y variables de holgura (Tabla Inicial) ---
+        // Nombres de cabecera
+        for (let j = 1; j <= numVars; j++) headers.push(`x${j}`);
+        for (let j = 1; j <= numConstraints; j++) headers.push(`s${j}`);
 
-// 1. Agrega los nombres de las variables de holgura (S1, S2...) a las cabeceras y la base inicial
-for (let j = 1; j <= numVars; j++) headers.push(`X${j}`);
-for (let j = 1; j <= numConstraints; j++) headers.push(`S${j}`);
-
-for (let i = 1; i <= numConstraints; i++) {
-    basis.push(`S${i}`); // Por defecto, las variables de holgura inician en la base
-}
-basis.push("Z");
-
-// 2. Rellena las filas de las restricciones con los coeficientes del usuario
-for (let i = 0; i < numConstraints; i++) {
-    for (let j = 0; j < numVars; j++) {
-        let val = parseFloat(document.getElementById(`r${i+1}-c${j+1}`).value);
-        tableau[i][j] = isNaN(val) ? 0 : val; // Asigna el valor del coeficiente a la celda
-    }
-    // ESTA LÍNEA CLAVE: Inserta el "1" en la diagonal correspondiente para crear la Matriz Identidad de Holguras
-    tableau[i][numVars + i] = 1; 
-
-    // Asigna el valor del lado derecho (RHS / Disponibilidad) al final de la fila
-    let rhsVal = parseFloat(document.getElementById(`r${i+1}-rhs`).value);
-    tableau[i][totalCols - 1] = isNaN(rhsVal) ? 0 : rhsVal;
-}
-
-// 3. Rellena la última fila (Función Objetivo Z) cambiando los signos según el objetivo
-for (let j = 0; j < numVars; j++) {
-    let val = parseFloat(document.getElementById(`z-c${j+1}`).value);
-    let coeff = isNaN(val) ? 0 : val;
-    // Si es Maximización, pasa los valores con signo negativo a la matriz
-    tableau[totalRows - 1][j] = (type === "MAX") ? -coeff : coeff; 
-}
-tableau[totalRows - 1][totalCols - 1] = 0; // El valor inicial de Z siempre empieza en 0
-
-// 4. Guarda esta estructura limpia como la posición [0] (La Primera Iteración)
-simplexSteps = [{
-    matrix: cloneMatrix(tableau),
-    basis: [...basis],
-    headers: [...headers],
-    pivotColIndex: -1,
-    pivotRowIndex: -1,
-    ratios: Array(numConstraints).fill(null)
-}];
-
-// --- Control del bucle principal de iteraciones ---
-let isOptimal = false;     // Bandera para detener el bucle cuando se llegue al óptimo
-let currentIter = 0;       // Contador de las iteraciones realizadas
-let maxLoop = 30;          // Límite de seguridad para evitar bucles infinitos en modelos mal configurados
-
-while (!isOptimal && currentIter < maxLoop) {
-    let lastRow = tableau[totalRows - 1]; // Accede a la fila Z (la última fila de la matriz)
-    let pivotCol = -1;
-    let minVal = 0;
-
-    // Condición de optimalidad: Busca el coeficiente más negativo en la fila Z (para Maximizar)
-    for (let j = 0; j < totalCols - 1; j++) {
-        if (lastRow[j] < minVal) {
-            minVal = lastRow[j];
-            pivotCol = j; // Guarda la columna de la variable que va a entrar a la base
+        for (let i = 1; i <= numConstraints; i++) {
+            basis.push(`s${i}`);
         }
-    }
+        basis.push("z");
 
-    // Si ya no hay números negativos en la fila Z, significa que alcanzamos el óptimo
-    if (pivotCol === -1) {
-        isOptimal = true; // Cambia la bandera a true para romper el bucle while
-        break;
-    }
+        // Fila de restricciones
+        for (let i = 0; i < numConstraints; i++) {
+            for (let j = 0; j < numVars; j++) {
+                let val = parseFloat(document.getElementById(`r${i+1}-c${j+1}`).value);
+                tableau[i][j] = isNaN(val) ? 0 : val;
+            }
+            tableau[i][numVars + i] = 1; 
+
+            let rhsVal = parseFloat(document.getElementById(`r${i+1}-rhs`).value);
+            tableau[i][totalCols - 1] = isNaN(rhsVal) ? 0 : rhsVal;
+        }
+
+        // Fila de función objetivo
+        for (let j = 0; j < numVars; j++) {
+            let val = parseFloat(document.getElementById(`z-c${j+1}`).value);
+            let coeff = isNaN(val) ? 0 : val;
+            tableau[totalRows - 1][j] = (type === "MAX") ? -coeff : coeff; 
+        }
+        tableau[totalRows - 1][totalCols - 1] = 0;
+
+        simplexSteps = [{
+            matrix: cloneMatrix(tableau),
+            basis: [...basis],
+            headers: [...headers],
+            pivotColIndex: -1,
+            pivotRowIndex: -1,
+            ratios: Array(numConstraints).fill(null)
+        }];
+
+        let isOptimal = false;
+        let currentIter = 0;
+        let maxLoop = 30;
+
+        while (!isOptimal && currentIter < maxLoop) {
+            let lastRow = tableau[totalRows - 1];
+            let pivotCol = -1;
+            let minVal = 0;
+
+            for (let j = 0; j < totalCols - 1; j++) {
+                if (lastRow[j] < minVal) {
+                    minVal = lastRow[j];
+                    pivotCol = j;
+                }
+            }
+
+            if (pivotCol === -1) {
+                isOptimal = true;
+                break;
+            }
 
             let pivotRow = -1;
             let minRatio = Infinity;
@@ -213,45 +251,39 @@ while (!isOptimal && currentIter < maxLoop) {
             simplexSteps[simplexSteps.length - 1].pivotRowIndex = pivotRow;
             simplexSteps[simplexSteps.length - 1].ratios = [...currentRatios];
 
-// --- Operaciones Matemáticas de Gauss-Jordan para la Siguiente Iteración ---
+            basis[pivotRow] = pivotCol < numVars ? `x${pivotCol + 1}` : `s${pivotCol - numVars + 1}`;
+            let pivotElement = tableau[pivotRow][pivotCol];
 
-// Intercambio de nombres en la base: La variable de la fila pivote es reemplazada por la de la columna pivote
-basis[pivotRow] = pivotCol < numVars ? `X${pivotCol + 1}` : `S${pivotCol - numVars + 1}`;
+            for (let j = 0; j < totalCols; j++) {
+                tableau[pivotRow][j] /= pivotElement;
+            }
 
-let pivotElement = tableau[pivotRow][pivotCol]; // Identifica el número pivote (la intersección)
+            for (let i = 0; i < totalRows; i++) {
+                if (i !== pivotRow) {
+                    let factor = tableau[i][pivotCol];
+                    for (let j = 0; j < totalCols; j++) {
+                        tableau[i][j] -= factor * tableau[pivotRow][j]; 
+                    }
+                }
+            }
+            currentIter++;
 
-// OPERACIÓN 1: Normalizar la fila pivote dividiendo cada elemento entre el número pivote
-for (let j = 0; j < totalCols; j++) {
-    tableau[pivotRow][j] /= pivotElement; // Esto garantiza que el elemento pivote se convierta en 1
-}
-
-// OPERACIÓN 2: Hacer "ceros" en la columna pivote para todas las demás filas
-for (let i = 0; i < totalRows; i++) {
-    if (i !== pivotRow) { // Se salta la fila pivote que ya fue normalizada arriba
-        let factor = tableau[i][pivotCol]; // El valor actual en la columna de la fila que queremos alterar
-        
-        for (let j = 0; j < totalCols; j++) {
-            // Resta el producto de la fila pivote por el factor para limpiar la columna
-            tableau[i][j] -= factor * tableau[pivotRow][j]; 
+            simplexSteps.push({
+                matrix: cloneMatrix(tableau),
+                basis: [...basis],
+                headers: [...headers],
+                pivotColIndex: -1,
+                pivotRowIndex: -1,
+                ratios: Array(numConstraints).fill(null)
+            });
         }
-    }
-}
-currentIter++; // Incrementa el contador para pasar a la siguiente tabla o iteración
-
-    // Guarda una copia exacta del estado de esta nueva tabla en el historial para el Front-end
-    simplexSteps.push({
-        matrix: cloneMatrix(tableau),
-        basis: [...basis],
-        headers: [...headers],
-        pivotColIndex: -1,
-        pivotRowIndex: -1,
-        ratios: Array(numConstraints).fill(null)
-    });
-}
 
         let finalZ = tableau[totalRows - 1][totalCols - 1];
         if (DOM.optimalZValue) DOM.optimalZValue.innerText = formatNum(finalZ);
         if (DOM.modelStatus) DOM.modelStatus.innerText = isOptimal ? "Óptimo Alcanzado" : "Límite Alcanzado";
+        
+        renderizarTablasResultado(tableau, basis);
+
         if (DOM.resultsPanel) DOM.resultsPanel.style.display = 'block';
         
         currentStepIndex = 0;
@@ -260,7 +292,88 @@ currentIter++; // Incrementa el contador para pasar a la siguiente tabla o itera
 }
 
 // =========================================================================
-// 6. RENDERIZADOR PROTEGIDO DE PANELES DE TABLAS CYBERPUNK
+// 7. LECTURA DE LA SOLUCIÓN ÓPTIMA Y CLASIFICACIÓN DE RESTRICCIONES
+// =========================================================================
+function renderizarTablasResultado(tableau, basis) {
+    let totalCols = numVars + numConstraints + 1;
+
+    // Mapa de valores finales
+    let varValues = {};
+    for (let j = 1; j <= numVars; j++) varValues[`x${j}`] = 0;
+    for (let i = 1; i <= numConstraints; i++) varValues[`s${i}`] = 0;
+
+    for (let i = 0; i < numConstraints; i++) {
+        let varName = basis[i];
+        let val = tableau[i][totalCols - 1];
+        varValues[varName] = val;
+    }
+
+    // 1. TABLA DE SOLUCIÓN ÓPTIMA
+    let htmlOpt = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Variable de Decisión</th>
+                    <th>Valor Óptimo</th>
+                    <th>Estado / Interpretación</th>
+                </tr>
+            </thead>
+            <tbody>`;
+    
+    for (let j = 1; j <= numVars; j++) {
+        let val = varValues[`x${j}`];
+        htmlOpt += `
+            <tr>
+                <td><strong>x<sub>${j}</sub></strong></td>
+                <td><span class="value-highlight">${formatNum(val)}</span></td>
+                <td>${val > 0 ? 'Variable Básica (Produce beneficio)' : 'Variable No Básica (Sin asignación)'}</td>
+            </tr>`;
+    }
+    
+    let finalZ = tableau[numConstraints][totalCols - 1];
+    htmlOpt += `
+            <tr class="highlight-row">
+                <td><strong>Z (Objetivo)</strong></td>
+                <td><span class="value-highlight">${formatNum(finalZ)}</span></td>
+                <td>Valor total óptimo alcanzado</td>
+            </tr>
+        </tbody>
+    </table>`;
+
+    if (DOM.optimalSolutionTableWrapper) DOM.optimalSolutionTableWrapper.innerHTML = htmlOpt;
+
+    // 2. TABLA DE CLASIFICACIÓN DE RESTRICCIONES (RECURSOS)
+    let htmlRes = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Recurso / Restricción</th>
+                    <th>Valor de Holgura (s<sub>i</sub>)</th>
+                    <th>Estado del Recurso</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+    for (let i = 1; i <= numConstraints; i++) {
+        let slackVal = varValues[`s${i}`];
+        let isEscaso = Math.abs(slackVal) < 1e-6;
+        let badgeClass = isEscaso ? 'badge-escaso' : 'badge-abundante';
+        let statusText = isEscaso ? 'Escaso (Consumido al 100%)' : 'Abundante (Sobrante disponible)';
+
+        htmlRes += `
+            <tr>
+                <td><strong>Restricción ${i} (R${i})</strong></td>
+                <td>s<sub>${i}</sub> = ${formatNum(slackVal)}</td>
+                <td><span class="status-pill ${badgeClass}">${statusText}</span></td>
+            </tr>`;
+    }
+    htmlRes += `</tbody></table>`;
+
+    if (DOM.resourceStatusTableWrapper) DOM.resourceStatusTableWrapper.innerHTML = htmlRes;
+}
+
+// =========================================================================
+// 8. RENDERIZADOR DE PANELES DE TABLAS
 // =========================================================================
 function renderPasoActual() {
     if (simplexSteps.length === 0) return;
@@ -268,12 +381,10 @@ function renderPasoActual() {
     const iter = simplexSteps[currentStepIndex];
     const totalSteps = simplexSteps.length - 1;
 
-    // Actualizar texto del contador de pasos de forma segura
     if (DOM.iterationCounter) {
         DOM.iterationCounter.innerText = `TABLA: ${currentStepIndex} de ${totalSteps} ${currentStepIndex === totalSteps ? '(FINAL)' : ''}`;
     }
 
-    // MODIFICACIÓN CRÍTICA: Cambiar estilos de botones con protección ante valores "null"
     if (DOM.btnPrevStep) {
         DOM.btnPrevStep.style.opacity = currentStepIndex === 0 ? "0.3" : "1";
         DOM.btnPrevStep.style.pointerEvents = currentStepIndex === 0 ? "none" : "auto";
@@ -345,7 +456,7 @@ function renderPasoActual() {
 }
 
 // =========================================================================
-// 7. AUXILIARES MATEMÁTICOS Y DE LIMPIEZA
+// 9. AUXILIARES MATEMÁTICOS Y DE LIMPIEZA
 // =========================================================================
 function cloneMatrix(matrix) {
     return matrix.map(row => [...row]);
@@ -370,6 +481,7 @@ function reiniciarMóduloCompleto() {
     if (DOM.constraintCount) DOM.constraintCount.value = '';
     if (DOM.matrixSection) DOM.matrixSection.style.display = 'none';
     if (DOM.resultsPanel) DOM.resultsPanel.style.display = 'none';
+    if (DOM.equationFormPreview) DOM.equationFormPreview.style.display = 'none';
     if (DOM.simplexModelWrapper) DOM.simplexModelWrapper.innerHTML = '';
     simplexSteps = [];
     currentStepIndex = 0;
