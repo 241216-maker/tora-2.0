@@ -1,208 +1,337 @@
 document.addEventListener('DOMContentLoaded', () => {
-    let listaAristas = [];
+    let listaEnlaces = [];
+    let conjuntoNodos = new Set();
+    
+    let pasosAlgoritmo = [];
+    let pasoActual = 0;
+    let simulacionD3 = null; 
 
     const inputs = {
-        source: document.getElementById('edge-source'),
-        target: document.getElementById('edge-target'),
-        weight: document.getElementById('edge-weight'),
+        origen: document.getElementById('edge-source'),
+        destino: document.getElementById('edge-target'),
+        peso: document.getElementById('edge-weight'),
         btnAñadir: document.getElementById('btn-add-edge'),
         btnCalcular: document.getElementById('btn-calculate-mst'),
+        btnSiguiente: document.getElementById('btn-next-step'),
+        btnAnterior: document.getElementById('btn-prev-step'),
+        btnClear: document.getElementById('btn-clear-network'),
+        controlsIter: document.getElementById('iteration-controls'),
+        statusBox: document.getElementById('iteration-status'),
         liveList: document.getElementById('edges-live-list'),
         resultsPanel: document.getElementById('results-panel'),
-        pathOutput: document.getElementById('mst-path-output'),
-        metricWeight: document.getElementById('metric-total-weight')
+        mstOutput: document.getElementById('mst-output'), 
+        metricTotal: document.getElementById('metric-total-weight')
     };
 
-    // 1. REGISTRAR UNA NUEVA ARISTA EN LA LISTA
     inputs.btnAñadir.addEventListener('click', () => {
-        const u = inputs.source.value.trim().toUpperCase();
-        const v = inputs.target.value.trim().toUpperCase();
-        const peso = parseInt(inputs.weight.value);
+        const u = inputs.origen.value.trim().toUpperCase();
+        const v = inputs.destino.value.trim().toUpperCase();
+        const peso = parseFloat(inputs.peso.value);
+        
+        if (!u || !v || u === v) return alert('Nodos inválidos.');
+        if (isNaN(peso) || peso < 0) return alert('Costo inválido.');
+        
+        if (listaEnlaces.some(e => (e.origen===u && e.destino===v) || (e.origen===v && e.destino===u))) {
+            return alert('Ya existe una conexión entre estos nodos.');
+        }
 
-        if (!u || !v) return alert('Error: Ingrese nombres válidos para los nodos.');
-        if (u === v) return alert('Error: El nodo origen y destino no pueden ser el mismo.');
-        if (isNaN(peso) || peso <= 0) return alert('Error: El peso debe ser un número entero mayor que 0.');
+        listaEnlaces.push({ origen: u, destino: v, peso: peso, id: `e-${u}-${v}` });
+        conjuntoNodos.add(u); 
+        conjuntoNodos.add(v);
 
-        // Evitar aristas duplicadas entre los mismos dos nodos
-        const existe = listaAristas.some(a => (a.u === u && a.v === v) || (a.u === v && a.v === u));
-        if (existe) return alert('Error: Ya existe una conexión entre estos dos nodos.');
-
-        listaAristas.push({ u, v, peso, inMST: false });
-
-        inputs.source.value = ''; inputs.target.value = ''; inputs.weight.value = '';
-        inputs.source.focus();
-        actualizarListaLateral();
+        inputs.origen.value = ''; inputs.destino.value = ''; inputs.peso.value = '';
+        inputs.origen.focus();
+        
+        actualizarLista();
+        dibujarRedEstatica();
     });
 
-    function actualizarListaLateral() {
-        if (listaAristas.length === 0) {
-            inputs.liveList.innerHTML = `<p class="empty-notice">No hay conexiones.</p>`;
-            return;
-        }
-        inputs.liveList.innerHTML = '';
-        listaAristas.forEach(arista => {
-            const item = document.createElement('div');
-            item.className = 'activity-item activity-item-log';
+    if(inputs.btnClear) {
+        inputs.btnClear.addEventListener('click', () => {
+            if(confirm("¿Estás seguro de que deseas borrar toda la red?")) {
+                listaEnlaces = [];
+                conjuntoNodos.clear();
+                pasosAlgoritmo = [];
+                
+                actualizarLista();
+                document.getElementById('network-svg-container').innerHTML = '';
+                if(inputs.resultsPanel) inputs.resultsPanel.style.display = 'none';
+                if(inputs.controlsIter) inputs.controlsIter.style.display = 'none';
+                if(inputs.btnCalcular) {
+                    inputs.btnCalcular.style.display = 'block';
+                    inputs.btnCalcular.textContent = 'Iniciar Algoritmo';
+                }
+            }
+        });
+    }
 
-            const textSpan = document.createElement('span');
-            textSpan.innerHTML = `• Conexión: <strong>${arista.u} ⟷ ${arista.v}</strong> | Costo: ${arista.peso}`;
-            item.appendChild(textSpan);
+    function actualizarLista() {
+        if(!inputs.liveList) return;
+        inputs.liveList.innerHTML = listaEnlaces.length === 0 ? '<p class="empty-notice">No hay conexiones en la red.</p>' : '';
+        listaEnlaces.forEach((enlace, index) => {
+            const div = document.createElement('div');
+            div.className = 'edge-item-log';
+            div.innerHTML = `<span>${enlace.origen} ➔ ${enlace.destino} (Costo: ${enlace.peso})</span>`;
+            
+            const btn = document.createElement('button');
+            btn.className = 'btn-small-danger'; 
+            btn.textContent = 'Borrar';
+            btn.onclick = () => {
+                listaEnlaces.splice(index, 1);
+                conjuntoNodos.clear();
+                listaEnlaces.forEach(e => { conjuntoNodos.add(e.origen); conjuntoNodos.add(e.destino); });
+                actualizarLista();
+                dibujarRedEstatica();
+            };
+            div.appendChild(btn);
+            inputs.liveList.appendChild(div);
+        });
+    }
 
-            const delBtn = document.createElement('button');
-            delBtn.className = 'btn btn-small btn-delete';
-            delBtn.textContent = 'borrar';
-            delBtn.style.marginLeft = '10px';
-            delBtn.addEventListener('click', () => {
-                listaAristas = listaAristas.filter(a => !( (a.u === arista.u && a.v === arista.v) || (a.u === arista.v && a.v === arista.u) ));
-                actualizarListaLateral();
-                document.dispatchEvent(new CustomEvent('edge:removed', { detail: { u: arista.u, v: arista.v } }));
+    function generarPasosPrim() {
+        let nodos = Array.from(conjuntoNodos).sort();
+        if (nodos.length === 0) throw new Error("No hay nodos para calcular.");
+
+        let pasos = [];
+        let Ck = new Set([nodos[0]]); 
+        let Ck_bar = new Set(nodos.slice(1));
+        let mstActual = [];
+        let costoAcumulado = 0;
+
+        pasos.push({
+            iteracion: 0,
+            conectados: new Set(Ck),
+            aristasMST: [...mstActual],
+            aristaEvaluada: null,
+            mensaje: `<strong>Paso 0:</strong> Iniciamos en el nodo <strong>${nodos[0]}</strong>.`
+        });
+
+        let iteracion = 1;
+
+        while (Ck_bar.size > 0) {
+            let aristaMinima = null;
+            let pesoMinimo = Infinity;
+            let nodoOrigenReal = null;
+            let nodoDestinoReal = null;
+
+            for (let e of listaEnlaces) {
+                let uEnCk = Ck.has(e.origen), vEnCk = Ck.has(e.destino);
+                let uEnBar = Ck_bar.has(e.origen), vEnBar = Ck_bar.has(e.destino);
+
+                if ((uEnCk && vEnBar) || (vEnCk && uEnBar)) {
+                    if (e.peso < pesoMinimo) {
+                        pesoMinimo = e.peso;
+                        aristaMinima = e;
+                        nodoOrigenReal = uEnCk ? e.origen : e.destino;
+                        nodoDestinoReal = uEnCk ? e.destino : e.origen;
+                    }
+                }
+            }
+
+            if (!aristaMinima) throw new Error("Red desconectada. Faltan enlaces para unir todos los nodos.");
+
+            mstActual.push(aristaMinima);
+            costoAcumulado += pesoMinimo;
+            
+            Ck.add(nodoDestinoReal);
+            Ck_bar.delete(nodoDestinoReal);
+
+            pasos.push({
+                iteracion: iteracion,
+                conectados: new Set(Ck),
+                aristasMST: [...mstActual],
+                aristaEvaluada: aristaMinima,
+                direccion: { de: nodoOrigenReal, a: nodoDestinoReal },
+                mensaje: `<strong>Iteración ${iteracion}:</strong> Conectamos <strong>${nodoOrigenReal} ➔ ${nodoDestinoReal}</strong> (Costo: ${pesoMinimo}).`
             });
-
-            item.appendChild(delBtn);
-            inputs.liveList.appendChild(item);
-        });
+            iteracion++;
+        }
+        
+        return { pasos, costoFinal: costoAcumulado, mstFinal: mstActual };
     }
 
-    // 2. LÓGICA DEL ALGORITMO DE KRUSKAL (ÁRBOL DE MÍNIMA EXPANSIÓN)
-    function calcularKruskal(aristas) {
-        // Obtener todos los nodos únicos presentes
-        let nodosUnicos = new Set();
-        aristas.forEach(a => { nodosUnicos.add(a.u); nodosUnicos.add(a.v); });
-        
-        let parent = {};
-        nodosUnicos.forEach(nodo => parent[nodo] = nodo);
-
-        function find(i) {
-            if (parent[i] === i) return i;
-            return find(parent[i]);
-        }
-
-        function union(i, j) {
-            let rootI = find(i);
-            let rootJ = find(j);
-            if (rootI !== rootJ) {
-                parent[rootI] = rootJ;
-                return true;
-            }
-            return false;
-        }
-
-        // Clonar y ordenar aristas de menor a mayor peso
-        let aristasOrdenadas = aristas.map((a, i) => ({ ...a, originalIndex: i })).sort((a, b) => a.peso - b.peso);
-        
-        let pesoTotalMST = 0;
-        let aristasEnMST = [];
-
-        aristasOrdenadas.forEach(arista => {
-            if (find(arista.u) !== find(arista.v)) {
-                union(arista.u, arista.v);
-                aristas[arista.originalIndex].inMST = true; // Marcar en la lista original
-                pesoTotalMST += arista.peso;
-                aristasEnMST.push(arista);
-            }
-        });
-
-        return { pesoTotalMST, aristasEnMST, totalNodos: nodosUnicos.size };
-    }
-
-    // 3. DIBUJAR LA RED CON UNA SIMULACIÓN DE FUERZAS DE D3
-    function dibujarGrafoMST(aristas, nodosUnicosArray) {
+    function dibujarRedEstatica() {
         const contenedor = document.getElementById('network-svg-container');
+        if(!contenedor) return;
         contenedor.innerHTML = '';
+        if (conjuntoNodos.size === 0) return;
 
-        const width = contenedor.clientWidth || 700;
-        const height = 500;
-
+        const width = contenedor.clientWidth;
+        const height = contenedor.clientHeight;
         const svg = d3.select('#network-svg-container').append('svg')
-            .attr('width', '100%').attr('height', height);
+            .attr('width', '100%')
+            .attr('height', '100%')
+            .attr('viewBox', `0 0 ${width} ${height}`);
 
-        // Convertir aristas a formato de enlaces D3 usando referencias de objetos
-        let nodesMap = {};
-        let datasetNodos = nodosUnicosArray.map(id => {
-            nodesMap[id] = { id: id };
-            return nodesMap[id];
-        });
+        svg.append("defs").selectAll("marker")
+            .data(["normal", "active", "mst"])
+            .enter().append("marker")
+            .attr("id", d => `arrow-${d}`)
+            .attr("viewBox", "0 -5 10 10")
+            .attr("refX", 28)
+            .attr("refY", 0)
+            .attr("markerWidth", 6)
+            .attr("markerHeight", 6)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M0,-5L10,0L0,5")
+            .attr("fill", d => d === "active" ? "#bd5bf7" : (d === "mst" ? "#00f0ff" : "#4a485c"));
 
-        let datasetEnlaces = aristas.map(a => ({
-            source: nodesMap[a.u],
-            target: nodesMap[a.v],
-            peso: a.peso,
-            inMST: a.inMST
-        }));
+        const nodosData = Array.from(conjuntoNodos).map(id => ({ id }));
+        const enlacesData = listaEnlaces.map(e => ({ source: e.origen, target: e.destino, peso: e.peso, id: e.id }));
 
-        // Crear la simulación física de D3 para que se acomoden solos en la pantalla
-        const simulation = d3.forceSimulation(datasetNodos)
-            .force('link', d3.forceLink(datasetEnlaces).id(d => d.id).distance(120))
-            .force('charge', d3.forceManyBody().strength(-300))
-            .force('center', d3.forceCenter(width / 2, height / 2));
+        // --- AJUSTES FÍSICOS EXTREMOS PARA MAYOR SEPARACIÓN ---
+        simulacionD3 = d3.forceSimulation(nodosData)
+            .force("link", d3.forceLink(enlacesData).id(d => d.id).distance(300)) // Aumentado a 300px
+            .force("charge", d3.forceManyBody().strength(-4500)) // Fuerza de repulsión masiva
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("x", d3.forceX(width / 2).strength(0.02)) // Gravedad central muy débil
+            .force("y", d3.forceY(height / 2).strength(0.02)) // Gravedad central muy débil
+            .stop(); 
 
-        // Dibujar las líneas (Aristas)
-        const link = svg.append('g').selectAll('line').data(datasetEnlaces).enter().append('line')
-            .attr('stroke', d => d.inMST ? '#00f0ff' : '#2c2942')
-            .attr('stroke-width', d => d.inMST ? 5 : 2)
-            .style('filter', d => d.inMST ? 'drop-shadow(0px 0px 6px rgba(0,240,255,0.8))' : 'none');
-
-        // Dibujar etiquetas de texto para el peso de las aristas
-        const linkText = svg.append('g').selectAll('text').data(datasetEnlaces).enter().append('text')
-            .attr('font-size', '10px').attr('fill', d => d.inMST ? '#00f0ff' : '#8b8a9f')
-            .attr('font-weight', d => d.inMST ? '700' : '400')
-            .text(d => d.peso);
-
-        // Dibujar los círculos (Nodos)
-        const node = svg.append('g').selectAll('circle').data(datasetNodos).enter().append('circle')
-            .attr('r', 18).attr('fill', '#12111c').attr('stroke', '#bd5bf7').attr('stroke-width', 2)
-            .call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended));
-
-        // Dibujar los nombres de los nodos
-        const labels = svg.append('g').selectAll('text').data(datasetNodos).enter().append('text')
-            .attr('text-anchor', 'middle').attr('dy', 4).attr('fill', '#ffffff')
-            .attr('font-weight', '700').attr('font-size', '12px').text(d => d.id);
-
-        // Actualizar posiciones en cada tic de la simulación
-        simulation.on('tick', () => {
-            link.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
-                .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
-
-            linkText.attr('x', d => (d.source.x + d.target.x) / 2)
-                    .attr('y', d => (d.source.y + d.target.y) / 2 - 4);
-
-            node.attr('cx', d => d.x).attr('cy', d => d.y);
-            labels.attr('x', d => d.x).attr('y', d => d.y);
-        });
-
-        // Funciones para arrastrar los nodos con el mouse
-        function dragstarted(event, d) { if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; }
-        function dragged(event, d) { d.fx = event.x; d.fy = event.y; }
-        function dragended(event, d) { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }
-    }
-
-    // BOTÓN DE CALCULAR MÍNIMA EXPANSIÓN
-    inputs.btnCalcular.addEventListener('click', () => {
-        if (listaAristas.length === 0) return alert('Error: No hay conexiones registradas.');
-
-        // Reiniciar estados anteriores
-        listaAristas.forEach(a => a.inMST = false);
-
-        const { pesoTotalMST, aristasEnMST, totalNodos } = calcularKruskal(listaAristas);
-
-        // Renderizar texto de resultados
-        if (aristasEnMST.length === 0) {
-            inputs.pathOutput.innerHTML = `<p style="color:red;">No se pudo formar el árbol.</p>`;
-        } else {
-            inputs.pathOutput.innerHTML = aristasEnMST
-                .map(a => `<span style="color:#00f0ff; font-weight:700;">[${a.u} ⟷ ${a.v} (Costo: ${a.peso})]</span>`)
-                .join(' , ');
+        for (let i = 0; i < 300; ++i) {
+            simulacionD3.tick();
         }
 
-        inputs.metricWeight.textContent = pesoTotalMST;
+        const padding = 40; 
+        nodosData.forEach(d => {
+            d.x = Math.max(padding, Math.min(width - padding, d.x));
+            d.y = Math.max(padding, Math.min(height - padding, d.y));
+        });
 
-        // Obtener lista de nodos únicos ordenados para dibujar
-        let nodosSet = new Set();
-        listaAristas.forEach(a => { nodosSet.add(a.u); nodosSet.add(a.v); });
+        const lineas = svg.selectAll(".link").data(enlacesData).enter().append("line")
+            .attr("class", "link")
+            .attr("stroke", "#2b2a3b")
+            .attr("stroke-width", 2)
+            .attr("id", d => `line-${d.id}`)
+            .attr("marker-end", "url(#arrow-normal)"); 
+
+        const textosL = svg.selectAll(".link-text").data(enlacesData).enter().append("text")
+            .attr("class", "link-text")
+            .attr("id", d => `text-${d.id}`)
+            .text(d => d.peso).attr("fill", "#6a6880").attr("font-size", "14px").attr("font-weight", "bold");
+
+        const nodos = svg.selectAll(".node").data(nodosData).enter().append("g");
+
+        nodos.append("circle").attr("r", 20).attr("id", d => `circle-${d.id}`)
+            .attr("fill", "#12111c").attr("stroke", "#3f3d56").attr("stroke-width", 2);
+
+        nodos.append("text").text(d => d.id).attr("text-anchor", "middle").attr("dy", 4)
+            .attr("fill", "#ffffff").attr("font-weight", "bold");
+
+        lineas.attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+              .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
         
-        dibujarGrafoMST(listaAristas, Array.from(nodosSet));
+        textosL.attr("x", d => (d.source.x + d.target.x) / 2)
+               .attr("y", d => (d.source.y + d.target.y) / 2 - 8);
+        
+        nodos.attr("transform", d => `translate(${d.x},${d.y})`);
+    }
 
-        inputs.resultsPanel.style.display = 'block';
-        inputs.resultsPanel.scrollIntoView({ behavior: 'smooth' });
-    });
+    function aplicarEstilosPaso(paso) {
+        if(inputs.statusBox) inputs.statusBox.innerHTML = paso.mensaje;
+
+        d3.selectAll("circle").attr("stroke", "#3f3d56").style("filter", "none");
+        d3.selectAll(".link")
+            .attr("stroke", "#2b2a3b").attr("stroke-width", 1.5).attr("stroke-dasharray", "none")
+            .attr("marker-end", "url(#arrow-normal)").style("filter", "none");
+        d3.selectAll(".link-text").attr("fill", "#4a485c").attr("font-weight", "normal");
+
+        paso.conectados.forEach(nodoId => {
+            d3.select(`#circle-${nodoId}`).attr("stroke", "#00f0ff").attr("stroke-width", 3)
+              .style("filter", "drop-shadow(0px 0px 8px rgba(0,240,255,0.6))");
+        });
+
+        paso.aristasMST.forEach(e => {
+            d3.select(`#line-${e.id}`).attr("stroke", "#00f0ff").attr("stroke-width", 4)
+              .attr("marker-end", "url(#arrow-mst)");
+            d3.select(`#text-${e.id}`).attr("fill", "#00f0ff").attr("font-weight", "bold");
+        });
+
+        if (paso.aristaEvaluada) {
+            let linea = d3.select(`#line-${paso.aristaEvaluada.id}`);
+            linea.attr("stroke", "#bd5bf7").attr("stroke-width", 5)
+                 .attr("stroke-dasharray", "6,4")
+                 .attr("marker-end", "url(#arrow-active)")
+                 .style("filter", "drop-shadow(0px 0px 8px rgba(189,91,247,0.8))");
+                 
+            let dataLinea = linea.datum();
+            if(dataLinea.source.id !== paso.direccion.de) {
+                linea.attr("marker-end", null).attr("marker-start", "url(#arrow-active)");
+            }
+        }
+    }
+
+    if(inputs.btnCalcular) {
+        inputs.btnCalcular.addEventListener('click', () => {
+            try {
+                const resultado = generarPasosPrim();
+                pasosAlgoritmo = resultado.pasos;
+                pasoActual = 0;
+
+                inputs.btnCalcular.style.display = 'none';
+                
+                if(inputs.controlsIter) inputs.controlsIter.style.display = 'block';
+                if(inputs.resultsPanel) inputs.resultsPanel.style.display = 'none';
+
+                if(inputs.btnAnterior) inputs.btnAnterior.disabled = true;
+                if(inputs.btnSiguiente) inputs.btnSiguiente.textContent = 'Siguiente ➔';
+
+                if(inputs.mstOutput) {
+                    inputs.mstOutput.innerHTML = resultado.mstFinal.map(e => 
+                        `<span>Nodo <strong>${e.origen}</strong> ➔ Nodo <strong>${e.destino}</strong> (Costo: ${e.peso})</span><br>`
+                    ).join('');
+                }
+                
+                if(inputs.metricTotal) {
+                    inputs.metricTotal.textContent = resultado.costoFinal;
+                }
+
+                aplicarEstilosPaso(pasosAlgoritmo[pasoActual]);
+            } catch (err) { 
+                if(err.message.includes("Red desconectada") || err.message.includes("No hay nodos")) {
+                    alert(err.message); 
+                }
+            }
+        });
+    }
+
+    if(inputs.btnSiguiente) {
+        inputs.btnSiguiente.addEventListener('click', () => {
+            pasoActual++;
+            if (pasoActual < pasosAlgoritmo.length) {
+                aplicarEstilosPaso(pasosAlgoritmo[pasoActual]);
+                if(inputs.btnAnterior) inputs.btnAnterior.disabled = false;
+                
+                if (pasoActual === pasosAlgoritmo.length - 1) {
+                    inputs.btnSiguiente.textContent = "Ver Resultado Final";
+                }
+            } else {
+                if(inputs.controlsIter) inputs.controlsIter.style.display = 'none';
+                if(inputs.btnCalcular) {
+                    inputs.btnCalcular.style.display = 'block';
+                    inputs.btnCalcular.textContent = 'Reiniciar Algoritmo';
+                }
+                if(inputs.resultsPanel) {
+                    inputs.resultsPanel.style.display = 'block';
+                    inputs.resultsPanel.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        });
+    }
+
+    if(inputs.btnAnterior) {
+        inputs.btnAnterior.addEventListener('click', () => {
+            if (pasoActual > 0) {
+                pasoActual--;
+                aplicarEstilosPaso(pasosAlgoritmo[pasoActual]);
+                
+                if(inputs.btnSiguiente) inputs.btnSiguiente.textContent = "Siguiente ➔";
+                
+                if (pasoActual === 0 && inputs.btnAnterior) {
+                    inputs.btnAnterior.disabled = true;
+                }
+            }
+        });
+    }
 });

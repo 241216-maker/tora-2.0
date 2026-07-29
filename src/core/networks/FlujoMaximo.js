@@ -1,318 +1,486 @@
 document.addEventListener('DOMContentLoaded', () => {
+    let arcos = []; 
+    let conjuntoNodos = new Set();
     
-    // Almacenamiento local de las conexiones (aristas) ingresadas por el usuario
-    let listaAristas = [];
+    let historialPasos = [];
+    let indicePaso = 0;
+    
+    const inputOrigen = document.getElementById('edge-source');
+    const inputDestino = document.getElementById('edge-target');
+    const inputCapIJ = document.getElementById('cap-ij');
+    const inputCapJI = document.getElementById('cap-ji');
+    
+    const inputFuente = document.getElementById('source-node');
+    const inputSumidero = document.getElementById('sink-node');
+    
+    const btnAdd = document.getElementById('btn-add-edge');
+    const btnCalculate = document.getElementById('btn-calculate');
+    const btnReset = document.getElementById('btn-reset');
+    
+    const btnPrev = document.getElementById('btn-prev-step');
+    const btnNext = document.getElementById('btn-next-step');
+    
+    const liveList = document.getElementById('edges-live-list');
+    const statusBox = document.getElementById('iteration-status');
+    const controlsIter = document.getElementById('iteration-controls');
+    const resultsPanel = document.getElementById('results-panel');
+    const flowRoutesOutput = document.getElementById('flow-routes-output');
+    const metricMaxFlow = document.getElementById('metric-max-flow');
+    const flowTableWrapper = document.getElementById('flow-table-wrapper');
 
-    // Referencias a los elementos de la interfaz de usuario
-    const inputs = {
-        source: document.getElementById('edge-source'),
-        target: document.getElementById('edge-target'),
-        capacityForward: document.getElementById('edge-capacity-forward'),
-        capacityReverse: document.getElementById('edge-capacity-reverse'),
-        btnAñadir: document.getElementById('btn-add-edge'),
-        btnBorrar: document.getElementById('btn-clear-network'),
-        netSource: document.getElementById('network-source'),
-        netSink: document.getElementById('network-sink'),
-        btnCalcular: document.getElementById('btn-calculate-flow'),
-        liveList: document.getElementById('edges-live-list'),
-        resultsPanel: document.getElementById('results-panel'),
-        flowOutput: document.getElementById('max-flow-output'),
-        metricEfficiency: document.getElementById('metric-efficiency')
-    };
+    // --- 1. AÑADIR ARCO ---
+    btnAdd.addEventListener('click', () => {
+        const u = inputOrigen.value.trim().toUpperCase();
+        const v = inputDestino.value.trim().toUpperCase();
+        const c_ij = parseFloat(inputCapIJ.value) || 0;
+        const c_ji = parseFloat(inputCapJI.value) || 0;
 
-    // Escuchador del botón para capturar aristas individuales
-    inputs.btnAñadir.addEventListener('click', () => {
-        const u = inputs.source.value.trim().toUpperCase();
-        const v = inputs.target.value.trim().toUpperCase();
-        const capForward = parseInt(inputs.capacityForward.value);
-        const capReverse = parseInt(inputs.capacityReverse.value);
-
-        // Validaciones del módulo de seguridad interna
-        if (!u || !v) return alert('Error: Ingrese identificadores válidos.');
-        if (u === v) return alert('Error: El origen y el destino no pueden ser el mismo nodo.');
-        if ((isNaN(capForward) || capForward < 0) || (isNaN(capReverse) || capReverse < 0)) {
-            return alert('Error: Las capacidades deben ser enteros no negativos.');
+        if (!u || !v || u === v) {
+            return alert('Ingrese nombres válidos y distintos para los nodos.');
         }
-        if (capForward === 0 && capReverse === 0) {
-            return alert('Error: Ingrese al menos una capacidad positiva entre los dos sentidos.');
-        }
-
-        const tieneIda = !Number.isNaN(capForward) && capForward > 0;
-        const tieneVuelta = !Number.isNaN(capReverse) && capReverse > 0;
-
-        if (tieneIda && listaAristas.some(e => e.source === u && e.target === v)) {
-            return alert('Error: Esta conexión i → j ya ha sido registrada.');
-        }
-        if (tieneVuelta && listaAristas.some(e => e.source === v && e.target === u)) {
-            return alert('Error: Esta conexión j → i ya ha sido registrada.');
+        if (c_ij === 0 && c_ji === 0) {
+            return alert('Al menos una capacidad (C_ij o C_ji) debe ser mayor a 0.');
         }
 
-        // Estructuración del objeto arista en el set de datos
-        if (tieneIda) {
-            listaAristas.push({ source: u, target: v, capacity: capForward, flow: 0 });
-        }
-        if (tieneVuelta) {
-            listaAristas.push({ source: v, target: u, capacity: capReverse, flow: 0 });
+        const existente = arcos.find(a => (a.u === u && a.v === v) || (a.u === v && a.v === u));
+        if (existente) {
+            return alert('Ya existe una conexión entre estos dos nodos.');
         }
 
-        // Reseteo visual del formulario
-        inputs.source.value = '';
-        inputs.target.value = '';
-        inputs.capacityForward.value = '';
-        inputs.capacityReverse.value = '';
-        inputs.source.focus();
+        arcos.push({ u, v, C_ij: c_ij, C_ji: c_ji });
+        conjuntoNodos.add(u);
+        conjuntoNodos.add(v);
 
-        actualizarBitacoraLateral();
+        inputOrigen.value = '';
+        inputDestino.value = '';
+        inputCapIJ.value = '5';
+        inputCapJI.value = '0';
+        inputOrigen.focus();
+
+        actualizarListaArcos();
+        dibujarGrafo();
     });
 
-    // Actualiza la lista lateral de control
-    function actualizarBitacoraLateral() {
-        if (listaAristas.length === 0) {
-            inputs.liveList.innerHTML = `<p class="empty-notice">No hay conexiones en la red. Añade aristas arriba.</p>`;
+    function actualizarListaArcos() {
+        if (arcos.length === 0) {
+            liveList.innerHTML = '<p class="empty-notice">No hay conexiones en la red.</p>';
             return;
         }
 
-        inputs.liveList.innerHTML = '';
-        listaAristas.forEach((e, index) => {
-            const item = document.createElement('div');
-            item.className = 'edge-item-log';
+        liveList.innerHTML = '';
+        arcos.forEach((arco, idx) => {
+            const div = document.createElement('div');
+            div.className = 'edge-item-log';
+            div.innerHTML = `<span><strong>${arco.u} &leftrightarrow; ${arco.v}</strong> : (${arco.C_ij}, ${arco.C_ji})</span>`;
 
-            const text = document.createElement('div');
-            text.className = 'edge-text';
-            text.innerHTML = `• Arista: <strong>${e.source}</strong> ➔ <strong>${e.target}</strong> | Capacidad: <strong>${e.capacity}</strong>`;
+            const btnBorrar = document.createElement('button');
+            btnBorrar.className = 'btn-small-danger';
+            btnBorrar.textContent = '✕';
+            btnBorrar.onclick = () => {
+                arcos.splice(idx, 1);
+                recalcularNodos();
+                actualizarListaArcos();
+                dibujarGrafo();
+            };
 
-            const btnDelete = document.createElement('button');
-            btnDelete.type = 'button';
-            btnDelete.className = 'edge-delete-btn';
-            btnDelete.textContent = 'Borrar';
-            btnDelete.dataset.index = index;
-
-            item.appendChild(text);
-            item.appendChild(btnDelete);
-            inputs.liveList.appendChild(item);
+            div.appendChild(btnBorrar);
+            liveList.appendChild(div);
         });
     }
 
-    inputs.liveList.addEventListener('click', (event) => {
-        const target = event.target;
-        if (!(target instanceof HTMLElement) || !target.classList.contains('edge-delete-btn')) return;
+    function recalcularNodos() {
+        conjuntoNodos.clear();
+        arcos.forEach(a => {
+            conjuntoNodos.add(a.u);
+            conjuntoNodos.add(a.v);
+        });
+    }
 
-        const index = Number(target.dataset.index);
-        if (Number.isNaN(index)) return;
-
-        listaAristas.splice(index, 1);
-        actualizarBitacoraLateral();
-
-        if (listaAristas.length === 0) {
-            document.getElementById('network-svg-container').innerHTML = '';
-            inputs.resultsPanel.style.display = 'none';
-        }
+    btnReset.addEventListener('click', () => {
+        arcos = [];
+        conjuntoNodos.clear();
+        historialPasos = [];
+        indicePaso = 0;
+        controlsIter.style.display = 'none';
+        resultsPanel.style.display = 'none';
+        btnCalculate.style.display = 'block';
+        statusBox.innerHTML = 'Red limpiada. Ingrese nuevos datos.';
+        actualizarListaArcos();
+        dibujarGrafo();
     });
 
-    inputs.btnBorrar.addEventListener('click', () => {
-        listaAristas = [];
-        inputs.source.value = '';
-        inputs.target.value = '';
-        inputs.capacityForward.value = '';
-        inputs.capacityReverse.value = '';
-        inputs.netSource.value = '';
-        inputs.netSink.value = '';
-        inputs.resultsPanel.style.display = 'none';
-        document.getElementById('network-svg-container').innerHTML = '';
-        actualizarBitacoraLateral();
-    });
-
-    // =========================================================================
-    // ALGORITMO LÓGICO DE EDMONDS-KARP (FORD-FULKERSON POR BFS)
-    // =========================================================================
-    function calcularFlujoMaximoEK(aristasEntrada, fuenteS, sumideroT) {
-        let nodosSet = new Set();
-        aristasEntrada.forEach(e => { nodosSet.add(e.source); nodosSet.add(e.target); });
-        let listaNodos = Array.from(nodosSet);
-
-        if (!nodosSet.has(fuenteS) || !nodosSet.has(sumideroT)) {
-            throw new Error("La fuente (S) o el sumidero (T) no se encuentran mapeados en la red.");
+    // --- 2. ALGORITMO DE ETIQUETADO DE TAHA ---
+    function ejecutarAlgoritmoEtiquetado(fuente, sumidero) {
+        if (!conjuntoNodos.has(fuente) || !conjuntoNodos.has(sumidero)) {
+            throw new Error('Los nodos Fuente o Sumidero especificados no existen en la red.');
+        }
+        if (fuente === sumidero) {
+            throw new Error('El nodo Fuente y Sumidero deben ser diferentes.');
         }
 
-        // Matrices de capacidades (C) y flujos reales (F)
-        let C = {}, F = {};
-        listaNodos.forEach(u => {
-            C[u] = {}; F[u] = {};
-            listaNodos.forEach(v => { C[u][v] = 0; F[u][v] = 0; });
+        let pasos = [];
+        
+        let c = {};
+        conjuntoNodos.forEach(n1 => {
+            c[n1] = {};
+            conjuntoNodos.forEach(n2 => { c[n1][n2] = 0; });
         });
 
-        aristasEntrada.forEach(e => { C[e.source][e.target] = e.capacity; });
+        arcos.forEach(a => {
+            c[a.u][a.v] = a.C_ij;
+            c[a.v][a.u] = a.C_ji;
+        });
 
-        let flujoMaximo = 0;
+        let rutasDeAvance = [];
+        let flujoTotal = 0;
+        let numeroRuta = 1;
 
-        // Búsqueda en Anchura (BFS) para hallar el camino aumentante más corto
-        function bfs(parentMap) {
-            let visited = {};
-            listaNodos.forEach(n => visited[n] = false);
+        while (true) {
+            let etiquetas = {};
+            // Usamos '∞' como string para evitar errores al convertir a JSON
+            etiquetas[fuente] = { a: '∞', i: '-' };
+            let nodoActual = fuente;
 
-            let queue = [];
-            queue.push(fuenteS);
-            visited[fuenteS] = true;
+            pasos.push({
+                tipo: 'INICIO_RUTA',
+                etiquetas: JSON.parse(JSON.stringify(etiquetas)),
+                residuos: JSON.parse(JSON.stringify(c)),
+                nodoActual,
+                mensaje: `<strong>Paso 1:</strong> Nodo fuente <strong>${fuente}</strong> etiquetado con <strong>[&infin;, -]</strong>. Inicia búsqueda de Ruta ${numeroRuta}.`
+            });
 
-            while (queue.length > 0) {
-                let u = queue.shift();
+            let rutaEncontrada = false;
+            let nodosRemovidos = {};
 
-                for (let v of listaNodos) {
-                    // Condición residual estándar: si hay capacidad disponible y el nodo no se visitó
-                    if (!visited[v] && (C[u][v] - F[u][v] > 0)) {
-                        queue.push(v);
-                        parentMap[v] = u;
-                        visited[v] = true;
-                        if (v === sumideroT) return true;
+            while (true) {
+                let S_i = [];
+                conjuntoNodos.forEach(j => {
+                    if (!etiquetas[j] && c[nodoActual][j] > 0) {
+                        if (!nodosRemovidos[nodoActual] || !nodosRemovidos[nodoActual].has(j)) {
+                            S_i.push(j);
+                        }
+                    }
+                });
+
+                if (S_i.length > 0) {
+                    let k = S_i[0];
+                    let maxCap = c[nodoActual][k];
+
+                    S_i.forEach(j => {
+                        if (c[nodoActual][j] > maxCap) {
+                            maxCap = c[nodoActual][j];
+                            k = j;
+                        }
+                    });
+
+                    let capAnterior = etiquetas[nodoActual].a === '∞' ? Infinity : etiquetas[nodoActual].a;
+                    let a_k = Math.min(capAnterior, maxCap);
+                    etiquetas[k] = { a: a_k, i: nodoActual };
+
+                    pasos.push({
+                        tipo: 'ETIQUETADO',
+                        etiquetas: JSON.parse(JSON.stringify(etiquetas)),
+                        residuos: JSON.parse(JSON.stringify(c)),
+                        nodoActual: k,
+                        mensaje: `<strong>Paso 3:</strong> Desde nodo <strong>${nodoActual}</strong> se selecciona nodo <strong>${k}</strong> con residuo c_${nodoActual}${k} = ${maxCap}. Se asigna etiqueta <strong>[${a_k}, ${nodoActual}]</strong>.`
+                    });
+
+                    if (k === sumidero) {
+                        rutaEncontrada = true;
+                        break;
+                    }
+
+                    nodoActual = k;
+                } else {
+                    if (nodoActual === fuente) {
+                        pasos.push({
+                            tipo: 'FIN',
+                            etiquetas: JSON.parse(JSON.stringify(etiquetas)),
+                            residuos: JSON.parse(JSON.stringify(c)),
+                            nodoActual: fuente,
+                            mensaje: `<strong>Paso 6 (Solución):</strong> No hay más rutas de avance desde la fuente. El algoritmo ha finalizado.`
+                        });
+                        break;
+                    } else {
+                        let r = etiquetas[nodoActual].i;
+                        if (!nodosRemovidos[r]) nodosRemovidos[r] = new Set();
+                        nodosRemovidos[r].add(nodoActual);
+
+                        delete etiquetas[nodoActual];
+
+                        pasos.push({
+                            tipo: 'RETROCESO',
+                            etiquetas: JSON.parse(JSON.stringify(etiquetas)),
+                            residuos: JSON.parse(JSON.stringify(c)),
+                            nodoActual: r,
+                            mensaje: `<strong>Paso 4 (Retroceso):</strong> Vía muerta en nodo <strong>${nodoActual}</strong>. Se retrocede al nodo <strong>${r}</strong>.`
+                        });
+
+                        nodoActual = r;
                     }
                 }
             }
-            return false;
-        }
 
-        let parent = {};
+            if (!rutaEncontrada) break;
 
-        // Ciclo principal aumentativo del flujo
-        while (bfs(parent)) {
-            let flujoCamino = Infinity;
-            let curr = sumideroT;
+            let caminoInverso = [];
+            let curr = sumidero;
+            while (curr !== '-') {
+                caminoInverso.push(curr);
+                curr = etiquetas[curr].i;
+            }
+            let rutaAvance = caminoInverso.reverse();
+            let f_p = etiquetas[sumidero].a;
 
-            // Fase 1: Encontrar el cuello de botella de la ruta encontrada
-            while (curr !== fuenteS) {
-                let prev = parent[curr];
-                flujoCamino = Math.min(flujoCamino, C[prev][curr] - F[prev][curr]);
-                curr = prev;
+            flujoTotal += f_p;
+            rutasDeAvance.push({ ruta: rutaAvance, flujo: f_p });
+
+            for (let idx = 0; idx < rutaAvance.length - 1; idx++) {
+                let u_p = rutaAvance[idx];
+                let v_p = rutaAvance[idx + 1];
+
+                c[u_p][v_p] -= f_p;
+                c[v_p][u_p] += f_p;
             }
 
-            // Fase 2: Aplicar las variaciones a los flujos directos e inversos
-            curr = sumideroT;
-            while (curr !== fuenteS) {
-                let prev = parent[curr];
-                F[prev][curr] += flujoCamino; // Aumento del flujo real
-                F[curr][prev] -= flujoCamino; // Ajuste del canal residual inverso
-                curr = prev;
-            }
+            pasos.push({
+                tipo: 'ACTUALIZACION_RESIDUOS',
+                etiquetas: JSON.parse(JSON.stringify(etiquetas)),
+                residuos: JSON.parse(JSON.stringify(c)),
+                rutaDestacada: rutaAvance,
+                flujoRuta: f_p,
+                mensaje: `<strong>Paso 5 (Actualización):</strong> Ruta ${numeroRuta} encontrada: <strong>${rutaAvance.join(' &rarr; ')}</strong> con flujo f_${numeroRuta} = ${f_p}. Capacidades residuales actualizadas.`
+            });
 
-            flujoMaximo += flujoCamino;
-            parent = {};
+            numeroRuta++;
         }
 
-        // Consolidación final del mapeo de aristas procesadas
-        let resultadoAristas = aristasEntrada.map(e => ({
-            source: e.source,
-            target: e.target,
-            capacity: e.capacity,
-            flow: F[e.source][e.target]
-        }));
-
-        return { flujoMaximo, aristasProcesadas: resultadoAristas };
+        return { pasos, flujoTotal, rutasDeAvance, residuosFinales: c };
     }
 
-    // =========================================================================
-    // COMPONENTE DE RENDERIZADO GRÁFICO (D3.JS)
-    // =========================================================================
-    function dibujarRedFlujo(aristasCpm) {
-        const contenedor = document.getElementById('network-svg-container');
-        contenedor.innerHTML = '';
+    // --- 3. GENERAR TABLA TIPO TAHA DE FLUJOS EN ARCOS ---
+    function generarTablaFlujosFinales(residuosFinales) {
+        let html = `
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th>Arco (i, j)</th>
+                    <th>(C_ij, C_ji) - (c_ij, c_ji)</th>
+                    <th>Cantidad de Flujo</th>
+                    <th>Dirección</th>
+                </tr>
+            </thead>
+            <tbody>`;
 
-        const width = contenedor.clientWidth || 700;
-        const height = 450;
+        arcos.forEach(arco => {
+            const u = arco.u;
+            const v = arco.v;
+            const C_ij = arco.C_ij;
+            const C_ji = arco.C_ji;
 
-        const svg = d3.select('#network-svg-container').append('svg')
-            .attr('width', '100%').attr('height', height);
+            const c_ij = residuosFinales[u][v];
+            const c_ji = residuosFinales[v][u];
 
-        const defs = svg.append('defs');
-        
-        // Creación geométrica de los marcadores (puntas de flechas de flujo)
-        defs.append('marker').attr('id', 'arrow-std').attr('viewBox', '0 -5 10 10').attr('refX', 22).attr('refY', 0).attr('markerWidth', 7).attr('markerHeight', 7).attr('markerUnits', 'strokeWidth').attr('orient', 'auto').append('path').attr('d', 'M0,-5L10,0L0,5').attr('fill', '#bd5bf7');
-        defs.append('marker').attr('id', 'arrow-active').attr('viewBox', '0 -5 10 10').attr('refX', 22).attr('refY', 0).attr('markerWidth', 8).attr('markerHeight', 8).attr('markerUnits', 'strokeWidth').attr('orient', 'auto').append('path').attr('d', 'M0,-5L10,0L0,5').attr('fill', '#00f0ff');
+            const delta_ij = C_ij - c_ij;
+            const delta_ji = C_ji - c_ji;
 
-        let nodosSet = new Set();
-        aristasCpm.forEach(e => { nodosSet.add(e.source); nodosSet.add(e.target); });
-        
-        let nodes = Array.from(nodosSet).map(id => ({ id }));
-        let links = aristasCpm.map(e => ({
-            source: nodes.find(n => n.id === e.source),
-            target: nodes.find(n => n.id === e.target),
-            capacity: e.capacity,
-            flow: e.flow,
-            hasFlow: e.flow > 0
-        }));
+            let cantidad = 0;
+            let direccionHTML = '<span class="badge-none">&mdash;</span>';
 
-        // Simulación de fuerzas físicas elásticas integradas
-        const simulation = d3.forceSimulation(nodes)
-            .force('link', d3.forceLink(links).id(d => d.id).distance(140))
-            .force('charge', d3.forceManyBody().strength(-600))
-            .force('center', d3.forceCenter(width / 2, height / 2));
+            if (delta_ij > 0) {
+                cantidad = delta_ij;
+                direccionHTML = `<span class="badge-direction">${u} &rarr; ${v}</span>`;
+            } else if (delta_ji > 0) {
+                cantidad = delta_ji;
+                direccionHTML = `<span class="badge-direction">${v} &rarr; ${u}</span>`;
+            }
 
-        // Dibujo de las conexiones (aristas)
-        const link = svg.append('g').selectAll('line').data(links).enter().append('line')
-            .attr('stroke', d => d.hasFlow ? '#00f0ff' : '#bd5bf7')
-            .attr('stroke-width', d => d.hasFlow ? 3.5 : 1.5)
-            .attr('stroke-linecap', 'round')
-            .attr('marker-end', d => d.hasFlow ? 'url(#arrow-active)' : 'url(#arrow-std)')
-            .style('filter', d => d.hasFlow ? 'drop-shadow(0px 0px 4px rgba(0,240,255,0.5))' : 'none');
-
-        // Textos descriptivos de magnitudes sobre las aristas [Flujo/Capacidad]
-        const linkText = svg.append('g').selectAll('text').data(links).enter().append('text')
-            .attr('font-size', '10px').attr('font-weight', '700')
-            .attr('fill', d => d.flow === d.capacity && d.capacity > 0 ? '#ff4a4a' : (d.hasFlow ? '#00f0ff' : '#a19eb1'))
-            .text(d => `${d.flow}/${d.capacity}`);
-
-        // Agrupación visual e interactiva de los nodos
-        const node = svg.append('g').selectAll('g').data(nodes).enter().append('g')
-            .call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended));
-
-        node.append('circle').attr('r', 15).attr('fill', '#12111c').attr('stroke', '#bd5bf7').attr('stroke-width', 2);
-        node.append('text').attr('text-anchor', 'middle').attr('y', 4).attr('fill', '#ffffff').attr('font-weight', '700').attr('font-size', '11px').text(d => d.id);
-
-        // Rutina cíclica de refresco espacial cinemático
-        simulation.on('tick', () => {
-            link.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
-                .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
-
-            linkText.attr('x', d => (d.source.x + d.target.x) / 2)
-                    .attr('y', d => (d.source.y + d.target.y) / 2 - 6)
-                    .attr('text-anchor', 'middle');
-
-            node.attr('transform', d => `translate(${d.x}, ${d.y})`);
+            html += `
+                <tr>
+                    <td><strong>(${u}, ${v})</strong></td>
+                    <td>(${C_ij}, ${C_ji}) &minus; (${c_ij}, ${c_ji}) = (${delta_ij}, ${delta_ji})</td>
+                    <td><strong>${cantidad}</strong></td>
+                    <td>${direccionHTML}</td>
+                </tr>`;
         });
 
-        // Funciones nativas para capturar el arrastre interactivo (drag & drop)
-        function dragstarted(event, d) { if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; }
-        function dragged(event, d) { d.fx = event.x; d.fy = event.y; }
-        function dragended(event, d) { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }
+        html += `</tbody></table>`;
+        return html;
     }
 
-    // =========================================================================
-    // GESTIÓN DEL DISPARADOR DE CÁLCULO
-    // =========================================================================
-    inputs.btnCalcular.addEventListener('click', () => {
-        const s = inputs.netSource.value.trim().toUpperCase();
-        const t = inputs.netSink.value.trim().toUpperCase();
+    // --- 4. RENDERIZADO D3.JS DEL GRAFO ---
+    function dibujarGrafo(pasoActual = null) {
+        const container = document.getElementById('network-svg-container');
+        container.innerHTML = '';
+        if (conjuntoNodos.size === 0) return;
 
-        if (listaAristas.length === 0) return alert('Error: No existen aristas configuradas.');
-        if (!s || !t) return alert('Error: Ingrese tanto la Fuente (S) como el Sumidero (T).');
-        if (s === t) return alert('Error: La Fuente y el Sumidero no pueden ser iguales.');
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        const svg = d3.select('#network-svg-container').append('svg')
+            .attr('width', '100%')
+            .attr('height', '100%')
+            .attr('viewBox', `0 0 ${width} ${height}`);
+
+        const nodesData = Array.from(conjuntoNodos).map(id => ({ id }));
+        const linksData = arcos.map(a => ({ source: a.u, target: a.v, C_ij: a.C_ij, C_ji: a.C_ji }));
+
+        const simulation = d3.forceSimulation(nodesData)
+            .force('link', d3.forceLink(linksData).id(d => d.id).distance(220))
+            .force('charge', d3.forceManyBody().strength(-3000))
+            .force('center', d3.forceCenter(width / 2, height / 2))
+            .stop();
+
+        for (let i = 0; i < 300; ++i) simulation.tick();
+
+        const padding = 50;
+        nodesData.forEach(d => {
+            d.x = Math.max(padding, Math.min(width - padding, d.x));
+            d.y = Math.max(padding, Math.min(height - padding, d.y));
+        });
+
+        const lines = svg.selectAll('.link').data(linksData).enter().append('line')
+            .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x).attr('y2', d => d.target.y)
+            .attr('stroke', '#222035')
+            .attr('stroke-width', 3);
+
+        if (pasoActual && pasoActual.rutaDestacada) {
+            const ruta = pasoActual.rutaDestacada;
+            for (let i = 0; i < ruta.length - 1; i++) {
+                const u = ruta[i], v = ruta[i + 1];
+                lines.filter(d => (d.source.id === u && d.target.id === v) || (d.source.id === v && d.target.id === u))
+                    .attr('stroke', '#bd5bf7')
+                    .attr('stroke-width', 5)
+                    .style('filter', 'drop-shadow(0px 0px 8px rgba(189,91,247,0.8))');
+            }
+        }
+
+        svg.selectAll('.link-text').data(linksData).enter().append('text')
+            .attr('x', d => (d.source.x + d.target.x) / 2)
+            .attr('y', d => (d.source.y + d.target.y) / 2 - 8)
+            .attr('text-anchor', 'middle')
+            .attr('fill', '#00f0ff')
+            .attr('font-size', '12px')
+            .attr('font-weight', 'bold')
+            .text(d => {
+                if (pasoActual && pasoActual.residuos) {
+                    const c_ij = pasoActual.residuos[d.source.id][d.target.id];
+                    const c_ji = pasoActual.residuos[d.target.id][d.source.id];
+                    return `(${c_ij}, ${c_ji})`;
+                }
+                return `(${d.C_ij}, ${d.C_ji})`;
+            });
+
+        const nodes = svg.selectAll('.node').data(nodesData).enter().append('g')
+            .attr('transform', d => `translate(${d.x},${d.y})`);
+
+        nodes.append('circle')
+            .attr('r', 24)
+            .attr('fill', d => {
+                const fuente = inputFuente.value.trim().toUpperCase();
+                const sumidero = inputSumidero.value.trim().toUpperCase();
+                if (d.id === fuente || d.id === sumidero) return '#00f0ff';
+                if (pasoActual && pasoActual.etiquetas && pasoActual.etiquetas[d.id]) return '#bd5bf7';
+                return '#12111c';
+            })
+            .attr('stroke', d => (pasoActual && pasoActual.nodoActual === d.id) ? '#ffffff' : '#3f3d56')
+            .attr('stroke-width', d => (pasoActual && pasoActual.nodoActual === d.id) ? 4 : 2);
+
+        nodes.append('text')
+            .text(d => d.id)
+            .attr('text-anchor', 'middle')
+            .attr('dy', 5)
+            .attr('fill', d => {
+                const fuente = inputFuente.value.trim().toUpperCase();
+                const sumidero = inputSumidero.value.trim().toUpperCase();
+                return (d.id === fuente || d.id === sumidero) ? '#000000' : '#ffffff';
+            })
+            .attr('font-weight', 'bold');
+
+        // Renderizado limpio de la etiqueta [a_j, i]
+        nodes.append('text')
+            .attr('text-anchor', 'middle')
+            .attr('dy', -32)
+            .attr('fill', '#e2b3ff')
+            .attr('font-size', '13px')
+            .attr('font-weight', 'bold')
+            .text(d => {
+                if (pasoActual && pasoActual.etiquetas && pasoActual.etiquetas[d.id]) {
+                    const tag = pasoActual.etiquetas[d.id];
+                    const aVal = (tag.a === null || tag.a === Infinity || tag.a === '∞') ? '∞' : tag.a;
+                    return `[${aVal}, ${tag.i}]`;
+                }
+                return '';
+            });
+    }
+
+    // --- 5. CONTROL DE PASOS Y EJECUCIÓN ---
+    let ultimosResiduosFinales = null;
+
+    btnCalculate.addEventListener('click', () => {
+        const fuente = inputFuente.value.trim().toUpperCase();
+        const sumidero = inputSumidero.value.trim().toUpperCase();
 
         try {
-            const { flujoMaximo, aristasProcesadas } = calcularFlujoMaximoEK(listaAristas, s, t);
+            const resultado = ejecutarAlgoritmoEtiquetado(fuente, sumidero);
+            historialPasos = resultado.pasos;
+            indicePaso = 0;
+            ultimosResiduosFinales = resultado.residuosFinales;
 
-            // Inyección de métricas
-            inputs.flowOutput.textContent = flujoMaximo;
-            const capSalidaS = listaAristas.filter(e => e.source === s).reduce((acc, e) => acc + e.capacity, 0);
-            const eficiencia = capSalidaS > 0 ? Math.round((flujoMaximo / capSalidaS) * 100) : 0;
-            inputs.metricEfficiency.textContent = `${eficiencia}%`;
+            btnCalculate.style.display = 'none';
+            controlsIter.style.display = 'flex';
+            resultsPanel.style.display = 'none';
 
-            // Render de la topología final
-            dibujarRedFlujo(aristasProcesadas);
+            let textoRutas = resultado.rutasDeAvance.map((r, i) => 
+                `<p><strong>Ruta N_${i + 1}:</strong> ${r.ruta.join(' &rarr; ')} | Flujo f_${i + 1} = <strong>${r.flujo}</strong></p>`
+            ).join('');
 
-            inputs.resultsPanel.style.display = 'block';
-            inputs.resultsPanel.scrollIntoView({ behavior: 'smooth' });
+            flowRoutesOutput.innerHTML = textoRutas || '<p>No se encontraron rutas con flujo positivo.</p>';
+            metricMaxFlow.textContent = resultado.flujoTotal;
 
+            // Generar la tabla final tipo Taha
+            flowTableWrapper.innerHTML = generarTablaFlujosFinales(resultado.residuosFinales);
+
+            actualizarEstadoPaso();
         } catch (err) {
             alert(err.message);
-            console.error(err);
         }
     });
+
+    function actualizarEstadoPaso() {
+        const paso = historialPasos[indicePaso];
+        statusBox.innerHTML = paso.mensaje;
+        btnPrev.disabled = indicePaso === 0;
+
+        if (indicePaso === historialPasos.length - 1) {
+            btnNext.textContent = 'Ver Tabla y Resumen Final';
+        } else {
+            btnNext.textContent = 'Siguiente Paso →';
+        }
+
+        dibujarGrafo(paso);
+    }
+
+    btnNext.addEventListener('click', () => {
+        if (indicePaso < historialPasos.length - 1) {
+            indicePaso++;
+            actualizarEstadoPaso();
+        } else {
+            controlsIter.style.display = 'none';
+            btnCalculate.style.display = 'block';
+            btnCalculate.textContent = 'Reiniciar Algoritmo';
+            resultsPanel.style.display = 'flex';
+            resultsPanel.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+
+    btnPrev.addEventListener('click', () => {
+        if (indicePaso > 0) {
+            indicePaso--;
+            actualizarEstadoPaso();
+        }
+    });
+
+    dibujarGrafo();
 });
