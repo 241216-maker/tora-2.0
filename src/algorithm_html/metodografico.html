@@ -3,92 +3,384 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Método Gráfico - TORA 2.0</title>
+    <title>TORA Advanced - Método Gráfico</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Librería para el gráfico -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* Estilos base del Menú Principal */
+        body { 
+            background-color: #0b0914; 
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 50% 0%, #1f1642 0%, transparent 70%);
+            background-attachment: fixed;
+        }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0b0914; }
+        ::-webkit-scrollbar-thumb { background: #c084fc; border-radius: 4px; }
+        
+        .panel-tora {
+            background-color: #120e24;
+            border: 1px solid #2d2252;
+        }
+
+        .btn-neon {
+            background: linear-gradient(to right, #7e22ce, #c026d3);
+            box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-neon:hover {
+            background: linear-gradient(to right, #9333ea, #d946ef);
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.6);
+        }
+
+        .input-tora {
+            background-color: #0b0914;
+            border: 1px solid #2d2252;
+            color: white;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .input-tora:focus {
+            border-color: #d946ef;
+        }
+
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen">
+<body class="min-h-screen font-sans antialiased p-6 md:p-8"> 
 
-    <header class="bg-gradient-to-r from-purple-900 to-indigo-800 text-white px-8 py-6 shadow-md mb-8">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-bold tracking-tight">Método Gráfico</h1>
-                <p class="text-purple-200 text-sm mt-1">Algoritmos de Optimización Lineal: Solución por Vértices</p>
-            </div>
-            <span class="bg-purple-800/50 border border-purple-500/30 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider text-purple-100">
-                Modelos Lineales
-            </span>
-        </div>
-    </header>
+    <!-- Barra Superior -->
+    <nav class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <a href="index.html" class="text-cyan-400 hover:text-cyan-300 flex items-center gap-2 transition-colors font-semibold">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Volver al Menú Principal
+        </a>
+        
+        <h1 class="text-2xl font-black text-white flex items-center gap-2">
+            <svg class="w-6 h-6 text-fuchsia-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+            Módulo: <span class="text-fuchsia-400 font-light">Método Gráfico (2 Var)</span>
+        </h1>
+    </nav>
 
-    <main class="max-w-7xl mx-auto px-4 pb-12">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- Contenedor Principal -->
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- COLUMNA IZQUIERDA: Controles -->
+        <section class="lg:col-span-4 flex flex-col gap-6">
             
-            <section class="lg:col-span-5 flex flex-col gap-6">
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                    <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        <span class="flex items-center justify-center w-6 h-6 bg-purple-100 text-purple-700 rounded-full text-xs font-bold">1</span>
-                        Función Objetivo
-                    </h2>
-                    <div class="flex items-center gap-3 bg-slate-50 p-4 rounded-lg border border-slate-100">
-                        <select id="tipo-optimizacion" class="border border-slate-300 p-2 rounded-lg bg-white text-sm outline-none">
-                            <option value="max">Maximizar (Z)</option>
-                            <option value="min">Minimizar (Z)</option>
-                        </select>
-                        <span class="text-slate-500 font-semibold">=</span>
-                        <input type="number" id="x1-obj" placeholder="X1" class="border border-slate-300 p-2 rounded-lg w-20 text-center text-sm outline-none">
-                        <span class="text-xs font-bold text-slate-400">X1 +</span>
-                        <input type="number" id="x2-obj" placeholder="X2" class="border border-slate-300 p-2 rounded-lg w-20 text-center text-sm outline-none">
-                        <span class="text-xs font-bold text-slate-400">X2</span>
-                    </div>
+            <!-- Función Objetivo -->
+            <div class="panel-tora rounded-2xl p-6 shadow-lg">
+                <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-cyan-500 pl-2">1. Función Objetivo</h2>
+                
+                <div class="flex items-center gap-3 mb-4">
+                    <select id="tipo-opt" class="input-tora rounded p-2 font-bold text-cyan-400 w-1/3">
+                        <option value="max">MAX Z</option>
+                        <option value="min">MIN Z</option>
+                    </select>
+                    <span class="font-bold text-lg">=</span>
+                    <input type="number" id="z-x1" value="3" class="input-tora rounded p-2 w-1/4 text-center font-bold"> <span class="text-fuchsia-400 font-bold">X₁</span>
+                    <span class="font-bold text-lg">+</span>
+                    <input type="number" id="z-x2" value="2" class="input-tora rounded p-2 w-1/4 text-center font-bold"> <span class="text-cyan-400 font-bold">X₂</span>
                 </div>
+            </div>
 
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                    <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        <span class="flex items-center justify-center w-6 h-6 bg-purple-100 text-purple-700 rounded-full text-xs font-bold">2</span>
-                        Restricciones
-                    </h2>
-                    <div id="contenedor-restricciones" class="space-y-3 min-h-[100px] mb-4">
-                        <p class="text-slate-400 text-sm italic text-center py-4">Aún no hay restricciones agregadas.</p>
-                    </div>
-                    <div class="flex gap-3 pt-4 border-t border-slate-100">
-                        <button id="btn-agregar-restriccion" class="flex-1 border border-purple-300 text-purple-700 hover:bg-purple-50 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm">
-                            + Añadir Restricción
-                        </button>
-                        <button id="btn-resolver" class="flex-1 bg-purple-700 hover:bg-purple-800 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm">
-                            Resolver Modelo
-                        </button>
-                    </div>
+            <!-- Restricciones -->
+            <div class="panel-tora rounded-2xl p-6 shadow-lg">
+                <div class="flex justify-between items-center mb-4 border-l-4 border-fuchsia-500 pl-2">
+                    <h2 class="text-lg font-bold text-white">2. Restricciones</h2>
+                    <button onclick="agregarRestriccion()" class="text-xs bg-[#1f163b] hover:bg-fuchsia-600 text-white px-2 py-1 rounded transition-colors">+ Añadir</button>
                 </div>
-            </section>
-
-            <section class="lg:col-span-7 bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col items-center h-fit">
-                <h2 class="text-xl font-bold text-slate-900 mb-4 w-full border-b border-slate-100 pb-3">
-                    Representación Gráfica del Plano
-                </h2>
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-inner">
-                    <canvas id="plano-cartesiano" width="400" height="400" class="bg-white rounded-lg border border-slate-200"></canvas>
+                
+                <div id="restricciones-container" class="space-y-3 mb-4 max-h-[250px] overflow-y-auto pr-2">
+                    <!-- Restricciones inyectadas por JS -->
                 </div>
+                <p class="text-xs text-slate-500 mb-4">*X₁, X₂ ≥ 0 (No negatividad incluida)</p>
 
-                <div id="resultado-final" class="mt-6 w-full bg-emerald-50 border border-emerald-200 rounded-xl p-5 flex items-center justify-between">
-                    <div>
-                        <h4 class="font-bold text-emerald-900 flex items-center gap-2 text-base">
-                            <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            Solución Óptima Encontrada:
-                        </h4>
-                        <p id="texto-solucion" class="text-sm font-medium text-emerald-800 mt-1 leading-relaxed">
-                            Introduce los parámetros del modelo lineal y presiona "Resolver Modelo".
-                        </p>
-                    </div>
-                    <div class="bg-emerald-600 text-white px-5 py-3 rounded-xl font-bold text-center shadow-sm min-w-[100px]">
-                        <div class="text-[10px] uppercase tracking-wider text-emerald-200">Valor Z</div>
-                        <div id="valor-z-badge" class="text-xl">-</div>
-                    </div>
+                <button onclick="resolverGrafico()" class="btn-neon w-full font-semibold py-2.5 rounded-lg flex justify-center items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Calcular y Graficar
+                </button>
+            </div>
+
+            <!-- Panel de Resultados -->
+            <div id="panel-resultados" class="panel-tora rounded-2xl p-6 shadow-lg hidden fade-in">
+                <h2 class="text-lg font-bold text-white mb-2 border-l-4 border-green-500 pl-2">Solución Óptima</h2>
+                <div id="texto-resultado" class="text-slate-300 text-sm mb-3"></div>
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl font-black text-slate-400">Z = </span>
+                    <div class="text-4xl font-black text-green-400" id="valor-z">0</div>
                 </div>
-            </section>
+            </div>
 
-        </div>
-    </main>
+        </section>
 
-    <script type="module" src="../core/linear/metodoGrafico.js"></script>
+        <!-- COLUMNA DERECHA: Gráfico -->
+        <section class="lg:col-span-8 flex flex-col gap-6">
+            
+            <div class="panel-tora rounded-2xl p-6 shadow-lg h-[600px] flex flex-col">
+                <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-fuchsia-500 pl-2">Plano Cartesiano - Región Factible</h2>
+                
+                <div class="flex-grow relative w-full h-full bg-[#0b0914] rounded-lg border border-[#2d2252] p-4">
+                    <canvas id="graficoCanvas"></canvas>
+                </div>
+            </div>
+
+        </section>
+    </div>
+
+    <script>
+        let contadorRestricciones = 0;
+        let chartInstance = null;
+
+        // Añadir una restricción inicial al cargar
+        window.onload = () => {
+            agregarRestriccion(2, 1, '<=', 18);
+            agregarRestriccion(2, 3, '<=', 42);
+            agregarRestriccion(3, 1, '<=', 24);
+        };
+
+        function agregarRestriccion(x1 = 1, x2 = 1, op = '<=', rhs = 10) {
+            contadorRestricciones++;
+            const id = contadorRestricciones;
+            const container = document.getElementById('restricciones-container');
+            
+            const div = document.createElement('div');
+            div.id = `rest-${id}`;
+            div.className = "flex items-center gap-2 fade-in bg-[#0b0914] p-2 rounded border border-[#2d2252]";
+            
+            div.innerHTML = `
+                <input type="number" id="r${id}-x1" value="${x1}" class="input-tora rounded p-1 w-1/4 text-center text-sm"> <span class="text-fuchsia-400 text-xs font-bold">X₁</span>
+                <span class="font-bold">+</span>
+                <input type="number" id="r${id}-x2" value="${x2}" class="input-tora rounded p-1 w-1/4 text-center text-sm"> <span class="text-cyan-400 text-xs font-bold">X₂</span>
+                <select id="r${id}-op" class="input-tora rounded p-1 text-sm w-1/4 font-bold text-center">
+                    <option value="<=" ${op === '<=' ? 'selected' : ''}>≤</option>
+                    <option value=">=" ${op === '>=' ? 'selected' : ''}>≥</option>
+                </select>
+                <input type="number" id="r${id}-rhs" value="${rhs}" class="input-tora rounded p-1 w-1/4 text-center text-sm">
+                <button onclick="eliminarRestriccion(${id})" class="text-red-500 hover:text-red-400 ml-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+
+        function eliminarRestriccion(id) {
+            document.getElementById(`rest-${id}`).remove();
+        }
+
+        function resolverGrafico() {
+            // Leer FO
+            const tipo = document.getElementById('tipo-opt').value;
+            const c1 = parseFloat(document.getElementById('z-x1').value) || 0;
+            const c2 = parseFloat(document.getElementById('z-x2').value) || 0;
+
+            // Leer Restricciones
+            const restricciones = [];
+            const nodos = document.getElementById('restricciones-container').children;
+            
+            let maxEscala = 10; // Para el gráfico
+
+            for (let nodo of nodos) {
+                const id = nodo.id.split('-')[1];
+                const a1 = parseFloat(document.getElementById(`r${id}-x1`).value) || 0;
+                const a2 = parseFloat(document.getElementById(`r${id}-x2`).value) || 0;
+                const op = document.getElementById(`r${id}-op`).value;
+                const b = parseFloat(document.getElementById(`r${id}-rhs`).value) || 0;
+                
+                restricciones.push({ a1, a2, op, b });
+
+                // Calcular escala aproximada para el gráfico
+                if(a1 > 0) maxEscala = Math.max(maxEscala, b/a1);
+                if(a2 > 0) maxEscala = Math.max(maxEscala, b/a2);
+            }
+
+            // Añadir no negatividad
+            restricciones.push({ a1: 1, a2: 0, op: '>=', b: 0 });
+            restricciones.push({ a1: 0, a2: 1, op: '>=', b: 0 });
+
+            // Encontrar intersecciones (vértices candidatos)
+            let puntosCandidatos = [];
+            for (let i = 0; i < restricciones.length; i++) {
+                for (let j = i + 1; j < restricciones.length; j++) {
+                    const r1 = restricciones[i];
+                    const r2 = restricciones[j];
+                    
+                    // Resolver sistema de ecuaciones 2x2 (Determinante)
+                    const det = (r1.a1 * r2.a2) - (r2.a1 * r1.a2);
+                    if (det !== 0) {
+                        let x1 = ((r1.b * r2.a2) - (r2.b * r1.a2)) / det;
+                        let x2 = ((r1.a1 * r2.b) - (r2.a1 * r1.b)) / det;
+                        
+                        // Redondear para evitar problemas de flotantes
+                        x1 = Math.round(x1 * 1000) / 1000;
+                        x2 = Math.round(x2 * 1000) / 1000;
+                        
+                        puntosCandidatos.push({ x: x1, y: x2 });
+                    }
+                }
+            }
+
+            // Filtrar puntos factibles
+            let puntosFactibles = puntosCandidatos.filter(p => {
+                for (let r of restricciones) {
+                    let val = (r.a1 * p.x) + (r.a2 * p.y);
+                    val = Math.round(val * 1000) / 1000; // Tolerancia
+                    if (r.op === '<=' && val > r.b + 0.001) return false;
+                    if (r.op === '>=' && val < r.b - 0.001) return false;
+                }
+                return true;
+            });
+
+            // Eliminar duplicados
+            puntosFactibles = puntosFactibles.filter((p, index, self) =>
+                index === self.findIndex((t) => (t.x === p.x && t.y === p.y))
+            );
+
+            if (puntosFactibles.length === 0) {
+                alert("El problema no tiene región factible.");
+                return;
+            }
+
+            // Evaluar Z en puntos factibles
+            let optimo = puntosFactibles[0];
+            let zOptimo = (c1 * optimo.x) + (c2 * optimo.y);
+
+            puntosFactibles.forEach(p => {
+                let z = (c1 * p.x) + (c2 * p.y);
+                p.z = z;
+                
+                if (tipo === 'max' && z > zOptimo) {
+                    zOptimo = z;
+                    optimo = p;
+                } else if (tipo === 'min' && z < zOptimo) {
+                    zOptimo = z;
+                    optimo = p;
+                }
+            });
+
+            // Mostrar Resultados
+            document.getElementById('valor-z').innerText = zOptimo.toFixed(2);
+            document.getElementById('texto-resultado').innerHTML = `
+                El valor óptimo se encuentra en el vértice:<br>
+                <span class="text-fuchsia-400 font-bold">X₁ = ${optimo.x.toFixed(2)}</span> , 
+                <span class="text-cyan-400 font-bold">X₂ = ${optimo.y.toFixed(2)}</span>
+            `;
+            document.getElementById('panel-resultados').classList.remove('hidden');
+
+            // --- GRAFICAR CON CHART.JS ---
+            graficar(restricciones.slice(0, -2), puntosFactibles, optimo, maxEscala);
+        }
+
+        function graficar(restriccionesReales, factibles, optimo, maxEscala) {
+            const ctx = document.getElementById('graficoCanvas').getContext('2d');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const datasets = [];
+            
+            // 1. Añadir el área/polígono de puntos factibles (Scatter points)
+            datasets.push({
+                label: 'Vértices Factibles',
+                data: factibles,
+                backgroundColor: '#22d3ee', // Cyan
+                borderColor: '#22d3ee',
+                pointRadius: 6,
+                type: 'scatter',
+                order: 1
+            });
+
+            // 2. Añadir el punto Óptimo (Destacado)
+            datasets.push({
+                label: 'Punto Óptimo',
+                data: [{x: optimo.x, y: optimo.y}],
+                backgroundColor: '#d946ef', // Fuchsia
+                borderColor: '#fff',
+                borderWidth: 2,
+                pointRadius: 10,
+                type: 'scatter',
+                order: 0 // Dibujar encima
+            });
+
+            // 3. Dibujar las líneas de las restricciones
+            let limite = Math.ceil(maxEscala * 1.2);
+            const colores = ['#94a3b8', '#818cf8', '#34d399', '#fbbf24', '#f87171'];
+
+            restriccionesReales.forEach((r, i) => {
+                let puntosLinea = [];
+                // Si la línea es vertical (a2 = 0)
+                if (r.a2 === 0) {
+                    puntosLinea = [{x: r.b/r.a1, y: 0}, {x: r.b/r.a1, y: limite}];
+                } 
+                // Si la línea es horizontal (a1 = 0)
+                else if (r.a1 === 0) {
+                    puntosLinea = [{x: 0, y: r.b/r.a2}, {x: limite, y: r.b/r.a2}];
+                } 
+                // Línea normal
+                else {
+                    puntosLinea = [
+                        {x: 0, y: r.b/r.a2}, // Intersección Y
+                        {x: r.b/r.a1, y: 0}  // Intersección X
+                    ];
+                }
+
+                datasets.push({
+                    label: `Rest. ${i+1}`,
+                    data: puntosLinea,
+                    borderColor: colores[i % colores.length],
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    type: 'line',
+                    fill: false,
+                    pointRadius: 0
+                });
+            });
+
+            chartInstance = new Chart(ctx, {
+                data: { datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            min: 0,
+                            max: limite,
+                            grid: { color: '#1f2937' },
+                            ticks: { color: '#94a3b8' },
+                            title: { display: true, text: 'X₁', color: '#e879f9', font: {weight: 'bold'} }
+                        },
+                        y: {
+                            min: 0,
+                            max: limite,
+                            grid: { color: '#1f2937' },
+                            ticks: { color: '#94a3b8' },
+                            title: { display: true, text: 'X₂', color: '#22d3ee', font: {weight: 'bold'} }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#cbd5e1' } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `(${context.parsed.x.toFixed(2)}, ${context.parsed.y.toFixed(2)})`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
 </body>
 </html>

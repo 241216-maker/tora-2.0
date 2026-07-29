@@ -67,7 +67,19 @@ function generarMatrizAsignacion() {
   
   // 1. Busca en el HTML la cajita donde el usuario escribe el tamaño de la matriz (ej. 3, 4, 5).
   // Lo convierte a un número entero (parseInt). Si el usuario lo deja vacío o hay un error, usa el número 3 por defecto.
-  const n = parseInt(document.getElementById('input-dimension').value) || 3;
+const inputElement = document.getElementById('input-dimension');
+    let n = parseInt(inputElement.value) || 3;
+
+    // --- NUEVA VALIDACIÓN DE LÍMITES AQUÍ ---
+    if (n > 10) {
+        alert("¡Uy! El número es muy grande. Usa un número del 2 al 10.");
+        inputElement.value = 10;
+        n = 10;
+    } else if (n < 2) {
+        alert("Por favor, ingresa un número válido (mínimo 2).");
+        inputElement.value = 2;
+        n = 2;
+    }
   
   // 2. Busca en tu página web el elemento (un div vacío) que tiene el ID 'contenedor-matriz-hungaro'. 
   // Aquí es donde vamos a inyectar la tabla que estamos a punto de crear.

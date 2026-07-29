@@ -1,22 +1,310 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TORA Advanced - Modelo de Transporte</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-50 min-h-screen font-sans antialiased text-slate-800">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TORA Advanced - Método de Transporte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos base unificados */
+        body { 
+            background-color: #0b0914; 
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 50% 0%, #1f1642 0%, transparent 70%);
+            background-attachment: fixed;
+        }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0b0914; }
+        ::-webkit-scrollbar-thumb { background: #c084fc; border-radius: 4px; }
+        
+        .panel-tora {
+            background-color: #120e24;
+            border: 1px solid #2d2252;
+        }
 
-  <div id="main-app-content" class="p-6 max-w-7xl mx-auto">
+        .btn-neon {
+            background: linear-gradient(to right, #7e22ce, #c026d3);
+            box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-neon:hover {
+            background: linear-gradient(to right, #9333ea, #d946ef);
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.6);
+        }
+
+        .input-tora {
+            background-color: #0b0914;
+            border: 1px solid #2d2252;
+            color: white;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .input-tora:focus {
+            border-color: #d946ef;
+        }
+
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased p-6 md:p-8"> 
+
+    <!-- Barra Superior -->
+    <nav class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <a href="index.html" class="text-cyan-400 hover:text-cyan-300 flex items-center gap-2 transition-colors font-semibold">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Volver al Menú Principal
+        </a>
+        
+        <h1 class="text-2xl font-black text-white flex items-center gap-2">
+            <svg class="w-6 h-6 text-fuchsia-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+            Módulo: <span class="text-fuchsia-400 font-light">Transporte General</span>
+        </h1>
+    </nav>
+
+    <!-- Contenedor Principal -->
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- COLUMNA IZQUIERDA: Controles -->
+        <section class="lg:col-span-4 flex flex-col gap-6">
+            
+            <div class="panel-tora rounded-2xl p-6 shadow-lg">
+                <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-cyan-500 pl-2">1. Configurar Red</h2>
+                
+                <div class="grid grid-cols-2 gap-4 mb-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Orígenes (Filas)</label>
+                        <input type="number" id="num-filas" value="3" min="2" max="10" class="input-tora w-full rounded p-2 text-center font-bold text-lg">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Destinos (Cols)</label>
+                        <input type="number" id="num-cols" value="4" min="2" max="10" class="input-tora w-full rounded p-2 text-center font-bold text-lg">
+                    </div>
+                </div>
+                
+                <button onclick="generarTabla()" class="btn-neon w-full font-semibold py-2.5 rounded-lg flex justify-center items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6z"></path></svg>
+                    Generar Matriz
+                </button>
+            </div>
+
+            <div class="panel-tora rounded-2xl p-6 shadow-lg">
+                <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-fuchsia-500 pl-2">2. Ejecutar Solución</h2>
+                <button onclick="resolverTransporte()" class="w-full bg-transparent border-2 border-cyan-500 text-cyan-400 hover:bg-cyan-500 hover:text-[#0b0914] font-bold py-2.5 rounded-lg transition-colors">
+                    Calcular (Esquina Noroeste)
+                </button>
+            </div>
+
+            <div id="panel-resultados" class="panel-tora rounded-2xl p-6 shadow-lg hidden fade-in">
+                <h2 class="text-lg font-bold text-white mb-2 border-l-4 border-green-500 pl-2">Costo Total de Envío (Z)</h2>
+                <p class="text-slate-400 text-sm mb-2" id="estado-balance"></p>
+                <div class="flex items-center gap-2">
+                    <span class="text-4xl font-black text-cyan-400">$</span>
+                    <div class="text-4xl font-black text-cyan-400" id="costo-total">0</div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- COLUMNA DERECHA: Matriz -->
+        <section class="lg:col-span-8 flex flex-col gap-6">
+            
+            <div class="panel-tora rounded-2xl p-6 shadow-lg overflow-hidden">
+                <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-fuchsia-500 pl-2">Matriz de Costos, Oferta y Demanda</h2>
+                
+                <div class="overflow-x-auto pb-4">
+                    <div id="matriz-container" class="w-full text-center text-slate-500 py-8">
+                        Haz clic en "Generar Matriz" para empezar.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bitácora de Envíos -->
+            <div id="panel-rutas" class="panel-tora rounded-2xl p-6 shadow-lg hidden fade-in">
+                <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-cyan-500 pl-2">Rutas de Envío Asignadas</h2>
+                <div id="rutas-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2">
+                    <!-- Inyectado por JS -->
+                </div>
+            </div>
+
+        </section>
     </div>
 
-  <script type="module">
-    import { cargarModuloTransporte } from '../core/transport/transporte.js';
-    // Ejecución inmediata al cargar el archivo
-    document.addEventListener('DOMContentLoaded', () => {
-      cargarModuloTransporte();
-    });
-  </script>
+    <!-- Script de Lógica -->
+    <script>
+        let filas = 0;
+        let cols = 0;
+
+        function generarTabla() {
+            filas = parseInt(document.getElementById('num-filas').value);
+            cols = parseInt(document.getElementById('num-cols').value);
+            const container = document.getElementById('matriz-container');
+            
+            let html = '<table class="w-full border-collapse border border-[#2d2252] text-sm min-w-max">';
+            
+            // Encabezados
+            html += '<thead><tr><th class="border border-[#2d2252] p-3 bg-[#1f163b] text-slate-300">O \\ D</th>';
+            for (let j = 0; j < cols; j++) {
+                html += `<th class="border border-[#2d2252] p-3 bg-[#1f163b] text-cyan-400 font-bold">Destino ${j+1}</th>`;
+            }
+            html += `<th class="border border-[#2d2252] p-3 bg-[#3b1638] text-fuchsia-400 font-bold">Oferta</th></tr></thead><tbody>`;
+
+            // Filas de Origen
+            for (let i = 0; i < filas; i++) {
+                html += `<tr><th class="border border-[#2d2252] p-3 bg-[#1f163b] text-cyan-400 font-bold whitespace-nowrap">Origen ${i+1}</th>`;
+                
+                // Celdas de costo
+                for (let j = 0; j < cols; j++) {
+                    html += `<td class="border border-[#2d2252] p-1 relative bg-[#0b0914]">
+                                <div class="absolute top-1 right-1">
+                                    <input type="number" id="c-${i}-${j}" placeholder="Costo" class="w-12 text-xs bg-transparent text-right text-slate-400 outline-none border-b border-[#2d2252] focus:border-cyan-400">
+                                </div>
+                                <div class="w-full h-full pt-6 pb-2 px-2 flex items-center justify-center">
+                                    <span id="asig-${i}-${j}" class="text-fuchsia-400 font-black text-xl hidden fade-in">0</span>
+                                </div>
+                             </td>`;
+                }
+                
+                // Celda de Oferta
+                html += `<td class="border border-[#2d2252] p-2 bg-[#120e24]">
+                            <input type="number" id="of-${i}" placeholder="0" class="w-full bg-transparent text-center text-fuchsia-400 font-bold outline-none text-lg">
+                         </td></tr>`;
+            }
+
+            // Fila de Demanda
+            html += `<tr><th class="border border-[#2d2252] p-3 bg-[#3b1638] text-fuchsia-400 font-bold whitespace-nowrap">Demanda</th>`;
+            for (let j = 0; j < cols; j++) {
+                html += `<td class="border border-[#2d2252] p-2 bg-[#120e24]">
+                            <input type="number" id="dem-${j}" placeholder="0" class="w-full bg-transparent text-center text-fuchsia-400 font-bold outline-none text-lg">
+                         </td>`;
+            }
+            html += `<td class="border border-[#2d2252] p-2 bg-[#1f163b]"></td></tr>`; // Esquina vacía
+
+            html += '</tbody></table>';
+
+            container.innerHTML = html;
+            document.getElementById('panel-resultados').classList.add('hidden');
+            document.getElementById('panel-rutas').classList.add('hidden');
+        }
+
+        function resolverTransporte() {
+            if (filas === 0 || cols === 0) return alert('Genera la tabla primero.');
+
+            let matrizCostos = [];
+            let oferta = [];
+            let demanda = [];
+
+            // Leer Costos y limpiar asignaciones anteriores
+            for (let i = 0; i < filas; i++) {
+                let filaCostos = [];
+                for (let j = 0; j < cols; j++) {
+                    let c = parseFloat(document.getElementById(`c-${i}-${j}`).value) || 0;
+                    filaCostos.push(c);
+                    
+                    let span = document.getElementById(`asig-${i}-${j}`);
+                    span.innerText = "";
+                    span.classList.add('hidden');
+                }
+                matrizCostos.push(filaCostos);
+            }
+
+            // Leer Oferta
+            let sumaOferta = 0;
+            for (let i = 0; i < filas; i++) {
+                let of = parseFloat(document.getElementById(`of-${i}`).value) || 0;
+                oferta.push(of);
+                sumaOferta += of;
+            }
+
+            // Leer Demanda
+            let sumaDemanda = 0;
+            for (let j = 0; j < cols; j++) {
+                let dem = parseFloat(document.getElementById(`dem-${j}`).value) || 0;
+                demanda.push(dem);
+                sumaDemanda += dem;
+            }
+
+            // Validar Balanceo
+            let estadoBalance = document.getElementById('estado-balance');
+            if (sumaOferta !== sumaDemanda) {
+                estadoBalance.innerHTML = `<span class="text-red-400">⚠️ Problema no balanceado (Oferta: ${sumaOferta} | Demanda: ${sumaDemanda}). Los resultados pueden ser parciales.</span>`;
+            } else {
+                estadoBalance.innerHTML = `<span class="text-green-400">✓ Problema balanceado perfectamente (${sumaOferta}).</span>`;
+            }
+
+            // ALGORITMO: Esquina Noroeste
+            let asignaciones = [];
+            let costoTotal = 0;
+            
+            let i = 0; // Índice de fila (Origen)
+            let j = 0; // Índice de columna (Destino)
+            
+            // Copias para no modificar los inputs originales
+            let ofertaRestante = [...oferta];
+            let demandaRestante = [...demanda];
+
+            while (i < filas && j < cols) {
+                // Cantidad a asignar es el mínimo entre lo que queda de oferta y demanda
+                let cantidad = Math.min(ofertaRestante[i], demandaRestante[j]);
+                
+                if (cantidad > 0) {
+                    asignaciones.push({ origen: i, destino: j, cantidad: cantidad, costoUnitario: matrizCostos[i][j] });
+                    costoTotal += (cantidad * matrizCostos[i][j]);
+                    
+                    // Mostrar en la tabla
+                    let span = document.getElementById(`asig-${i}-${j}`);
+                    span.innerText = cantidad;
+                    span.classList.remove('hidden');
+                    // Cambiar color del fondo de la celda ligeramente para resaltar
+                    span.parentElement.parentElement.classList.add('bg-fuchsia-900/20');
+                }
+
+                ofertaRestante[i] -= cantidad;
+                demandaRestante[j] -= cantidad;
+
+                // Mover a la derecha o abajo según qué se agotó
+                if (ofertaRestante[i] === 0 && demandaRestante[j] === 0) {
+                    i++;
+                    j++;
+                } else if (ofertaRestante[i] === 0) {
+                    i++;
+                } else {
+                    j++;
+                }
+            }
+
+            // Renderizar Rutas
+            let rutasHtml = '';
+            asignaciones.forEach(asig => {
+                let costoRuta = asig.cantidad * asig.costoUnitario;
+                rutasHtml += `
+                <div class="bg-[#0b0914] border border-[#2d2252] p-3 rounded-lg flex flex-col justify-between">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-cyan-400 font-bold text-sm">Origen ${asig.origen + 1}</span> 
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        <span class="text-cyan-400 font-bold text-sm">Destino ${asig.destino + 1}</span>
+                    </div>
+                    <div class="text-slate-300 text-xs">
+                        Envío: <span class="text-fuchsia-400 font-bold text-base">${asig.cantidad}</span> unds x $${asig.costoUnitario}
+                        <div class="text-green-400 font-bold mt-1">= $${costoRuta}</div>
+                    </div>
+                </div>`;
+            });
+
+            // Actualizar UI
+            document.getElementById('rutas-container').innerHTML = rutasHtml;
+            document.getElementById('costo-total').innerText = costoTotal;
+            document.getElementById('panel-resultados').classList.remove('hidden');
+            document.getElementById('panel-rutas').classList.remove('hidden');
+        }
+
+        // Generar una tabla por defecto al cargar
+        window.onload = generarTabla;
+    </script>
 </body>
 </html>
