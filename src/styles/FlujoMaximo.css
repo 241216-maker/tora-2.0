@@ -1,0 +1,364 @@
+:root {
+    /* =========================================
+       PALETA DE COLORES BASE (VARIABLES)
+       ========================================= */
+    --bg-dark-deep: #09090e;         /* Negro muy profundo (Fondo general de la app) */
+    --bg-card-surface: #12111c;      /* Gris casi negro con tinte morado (Fondo de las tarjetas/paneles) */
+    
+    --text-pure-white: #ffffff;      /* Blanco puro (Texto principal destacado) */
+    --text-muted-gray: #8b8a9f;      /* Gris apagado/azulado (Texto secundario, subtítulos y leyendas) */
+    
+    --neon-purple: #bd5bf7;          /* Púrpura neón vibrante (Color de acento para rutas, botones y etiquetas) */
+    --neon-purple-glow: rgba(189, 91, 247, 0.4); /* Púrpura neón con 40% de transparencia (Efectos de sombra/brillo) */
+    
+    --mist-blue: #00f0ff;            /* Azul cian neón/eléctrico (Color para títulos principales y botones primarios) */
+    --mist-blue-glow: rgba(0, 240, 255, 0.5);    /* Azul cian con 50% de transparencia (Efectos de resplandor) */
+    
+    --border-color: #222035;         /* Gris morado muy oscuro (Líneas divisorias y bordes de cajas) */
+    
+    --danger-red: #ff4d4d;           /* Rojo claro vibrante (Botones de borrar o acciones de peligro) */
+}
+
+* {
+    box-sizing: border-box;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+    background-color: var(--bg-dark-deep); /* Usa el negro profundo de fondo */
+    color: var(--text-pure-white);         /* Usa blanco puro para el texto por defecto */
+    margin: 0;
+    padding: 25px;
+}
+
+.app-header {
+    margin-bottom: 25px;
+    border-bottom: 1px solid var(--border-color); /* Línea inferior gris oscura */
+    padding-bottom: 15px;
+}
+
+.main-title {
+    margin: 0;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--neon-purple); /* Texto en cian neón */
+    text-shadow: 0 0 15px var( --neon-purple-glow); /* Resplandor cian alrededor del texto */
+}
+
+.sub-title {
+    margin: 6px 0 0 0;
+    color: var(--text-muted-gray); /* Texto en gris apagado para no opacar el título */
+    font-size: 0.95rem;
+}
+
+.dashboard-container {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 25px;
+}
+
+.network-card, .visualization-card {
+    background-color: var(--bg-card-surface); /* Fondo gris oscuro para diferenciarlo del fondo negro general */
+    border: 1px solid var(--border-color);    /* Borde sutil gris/morado */
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Sombra negra semitransparente para dar profundidad */
+}
+
+.card-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title {
+    margin: 0 0 15px 0;
+    font-size: 1.15rem;
+    border-left: 4px solid var(--mist-blue); /* Franja cian a la izquierda del título */
+    padding-left: 10px;
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid var(--border-color); /* Línea divisoria gris oscura */
+    margin: 18px 0;
+}
+
+.form-row {
+    display: flex;
+    gap: 10px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+    width: 100%;
+}
+
+.form-group.half { width: 50%; }
+
+.form-group label, .form-label-bold {
+    font-size: 0.82rem;
+    margin-bottom: 6px;
+    color: var(--text-muted-gray); /* Etiquetas de input en gris apagado */
+    font-weight: 600;
+}
+
+/* Campos de entrada (inputs) */
+input[type="text"], input[type="number"] {
+    background-color: var(--bg-dark-deep); /* Fondo negro profundo por dentro del input */
+    border: 1px solid var(--border-color); /* Borde gris oscuro */
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text-pure-white); /* El texto que escribes es blanco puro */
+    font-size: 0.9rem;
+}
+
+/* Al hacer clic (enfocar) un input */
+input:focus {
+    outline: none;
+    border-color: var(--mist-blue); /* El borde cambia a cian neón */
+    box-shadow: 0 0 8px var(--mist-blue-glow); /* Y aparece un brillo cian */
+}
+
+/* Estilos generales de Botones */
+.btn {
+    width: 100%;
+    padding: 11px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Botón transparente con borde púrpura */
+.btn-purple {
+    background-color: transparent;
+    border: 2px solid var(--neon-purple); /* Borde púrpura neón */
+    color: var(--text-pure-white);        /* Texto blanco */
+}
+
+.btn-purple:hover {
+    background-color: var(--neon-purple); /* Al pasar el mouse, se rellena de púrpura neón */
+    box-shadow: 0 0 15px var(--neon-purple-glow); /* Y brilla */
+}
+
+/* Botón relleno de cian neón */
+.btn-neon-blue {
+    background-color: var(--mist-blue); /* Relleno cian */
+    color: #000000;                     /* Texto negro puro para alto contraste */
+}
+
+.btn-neon-blue:hover {
+    background-color: #00d4e0; /* Un cian un poco más oscuro al pasar el mouse */
+    box-shadow: 0 0 15px var(--mist-blue-glow); /* Brillo cian */
+}
+
+/* Botón secundario */
+.btn-secondary {
+    background-color: #222035; /* Fondo gris morado oscuro */
+    color: var(--text-pure-white); /* Texto blanco */
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover:not(:disabled) { background-color: #32304d; /* Se aclara un poco al pasar el mouse */ }
+.btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Botón de peligro (Borrar/Limpiar) */
+.btn-danger-outline {
+    background: transparent;
+    border: 1px solid var(--mist-blue); /* Borde rojo */
+    color: var(--neon-purple);            /* Texto rojo */
+}
+
+.btn-danger-outline:hover { 
+    background-color: rgba(126, 237, 245, 0.15); /* Fondo rojo muy transparente al pasar el mouse */ 
+}
+
+/* Botoncito rojo (ej: la "X" para borrar un arco) */
+.btn-small-danger {
+    padding: 5px 10px;
+    font-size: 0.78rem;
+    background: transparent;
+    border: 1px solid var( --mist-blue); /* Borde rojo */
+    color: var(--neon-purple);            /* Texto rojo */
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-small-danger:hover { 
+    background-color: rgba(229, 125, 243, 0.2); /* Fondo rojo transparente */ 
+}
+
+/* Caja de lista de conexiones */
+.live-list-box {
+    background-color: var(--bg-dark-deep); /* Negro profundo */
+    border: 1px dashed var(--border-color); /* Borde punteado gris oscuro */
+    padding: 10px;
+    max-height: 160px;
+    overflow-y: auto;
+    border-radius: 8px;
+}
+
+.edge-item-log {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color); /* Línea divisoria gris */
+    padding: 6px 0;
+    font-size: 0.85rem;
+}
+
+.empty-notice {
+    color: var(--text-muted-gray); /* Texto gris apagado cuando está vacío */
+    text-align: center;
+    font-size: 0.85rem;
+    margin: 10px 0;
+}
+
+/* Contenedor del lienzo del grafo */
+.canvas-wrapper {
+    background-color: var(--bg-dark-deep); /* Fondo negro profundo para el mapa */
+    border: 1px solid var(--border-color); /* Borde gris oscuro */
+    height: 480px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#network-svg-container { width: 100%; height: 100%; }
+
+/* Caja de mensajes (estado de iteración) */
+.status-box {
+    background-color: rgba(189, 91, 247, 0.08); /* Fondo con un toque ultra suave de púrpura (8% opacidad) */
+    border: 1px solid var(--neon-purple);       /* Borde púrpura neón */
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    color: #e2b3ff;                             /* Texto en morado pastel muy claro */
+    line-height: 1.5;
+}
+
+/* Leyenda del gráfico */
+.graph-legend {
+    display: flex;
+    gap: 15px;
+    font-size: 0.82rem;
+    color: var(--text-muted-gray); /* Textos de leyenda en gris apagado */
+}
+
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-node { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+
+.node-source { background-color: var(--mist-blue); }    /* Círculo de leyenda: Cian */
+.node-labeled { background-color: var(--neon-purple); } /* Círculo de leyenda: Púrpura */
+
+.legend-line { width: 20px; height: 3px; display: inline-block; }
+.line-path { background-color: var(--neon-purple); }    /* Línea de leyenda: Púrpura */
+
+/* PANEL DE RESULTADOS Y TABLA TAHA */
+.results-layout-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.metrics-header-box {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 20px;
+    align-items: start;
+}
+
+.mst-output-box {
+    background-color: var(--bg-dark-deep); /* Negro profundo */
+    border: 1px solid var(--border-color); /* Borde gris oscuro */
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+/* Caja de métricas (ej. Flujo Máximo Total) */
+.metric-box {
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid rgba(0, 240, 255, 0.3); /* Borde cian con 30% de transparencia */
+    background: rgba(0, 240, 255, 0.05);      /* Fondo cian muy suave (5% de opacidad) */
+}
+
+.metric-label { font-size: 0.85rem; color: var(--text-muted-gray); display: block; } /* Etiqueta gris */
+.metric-value {
+    display: block;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--mist-blue); /* Número enorme en cian neón */
+    margin-top: 5px;
+    text-shadow: 0 0 12px var(--mist-blue-glow); /* Brillo cian en el número */
+}
+.metric-unit { font-size: 0.8rem; color: var(--text-muted-gray); }
+
+/* ESTILOS DE LA TABLA FINAL */
+.table-container {
+    background-color: var(--bg-dark-deep); /* Fondo de tabla negro profundo */
+    border: 1px solid var(--border-color); /* Borde gris oscuro */
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.table-title {
+    margin: 0 0 5px 0;
+    font-size: 1.1rem;
+    color: var(--mist-blue); /* Título de tabla en cian neón */
+}
+
+.table-subtitle {
+    margin: 0 0 15px 0;
+    font-size: 0.85rem;
+    color: var(--text-muted-gray); /* Subtítulo en gris apagado */
+}
+
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    text-align: center;
+}
+
+.results-table th {
+    background-color: var(--bg-card-surface); /* Cabeceras con gris oscuro/morado */
+    color: var(--text-pure-white);            /* Texto de cabecera blanco puro */
+    padding: 12px;
+    border-bottom: 2px solid var(--border-color); /* Línea gruesa divisoria */
+    font-weight: 600;
+}
+
+.results-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color); /* Línea delgada separadora de filas */
+    color: var(--text-pure-white);                /* Contenido blanco puro */
+}
+
+.results-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.02); /* Iluminación muy sutil (2% blanco) al pasar el mouse por la fila */
+}
+
+/* Etiqueta de dirección en la tabla (ej. A -> B) */
+.badge-direction {
+    background-color: rgba(0, 240, 255, 0.1); /* Fondo cian clarito (10% opacidad) */
+    color: var(--mist-blue);                  /* Texto en cian neón */
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+/* Etiqueta "Ninguna" en la tabla */
+.badge-none {
+    color: var(--text-muted-gray); /* Texto gris apagado */
+}
+
+.mt-10 { margin-top: 10px; }
+.mt-20 { margin-top: 20px; }

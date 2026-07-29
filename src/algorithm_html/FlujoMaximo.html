@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelo de Flujo Máximo - Algoritmo de Etiquetado</title>
+   <link rel="stylesheet" href="../styles/FlujoMaximo.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+
+    <!-- CABECERA -->
+    <header class="app-header">
+        <h1 class="main-title">Modelo de Flujo Máximo</h1>
+        <p class="sub-title">Algoritmo de Etiquetado de Taha &bull; Rutas de Avance y Capacidades Residuales (c_ij, c_ji)</p>
+    </header>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="dashboard-container">
+        
+        <!-- PANEL IZQUIERDO: CONTROLES E INGRESO DE DATOS -->
+        <aside class="network-card">
+            
+            <h2 class="card-title">1. Configuración de Red</h2>
+            <div class="form-row">
+                <div class="form-group half">
+                    <label for="source-node">Fuente (S):</label>
+                    <input type="text" id="source-node" placeholder="Ej: A" value="A">
+                </div>
+                <div class="form-group half">
+                    <label for="sink-node">Sumidero (T):</label>
+                    <input type="text" id="sink-node" placeholder="Ej: F" value="F">
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <h2 class="card-title">2. Añadir Tubería / Arco</h2>
+            <div class="form-row">
+                <div class="form-group half">
+                    <label for="edge-source">Origen (i):</label>
+                    <input type="text" id="edge-source" placeholder="Ej: A">
+                </div>
+                <div class="form-group half">
+                    <label for="edge-target">Destino (j):</label>
+                    <input type="text" id="edge-target" placeholder="Ej: B">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group half">
+                    <label for="cap-ij">Capacidad C_ij (i &rarr; j):</label>
+                    <input type="number" id="cap-ij" placeholder="0" min="0" value="5">
+                </div>
+                <div class="form-group half">
+                    <label for="cap-ji">Capacidad C_ji (j &rarr; i):</label>
+                    <input type="number" id="cap-ji" placeholder="0" min="0" value="0">
+                </div>
+            </div>
+
+            <button id="btn-add-edge" class="btn btn-purple">+ Añadir Arco</button>
+
+            <div class="mt-20">
+                <label class="form-label-bold">Arcos Registrados (C_ij, C_ji):</label>
+                <div id="edges-live-list" class="live-list-box">
+                    <p class="empty-notice">No hay conexiones en la red.</p>
+                </div>
+            </div>
+
+            <div class="mt-20">
+                <button id="btn-calculate" class="btn btn-neon-blue">Iniciar Algoritmo de Etiquetado</button>
+                <button id="btn-reset" class="btn btn-danger-outline mt-10">Limpiar Todo</button>
+            </div>
+
+        </aside>
+
+        <!-- PANEL DERECHO: VISUALIZACIÓN Y RESULTADOS -->
+        <main class="visualization-card">
+            
+            <div class="card-header-flex">
+                <h2 class="card-title">Red de Oleoductos Residual (c_ij, c_ji)</h2>
+                <div class="graph-legend">
+                    <span class="legend-item"><span class="legend-node node-source"></span> Fuente / Sumidero</span>
+                    <span class="legend-item"><span class="legend-node node-labeled"></span> Etiquetado [a_j, i]</span>
+                    <span class="legend-item"><span class="legend-line line-path"></span> Ruta de Avance</span>
+                </div>
+            </div>
+
+            <!-- Lienzo Gráfico D3.js -->
+            <div class="canvas-wrapper">
+                <div id="network-svg-container"></div>
+            </div>
+
+            <!-- Caja de Estado / Explicación del Paso -->
+            <div id="iteration-status" class="status-box mt-20">
+                Presione <strong>"Iniciar Algoritmo de Etiquetado"</strong> para comenzar la optimización de flujo paso a paso.
+            </div>
+
+            <!-- Controles de Navegación -->
+            <div id="iteration-controls" class="form-row mt-20" style="display: none;">
+                <button id="btn-prev-step" class="btn btn-secondary half" disabled>&leftarrow; Paso Anterior</button>
+                <button id="btn-next-step" class="btn btn-neon-blue half">Siguiente Paso &rightarrow;</button>
+            </div>
+
+            <!-- PANEL FINAL DE SOLUCIÓN Y TABLA DE FLUJOS -->
+            <section id="results-panel" class="results-layout-vertical mt-20" style="display: none;">
+                
+                <div class="metrics-header-box">
+                    <div>
+                        <h3>Resumen de Rutas de Avance (f_p)</h3>
+                        <div id="flow-routes-output" class="mst-output-box"></div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="metric-label">Flujo Máximo Total (F)</span>
+                        <span id="metric-max-flow" class="metric-value">0</span>
+                        <span class="metric-unit">unidades</span>
+                    </div>
+                </div>
+
+                <!-- TABLA TIPO TAHA -->
+                <div class="table-container mt-20">
+                    <h3 class="table-title">Distribución del Flujo en los Arcos Individuales</h3>
+                    <p class="table-subtitle">Calculado restando los residuos finales (c_ij, c_ji) de las capacidades de diseño (C_ij, C_ji):</p>
+                    <div id="flow-table-wrapper"></div>
+                </div>
+
+            </section>
+
+        </main>
+    </div>
+
+    <script src="../core/networks/FlujoMaximo.js"></script>
+</body>
+</html>

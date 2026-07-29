@@ -1,0 +1,335 @@
+/* ==========================================================
+   VARIABLES GLOBALES (PALETA DE COLORES)
+   ========================================================== */
+:root {
+    /* Fondos */
+    --bg-dark-deep: #09090e;         /* Color de fondo principal (casi negro) */
+    --bg-card-surface: #12111c;      /* Fondo para las tarjetas/paneles (un poco más claro) */
+    
+    /* Textos */
+    --text-pure-white: #ffffff;      /* Texto principal en blanco puro */
+    --text-muted-gray: #8b8a9f;      /* Texto secundario/desactivado en grisáceo */
+    
+    /* Colores de acento y neón */
+    --neon-purple: #bd5bf7;          /* Morado brillante (usado para nodos activos) */
+    --neon-purple-glow: rgba(189, 91, 247, 0.4); /* Sombra/resplandor del morado */
+    --mist-blue: #00f0ff;            /* Azul celeste/cyan brillante (usado para el árbol mínimo) */
+    --mist-blue-glow: rgba(0, 240, 255, 0.5);    /* Sombra/resplandor del azul */
+    
+    /* Bordes */
+    --border-color: #222035;         /* Color para dividir secciones y bordes sutiles */
+}
+
+/* ==========================================================
+   ESTILOS BASE (RESET)
+   ========================================================== */
+/* Aplica box-sizing a todos los elementos para que el padding y el border no sumen ancho extra */
+* { 
+    box-sizing: border-box; 
+    font-family: 'Inter', sans-serif; /* Fuente tipográfica general */
+}
+
+/* Estilos generales del cuerpo de la página */
+body { 
+    background-color: var(--bg-dark-deep); /* Fondo general de la app */
+    color: var(--text-pure-white);         /* Texto por defecto en blanco */
+    margin: 0;                             /* Quita márgenes por defecto del navegador */
+    padding: 25px;                         /* Espacio interno alrededor de toda la app */
+}
+
+/* ==========================================================
+   CABECERA (HEADER Y TÍTULOS)
+   ========================================================== */
+/* Contenedor principal superior */
+.app-header { 
+    margin-bottom: 25px; 
+    border-bottom: 1px solid var(--border-color); /* Línea divisoria inferior */
+    padding-bottom: 15px; 
+}
+
+/* Título principal grande ("Árbol de Mínima Expansión") */
+.main-title { 
+    margin: 0; 
+    font-size: 2.2rem; 
+    font-weight: 800; 
+    color: var(--neon-purple); 
+    text-shadow: 0 0 15px var(--neon-purple-glow); /* Efecto de luz neón */
+}
+
+/* Subtítulo debajo del título principal */
+.sub-title { 
+    margin: 6px 0 0 0; 
+    color: var(--text-muted-gray); 
+    font-size: 1rem; 
+}
+
+/* ==========================================================
+   DISEÑO PRINCIPAL (LAYOUT)
+   ========================================================== */
+/* Sistema de rejilla para dividir la pantalla en panel izquierdo y derecho */
+.dashboard-container { 
+    display: grid; 
+    grid-template-columns: 350px 1fr; /* Columna izq de 350px, columna der ocupa el resto (1fr) */
+    gap: 25px; /* Espacio entre las columnas */
+}
+
+/* Estilos base para los contenedores tipo "tarjeta" (formularios, lienzo, resultados) */
+.network-card, .visualization-card { 
+    background-color: var(--bg-card-surface); 
+    border: 1px solid var(--border-color); 
+    border-radius: 12px; /* Bordes redondeados */
+    padding: 20px; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5); /* Sombra oscura para dar profundidad */
+}
+
+/* Para alinear elementos a los extremos opuestos dentro del título de la tarjeta */
+.card-header-flex { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
+
+/* Estilo del título dentro de cada tarjeta (ej. "1. Añadir Conexión") */
+.card-title { 
+    margin: 0 0 15px 0; 
+    font-size: 1.2rem; 
+    border-left: 4px solid var(--mist-blue); /* Pequeña línea decorativa a la izquierda */
+    padding-left: 10px; 
+}
+
+/* ==========================================================
+   FORMULARIOS Y CAJAS DE TEXTO
+   ========================================================== */
+/* Fila para poner los inputs uno al lado del otro */
+.form-row { 
+    display: flex; 
+    gap: 10px; 
+}
+
+/* Agrupación de la etiqueta (label) y el input */
+.form-group { 
+    display: flex; 
+    flex-direction: column; /* Apila el label sobre el input */
+    margin-bottom: 15px; 
+    width: 100%; 
+}
+
+/* Clase para que un input ocupe solo la mitad del espacio */
+.form-group.half { 
+    width: 50%; 
+}
+
+/* Estilo de los textos descriptivos arriba de los inputs */
+.form-group label { 
+    font-size: 0.85rem; 
+    margin-bottom: 6px; 
+    color: var(--text-muted-gray); 
+    font-weight: 600; 
+}
+
+/* Cajas de entrada de texto y números */
+input[type="text"], input[type="number"] { 
+    background-color: var(--bg-dark-deep); 
+    border: 1px solid var(--border-color); 
+    border-radius: 8px; 
+    padding: 12px; 
+    color: var(--text-pure-white); 
+}
+
+/* Efecto cuando el usuario hace clic/escribe dentro del input */
+input:focus { 
+    outline: none; /* Quita el borde azul por defecto del navegador */
+    border-color: var(--mist-blue); 
+    box-shadow: 0 0 8px var(--mist-blue-glow); /* Brillo celeste */
+}
+
+/* ==========================================================
+   BOTONES
+   ========================================================== */
+/* Estilo general compartido por todos los botones grandes */
+.btn { 
+    width: 100%; 
+    padding: 12px; 
+    border: none; 
+    border-radius: 8px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    transition: 0.2s; /* Animación suave al pasar el mouse */
+}
+
+/* Botón transparente con borde morado (ej. "Añadir Conexión") */
+.btn-purple { 
+    background-color: transparent; 
+    border: 2px solid var(--neon-purple); 
+    color: var(--text-pure-white); 
+}
+
+/* Efecto hover (pasar el mouse) para el botón morado */
+.btn-purple:hover { 
+    background-color: var(--neon-purple); 
+    box-shadow: 0 0 15px var(--neon-purple-glow); 
+}
+
+/* Botón principal lleno de color celeste (ej. "Iniciar Algoritmo") */
+.btn-neon-blue { 
+    background-color: var(--mist-blue); 
+    color: black; /* Texto negro para que resalte sobre el fondo claro */
+}
+
+/* Efecto hover (pasar el mouse) para el botón celeste */
+.btn-neon-blue:hover { 
+    background-color: #00d4e0; 
+    box-shadow: 0 0 15px var(--mist-blue-glow); 
+}
+
+/* Botón pequeño para borrar elementos de la lista */
+.btn-small-danger { 
+    padding: 8px 12px; 
+    font-size: 0.85rem; 
+    background: transparent; 
+    border: 1px solid #d956f3; /* Rojo */
+    color: #4de4ff; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    transition: 0.2s; 
+}
+
+/* Efecto hover para el botón de borrar */
+.btn-small-danger:hover { 
+    background-color: rgba(255, 77, 77, 0.1); 
+    box-shadow: 0 0 10px rgba(255, 77, 77, 0.4); 
+}
+
+/* ==========================================================
+   LISTA DE CONEXIONES EN VIVO
+   ========================================================== */
+/* Contenedor con scroll para ver las conexiones creadas */
+.live-list-box { 
+    background-color: var(--bg-dark-deep); 
+    border: 1px dashed var(--border-color); 
+    padding: 10px; 
+    max-height: 180px; 
+    overflow-y: auto; /* Activa la barra de desplazamiento si hay muchas */
+    font-size: 0.85rem; 
+}
+
+/* Cada fila individual de una conexión en la lista */
+.edge-item-log { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    border-bottom: 1px solid var(--border-color); 
+    padding: 8px 0; 
+}
+
+/* Texto que aparece cuando no hay conexiones */
+.empty-notice { 
+    color: var(--text-muted-gray); 
+    text-align: center; 
+}
+
+/* ==========================================================
+   CONTENEDOR DEL GRAFO (LIENZO D3.JS)
+   ========================================================== */
+/* El cuadro oscuro que enmarca la red interactiva */
+.canvas-wrapper { 
+    background-color: var(--bg-dark-deep); 
+    border: 1px solid var(--border-color); 
+    height: 500px; 
+    border-radius: 8px; 
+    overflow: hidden; 
+}
+
+/* El contenedor interno para el SVG (Gráficos vectoriales) */
+#network-svg-container { 
+    width: 100%; 
+    height: 100%; 
+}
+
+/* ==========================================================
+   MENSAJES DE ESTADO Y LEYENDA (COLORES DE LA RED)
+   ========================================================== */
+/* Caja morada que explica el paso actual del algoritmo */
+.status-box { 
+    background-color: rgba(189, 91, 247, 0.1); 
+    border: 1px solid var(--neon-purple); 
+    padding: 12px; 
+    border-radius: 8px; 
+    font-size: 0.9rem; 
+    color: #e0a8ff; 
+    line-height: 1.5; 
+}
+
+/* Contenedor horizontal para mostrar el significado de cada color */
+.graph-legend { 
+    display: flex; 
+    gap: 15px; 
+    flex-wrap: wrap; 
+    font-size: 0.85rem; 
+    color: var(--text-muted-gray); 
+}
+
+/* Ítem individual dentro de la leyenda */
+.legend-item { display: flex; align-items: center; gap: 6px; }
+
+/* Círculos de colores para la leyenda de los Nodos */
+.legend-node { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+.node-ck { background-color: var(--bg-card-surface); border: 2px solid var(--mist-blue); box-shadow: 0 0 5px var(--mist-blue); } /* Nodo conectado */
+.node-ckbar { background-color: var(--bg-card-surface); border: 2px solid #3f3d56; } /* Nodo NO conectado */
+
+/* Líneas de colores para la leyenda de las Aristas (conexiones) */
+.legend-line { width: 25px; height: 3px; display: inline-block; }
+.line-active { background-color: transparent; border-top: 3px dashed var(--neon-purple); } /* Arista evaluando (morada) */
+.line-mst { background-color: var(--mist-blue); box-shadow: 0 0 5px var(--mist-blue); } /* Arista del árbol final (celeste) */
+
+/* ==========================================================
+   PANEL DE RESULTADOS (SOLUCIÓN FINAL)
+   ========================================================== */
+/* Distribución lado a lado de la lista de nodos y el costo total */
+.results-layout { 
+    display: flex; 
+    gap: 20px; 
+}
+
+/* Bloque izquierdo que ocupa todo el espacio disponible */
+.results-text-block { flex: 1; }
+
+/* Caja de texto donde se imprime la ruta final (lista de conexiones) */
+.mst-output-box { 
+    background-color: var(--bg-dark-deep); 
+    border: 1px solid var(--border-color); 
+    padding: 15px; 
+    border-radius: 8px; 
+    line-height: 1.6; 
+    color: var(--text-pure-white); 
+}
+
+/* Barra lateral derecha estática (para el costo total) */
+.metrics-sidebar { width: 200px; }
+
+/* Tarjeta con un pequeño resplandor celeste para destacar el costo final */
+.metric-box { 
+    padding: 15px; 
+    border-radius: 8px; 
+    text-align: center; 
+    border: 1px solid rgba(0,240,255,0.2); 
+    background: rgba(0,240,255,0.05); 
+}
+
+/* Número grande del costo total */
+.metric-value { 
+    display: block; 
+    font-size: 1.8rem; 
+    font-weight: bold; 
+    color: var(--mist-blue); 
+    margin-top: 5px; 
+    text-shadow: 0 0 10px var(--mist-blue-glow); /* Efecto Neón */
+}
+
+/* ==========================================================
+   CLASES UTILITARIAS (HELPERS)
+   ========================================================== */
+/* Clase para agregar un margen superior de 20px rápidamente a cualquier elemento */
+.mt-20 { 
+    margin-top: 20px; 
+}

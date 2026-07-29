@@ -4,307 +4,162 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="TORA Advanced - Plataforma de Investigación de Operaciones">
-    <title>TORA Advanced | Consola de Algoritmos</title>
+    <title>TORA Advanced | Dashboard General</title>
     
-    <!-- Tipografía Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Iconos Phosphor -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Renderizado Matemático KaTeX (CORREGIDO: CSS en <link> y JS en <script>) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" 
-            onload="renderMathInElement(document.body);"></script>
-
-    <!-- Ruta al CSS principal -->
     <link rel="stylesheet" href="./src/index.css">
-    <link rel="icon" type="image/png" href="./src/favicon.png">
 </head>
-
 <body>
 
-    <!-- CONTENEDOR CENTRALIZADO -->
-    <div class="central-hub-wrapper">
+    <div class="app-layout">
         
-        <!-- ENCABEZADO SUPERIOR -->
-        <header class="hub-header">
-            <div class="logo-container-hub">
-                <i class="ph-fill ph-chart-polar logo-icon"></i>
-                <h1 class="logo-text">TORA<span class="logo-highlight">Advanced</span></h1>
+        <aside class="sidebar" id="app-sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <i class="ph-fill ph-chart-polar logo-icon"></i>
+                    <h2 class="logo-text">TORA<span class="logo-highlight">Advanced</span></h2>
+                </div>
             </div>
-            <p class="hub-subtitle">Plataforma integral de optimización matemática e Investigación de Operaciones.</p>
-        </header>
+            
+            <nav class="sidebar-nav">
+                <span class="nav-label">MÓDULOS PRINCIPALES</span>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active" id="nav-dashboard">
+                            <i class="ph ph-squares-four"></i>
+                            <span>Panel General</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" id="nav-linear">
+                            <i class="ph ph-chart-line-up"></i>
+                            <span>Programación Lineal</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" id="nav-transport">
+                            <i class="ph ph-truck"></i>
+                            <span>Modelo de Transporte</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="./src/algorithm_html/CPM.html" class="nav-link" id="nav-networks">
+                            <i class="ph ph-graph"></i>
+                            <span>CPM - Ruta Crítica</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="version-info">
+                    <i class="ph ph-info"></i>
+                    <span>v2.0 - 4to Semestre</span>
+                </div>
+            </div>
+        </aside>
 
-        <!-- CONTENIDO PRINCIPAL -->
-        <main class="hub-content">
-
-            <!-- CATEGORÍA 1: PROGRAMACIÓN LINEAL -->
-            <section class="category-block">
-                <div class="category-header">
-                    <i class="ph ph-package category-icon cyan"></i>
-                    <h2>Programación Lineal</h2>
+        <main class="main-content">
+            
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="icon-btn menu-toggle" id="btn-menu-toggle" aria-label="Abrir menú">
+                        <i class="ph ph-list"></i>
+                    </button>
+                    <h1 class="page-title" id="app-page-title">Panel de Control General</h1>
                 </div>
                 
-                <div class="cards-interactive-container">
+                <div class="topbar-right">
+                    <div class="status-badge">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Sistema Óptimo</span>
+                    </div>
                     
-                    <!-- Método Gráfico -->
-                    <div class="action-card active-card animate-fade-in">
-                        <div class="card-header">
-                            <div class="card-icon linear-icon">
-                                <i class="ph ph-chart-line-up"></i>
-                            </div>
-                            <span class="badge-status online">Disponible</span>
-                        </div>
-                        <div class="card-body">
-                            <h3>Método Gráfico</h3>
-                            <p>Resolución visual para problemas de optimización lineal de 2 variables de decisión con región factible interactiva.</p>
-                        </div>
-                        <div class="card-footer">
-                            <a href="./src/algorithm_html/metodografico.html" class="btn-card primary-glow">
-                                <i class="ph ph-play"></i> Lanzar Módulo
-                            </a>
-                        </div>
+                    <button class="icon-btn" aria-label="Notificaciones">
+                        <i class="ph ph-bell"></i>
+                    </button>
+                    
+                    <div class="user-profile">
+                        <img src="https://ui-avatars.com/api/?name=Admin+IO&background=5C2E7E&color=fff&bold=true" alt="Usuario" class="avatar">
                     </div>
-
-                    <!-- Método Simplex Primal -->
-                    <div class="action-card active-card animate-fade-in delay-1">
-                        <div class="card-header">
-                            <div class="card-icon linear-icon">
-                                <i class="ph ph-matrix"></i>
-                            </div>
-                            <span class="badge-status online">Disponible</span>
-                        </div>
-                        <div class="card-body">
-                            <h3>Método Simplex Primal</h3>
-                            <p>Optimización algorítmica para maximizar o minimizar mediante matrices algebraicas dinámicas y pivoteo Gauss-Jordan.</p>
-                        </div>
-                        <div class="card-footer">
-                            <a href="./src/algorithm_html/simplex.html" class="btn-card primary-glow">
-                                <i class="ph ph-play"></i> Lanzar Módulo
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Método de la Gran M -->
-                    <div class="action-card active-card animate-fade-in delay-2">
-                        <div class="card-header">
-                            <div class="card-icon linear-icon">
-                                <i class="ph ph-text-subscript"></i>
-                            </div>
-                            <span class="badge-status online">Disponible</span>
-                        </div>
-                        <div class="card-body">
-                            <h3>Método de la Gran M</h3>
-                            <p>Resolución de problemas con restricciones mayor o igual (&ge;) o igualdad (=) penalizando variables artificiales con constante $M$.</p>
-                        </div>
-                        <div class="card-footer">
-                            <a href="./src/algorithm_html/metodogranM.html" class="btn-card primary-glow">
-                                <i class="ph ph-play"></i> Lanzar Módulo
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Método de Dos Fases -->
-                    <div class="action-card active-card animate-fade-in delay-2">
-                        <div class="card-header">
-                            <div class="card-icon linear-icon">
-                                <i class="ph ph-arrows-split"></i>
-                            </div>
-                            <span class="badge-status online">Disponible</span>
-                        </div>
-                        <div class="card-body">
-                            <h3>Método de Dos Fases</h3>
-                            <p>Elimina errores de redondeo dividiendo el cálculo en Fase I (Factibilidad) y Fase II (Optimización del modelo original).</p>
-                        </div>
-                        <div class="card-footer">
-                            <a href="./src/algorithm_html/dosfases.html" class="btn-card primary-glow">
-                                <i class="ph ph-play"></i> Lanzar Módulo
-                            </a>
-                        </div>
-                    </div>
-
                 </div>
-            </section>
+            </header>
 
-            <!-- CATEGORÍA 2: TRANSPORTE Y ASIGNACIÓN -->
-            <section class="category-block mt-40">
-                <div class="category-header">
-                    <i class="ph ph-truck category-icon magenta"></i>
-                    <h2>Transporte y Asignación</h2>
-                </div>
+            <section class="content-area" id="main-app-content">
                 
-                <div class="cards-interactive-container">
-                    
-                    <!-- Método de Transporte -->
-                    <div class="action-card disabled-card">
-                        <div class="card-header">
-                            <div class="card-icon transport-icon"><i class="ph ph-arrows-out-line-horizontal"></i></div>
-                            <span class="badge-status offline">Próximamente</span>
-                        </div>
-                        <div class="card-body">
-                            <h3>Método de Transporte</h3>
-                            <p>Optimización logística general para equilibrar oferta y demanda minimizando fletes globales.</p>
-                        </div>
-                        <div class="card-footer">
-                            <button class="btn-card locked" disabled><i class="ph ph-lock-key"></i> Bloqueado</button>
-                        </div>
+                <div class="welcome-banner animate-fade-in">
+                    <div class="banner-text">
+                        <h2>¡Bienvenido al Entorno TORA Advanced!</h2>
+                        <p>Selecciona un módulo en el menú lateral para comenzar a formular y resolver modelos matemáticos de Investigación de Operaciones.</p>
                     </div>
-
-                    <!-- Esquina Noroeste -->
-                    <div class="action-card disabled-card">
-                        <div class="card-header">
-                            <div class="card-icon transport-icon"><i class="ph ph-compass"></i></div>
-                            <span class="badge-status offline">Próximamente</span>
-                        </div>
-                        <div class="card-body">
-                            <h3>Esquina Noroeste</h3>
-                            <p>Generación rápida de soluciones básicas factibles asignando recursos desde la celda superior izquierda.</p>
-                        </div>
-                        <div class="card-footer">
-                            <button class="btn-card locked" disabled><i class="ph ph-lock-key"></i> Bloqueado</button>
-                        </div>
+                    <div class="banner-illustration">
+                        <i class="ph-duotone ph-math-operations"></i>
                     </div>
-
-                    <!-- Costo Mínimo -->
-                    <div class="action-card disabled-card">
-                        <div class="card-header">
-                            <div class="card-icon transport-icon"><i class="ph ph-coins"></i></div>
-                            <span class="badge-status offline">Próximamente</span>
-                        </div>
-                        <div class="card-body">
-                            <h3>Método del Costo Mínimo</h3>
-                            <p>Algoritmo heurístico enfocado en asignar el máximo envío posible a las rutas de menor costo unitario.</p>
-                        </div>
-                        <div class="card-footer">
-                            <button class="btn-card locked" disabled><i class="ph ph-lock-key"></i> Bloqueado</button>
-                        </div>
-                    </div>
-
-                    <!-- Aproximación de Vogel -->
-                    <div class="action-card disabled-card">
-                        <div class="card-header">
-                            <div class="card-icon transport-icon"><i class="ph ph-calculator"></i></div>
-                            <span class="badge-status offline">Próximamente</span>
-                        </div>
-                        <div class="card-body">
-                            <h3>Aproximación de Vogel (VAM)</h3>
-                            <p>Método heurístico avanzado mediante penalizaciones por diferencia de costos mínimos para aproximar el óptimo.</p>
-                        </div>
-                        <div class="card-footer">
-                            <button class="btn-card locked" disabled><i class="ph ph-lock-key"></i> Bloqueado</button>
-                        </div>
-                    </div>
-
-                    <!-- Método Húngaro -->
-                    <div class="action-card disabled-card">
-                        <div class="card-header">
-                            <div class="card-icon transport-icon"><i class="ph ph-users-three"></i></div>
-                            <span class="badge-status offline">Próximamente</span>
-                        </div>
-                        <div class="card-body">
-                            <h3>Método Húngaro (Asignación)</h3>
-                            <p>Algoritmo para asignar $N$ tareas a $N$ agentes de manera uno a uno con el mínimo costo o tiempo.</p>
-                        </div>
-                        <div class="card-footer">
-                            <button class="btn-card locked" disabled><i class="ph ph-lock-key"></i> Bloqueado</button>
-                        </div>
-                    </div>
-
                 </div>
-            </section>
 
-            <!-- CATEGORÍA 3: REDES Y RUTAS -->
-            <section class="category-block mt-40">
-                <div class="category-header">
-                    <i class="ph ph-share-network category-icon cyan"></i>
-                    <h2>Redes y Rutas</h2>
-                </div>
-                
-                <div class="cards-interactive-container">
+                <div class="quick-access-grid mt-20">
                     
-                    <!-- Dijkstra -->
-                    <div class="action-card active-card animate-fade-in">
+                    <div class="action-card animate-fade-in delay-1">
+                        <div class="card-header">
+                            <div class="card-icon linear-icon">
+                                <i class="ph ph-intersect"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h3>Método Simplex</h3>
+                            <p>Resolución gráfica y tabular para modelos de maximización y minimización.</p>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn-card outline">Próximamente</button>
+                        </div>
+                    </div>
+
+                    <div class="action-card animate-fade-in delay-2">
+                        <div class="card-header">
+                            <div class="card-icon transport-icon">
+                                <i class="ph ph-package"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h3>Vogel & Esquina Noroeste</h3>
+                            <p>Optimización de costos de envío y distribución logística para suministros.</p>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn-card outline">Próximamente</button>
+                        </div>
+                    </div>
+
+                    <div class="action-card active-card animate-fade-in delay-3">
                         <div class="card-header">
                             <div class="card-icon networks-icon">
-                                <i class="ph ph-path"></i>
+                                <i class="ph ph-share-network"></i>
                             </div>
-                            <span class="badge-status online">Disponible</span>
+                            <span class="badge-new">Disponible</span>
                         </div>
                         <div class="card-body">
-                            <h3>Algoritmo de Dijkstra</h3>
-                            <p>Cálculo iterativo de la ruta más corta empleando etiquetas permanentes y temporales (Método Taha).</p>
+                            <h3>Dijkstra & Kruskal</h3>
+                            <p>Cálculo de rutas más cortas y árboles de expansión mínima (MST) en redes.</p>
+                            <div class="network-links-grid" style="display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; margin-top:16px;">
+                                <a href="./src/algorithm_html/CPM.html" class="btn-card primary">CPM</a>
+                                <a href="./src/algorithm_html/dijkstra.html" class="btn-card primary">Dijkstra</a>
+                                <a href="./src/algorithm_html/Minima_Expancion.html" class="btn-card primary">Mínima Expansión</a>
+                                <a href="./src/algorithm_html/FlujoMaximo.html" class="btn-card primary">Flujo Máximo</a>
+                            </div>
                         </div>
                         <div class="card-footer">
-                            <a href="./src/algorithm_html/dijkstra.html" class="btn-card primary-glow">
-                                <i class="ph ph-play"></i> Lanzar Módulo
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Árbol de Expansión Mínima -->
-                    <div class="action-card disabled-card">
-                        <div class="card-header">
-                            <div class="card-icon networks-icon"><i class="ph ph-tree-structure"></i></div>
-                            <span class="badge-status offline">Próximamente</span>
-                        </div>
-                        <div class="card-body">
-                            <h3>Árbol de Mínima Expansión</h3>
-                            <p>Conecta todos los nodos de la red sin ciclos minimizando la longitud total de enlaces (Kruskal / Prim).</p>
-                        </div>
-                        <div class="card-footer">
-                            <button class="btn-card locked" disabled><i class="ph ph-lock-key"></i> Bloqueado</button>
-                        </div>
-                    </div>
-
-                    <!-- Flujo Máximo -->
-                    <div class="action-card disabled-card">
-                        <div class="card-header">
-                            <div class="card-icon networks-icon"><i class="ph ph-waves"></i></div>
-                            <span class="badge-status offline">Próximamente</span>
-                        </div>
-                        <div class="card-body">
-                            <h3>Flujo Máximo</h3>
-                            <p>Determina la cantidad máxima de flujo que puede pasar desde una fuente hasta un destino a través de una red.</p>
-                        </div>
-                        <div class="card-footer">
-                            <button class="btn-card locked" disabled><i class="ph ph-lock-key"></i> Bloqueado</button>
-                        </div>
-                    </div>
-
-                    <!-- Ruta Crítica - CPM -->
-                    <div class="action-card disabled-card">
-                        <div class="card-header">
-                            <div class="card-icon networks-icon"><i class="ph ph-clock-afternoon"></i></div>
-                            <span class="badge-status offline">Próximamente</span>
-                        </div>
-                        <div class="card-body">
-                            <h3>Ruta Crítica (CPM)</h3>
-                            <p>Gestión de proyectos para identificar actividades críticas, holguras y calcular la duración total del proyecto.</p>
-                        </div>
-                        <div class="card-footer">
-                            <button class="btn-card locked" disabled><i class="ph ph-lock-key"></i> Bloqueado</button>
+                            <a href="./src/algorithm_html/CPM.html" class="btn-card primary">Acceder a CPM</a>
                         </div>
                     </div>
 
                 </div>
             </section>
-
         </main>
-
-        <footer class="hub-footer">
-            <div class="system-status-central">
-                <span class="status-dot online"></span>
-                <p>TORA Advanced &bull; Motor de Optimización Activo</p>
-            </div>
-        </footer>
-
     </div>
 
-    <script type="module" src="./src/core/main.js"></script>
 </body>
 </html>
