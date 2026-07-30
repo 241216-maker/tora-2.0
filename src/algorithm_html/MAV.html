@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Método de Vogel (MAV) - Paso a Paso</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/MAV.css">
+</head>
+<body>
+
+    <header class="app-header">
+        <h1 class="main-title">Módulo Logístico: Aproximación de Vogel (MAV)</h1>
+        <p class="sub-title">Resolución iterativa con reglas formales de penalización y tachado</p>
+    </header>
+
+    <main class="dashboard-container">
+        <!-- Panel de Ingreso de Datos -->
+        <div class="left-column">
+            <section class="card">
+                <h2 class="card-title">1. Dimensiones de la Red</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Filas (Orígenes)</label>
+                        <input type="number" id="num-origins" value="3" min="1" max="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Columnas (Destinos)</label>
+                        <input type="number" id="num-destinations" value="4" min="1" max="10">
+                    </div>
+                </div>
+                <button id="btn-generate-grid" class="btn-primary">Generar Matriz</button>
+            </section>
+
+            <section class="card">
+                <h2 class="card-title">2. Costos, Oferta y Demanda</h2>
+                <p class="card-instruction">Ingresa los costos unitarios, la oferta y la demanda.</p>
+                <div id="matrix-container" class="table-responsive"></div>
+                <button id="btn-calculate-mav" class="btn-primary mt-15" style="display: none;">Resolver Paso a Paso</button>
+            </section>
+        </div>
+
+        <!-- Panel de Resultados e Iteraciones -->
+        <div class="right-column">
+            <section id="results-panel" class="card results-card" style="display: none;">
+                <div class="results-header">
+                    <h2 class="card-title">Costo Total Optimizado (Z)</h2>
+                    <div id="min-cost-output" class="flow-output-box">$0</div>
+                </div>
+                
+                <h3 class="iteration-title mt-15">Desarrollo Iteración por Iteración</h3>
+                <div id="iterations-container" class="iterations-scroll-box">
+                    <!-- Aquí se inyectan las tablas iterativas -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="../core/networks/MAV.js"></script>
+</body>
+</html>

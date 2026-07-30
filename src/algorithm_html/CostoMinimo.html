@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo de Redes: Costo Mínimo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/CostoMinimo.css">
+</head>
+<body>
+
+    <header class="app-header">
+        <h1 class="main-title">Módulo Logístico: Costo Mínimo</h1>
+        <p class="sub-title">Algoritmo de Asignación Inicial para el Problema de Transporte</p>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="left-column">
+            <section class="card">
+                <h2 class="card-title">1. Dimensiones de la Red</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fuentes (Orígenes)</label>
+                        <input type="number" id="num-origins" value="3" min="1" max="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Clientes (Destinos)</label>
+                        <input type="number" id="num-destinations" value="3" min="1" max="10">
+                    </div>
+                </div>
+                <button id="btn-generate-grid" class="btn-primary">Generar Matriz</button>
+            </section>
+
+            <section class="card">
+                <h2 class="card-title">2. Costos, Oferta y Demanda</h2>
+                <p class="card-instruction">Ingresa los costos unitarios en las celdas grises, la Oferta a la derecha y la Demanda abajo.</p>
+                <div id="matrix-container" class="table-responsive"></div>
+                <button id="btn-calculate-cost" class="btn-accent mt-15" style="display: none;">Calcular Costo Mínimo</button>
+            </section>
+        </div>
+
+        <div class="right-column">
+            <section id="results-panel" class="results-card" style="display: none;">
+                <div class="results-summary-box">
+                    <h2 class="card-title">Solución Inicial del Método del Costo Mínimo</h2>
+                    <div class="results-grid">
+                        <div class="results-text-block">
+                            <h3>Costo Total Optimizado (Z)</h3>
+                            <div id="min-cost-output" class="flow-output-box">$0</div>
+                        </div>
+                        <div class="metrics-sidebar">
+                            <div class="metric-box bg-purple-glow">
+                                <span class="metric-label">Estado del Sistema</span>
+                                <span id="metric-balance" class="metric-value" style="font-size: 1.2rem;">Balanceado</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="iterations-note">La regla del método es elegir la celda con el menor costo unitario, asignar lo máximo posible, ajustar la oferta y la demanda y repetir el proceso hasta que quede exactamente una fila o columna sin tachar.</p>
+
+                <div class="solution-block">
+                    <h3 class="iterations-title">Cuadro de Asignación</h3>
+                    <div id="solution-grid" class="solution-grid"></div>
+                </div>
+
+                <div class="solution-block">
+                    <h3 class="iterations-title">Resumen del Cálculo</h3>
+                    <div id="result-summary-line" class="result-summary-line">Z = Σ(cij × xij)</div>
+                    <ul id="assignment-summary" class="assignment-summary"></ul>
+                </div>
+
+                <div class="iterations-block">
+                    <h3 class="iterations-title">Secuencia de Asignaciones</h3>
+                    <div class="table-responsive">
+                        <table class="iterations-table">
+                            <thead>
+                                <tr>
+                                    <th>Paso</th>
+                                    <th>Origen</th>
+                                    <th>Destino</th>
+                                    <th>Costo Unitario</th>
+                                    <th>Cantidad Asignada</th>
+                                    <th>Oferta Restante</th>
+                                    <th>Demanda Restante</th>
+                                    <th>Costo Acumulado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="iterations-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="../core/networks/CostoMinimo.js"></script>
+</body>
+</html>

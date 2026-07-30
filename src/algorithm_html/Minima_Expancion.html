@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Árbol de Mínima Expansión - Iterativo</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    
+    <!-- Vinculando el CSS desde la carpeta 'css' -->
+     <link rel="stylesheet" href="../styles/Minima_Expancion.css">
+</head>
+<body>
+
+    <header class="app-header">
+        <h1 class="main-title">Árbol de Mínima Expansión</h1>
+        <p class="sub-title">Algoritmo de Prim paso a paso (Nodos y Aristas Direccionales)</p>
+    </header>
+
+    <main class="dashboard-container">
+        <!-- Panel Izquierdo: Controles -->
+        <div class="left-column">
+            <section class="network-card">
+                <h2 class="card-title">1. Registrar Red</h2>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label>Nodo Origen:</label>
+                        <input type="text" id="edge-source" placeholder="Ej. A">
+                    </div>
+                    <div class="form-group half">
+                        <label>Nodo Destino:</label>
+                        <input type="text" id="edge-target" placeholder="Ej. B">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Distancia / Costo:</label>
+                    <input type="number" id="edge-weight" min="0" placeholder="Ej. 5">
+                </div>
+                <button type="button" id="btn-add-edge" class="btn btn-purple">Añadir Conexión</button>
+            </section>
+            
+            <section class="network-card mt-20">
+                <h2 class="card-title">Conexiones Registradas</h2>
+                <div id="edges-live-list" class="live-list-box">
+                    <p class="empty-notice">No hay conexiones en la red.</p>
+                </div>
+            </section>
+
+            <section class="network-card mt-20">
+                <h2 class="card-title">2. Ejecutar Algoritmo</h2>
+                <button type="button" id="btn-calculate-mst" class="btn btn-neon-blue">Iniciar Algoritmo</button>
+                
+                <!-- Controles de Iteración -->
+                <div id="iteration-controls" style="display: none; margin-top: 15px;">
+                    <div class="status-box" id="iteration-status">Paso 0: Preparando red...</div>
+                    <button type="button" id="btn-next-step" class="btn btn-purple" style="margin-top: 10px;">Siguiente Iteración ➔</button>
+                </div>
+            </section>
+        </div>
+
+        <!-- Panel Derecho: Visualización -->
+        <div class="right-column">
+            <section class="visualization-card">
+                <div class="card-header-flex">
+                    <h2 class="card-title" style="margin: 0;">Diagrama de la Red</h2>
+                    <button type="button" id="btn-clear-network" class="btn-small-danger">🗑️ Borrar Red</button>
+                </div>
+                
+                <div class="canvas-wrapper mt-20">
+                    <div id="network-svg-container"></div>
+                </div>
+                
+                <div class="graph-legend mt-20">
+                    <div class="legend-item"><span class="legend-node node-ck"></span> Conectados</div>
+                    <div class="legend-item"><span class="legend-node node-ckbar"></span> No Conectados</div>
+                    <div class="legend-item"><span class="legend-line line-active"></span> Evaluando</div>
+                    <div class="legend-item"><span class="legend-line line-mst"></span> Ruta Óptima</div>
+                </div>
+            </section>
+
+            <section class="network-card mt-20" id="results-panel" style="display: none;">
+                <h2 class="card-title">Solución Final</h2>
+                <div class="results-layout">
+                    <div class="results-text-block">
+                        <h3>Ruta Crítica (Árbol Mínimo):</h3>
+                        <div id="mst-output" class="mst-output-box"></div> 
+                    </div>
+                    <div class="metrics-sidebar">
+                        <div class="metric-box bg-blue-glow">
+                            <span class="metric-label">Costo Total</span>
+                            <span id="metric-total-weight" class="metric-value">0</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Vinculando el JS desde la carpeta 'js' -->
+    <script src="../core/networks/Minima_Expancion.js"></script>
+</body>
+</html>

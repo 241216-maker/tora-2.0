@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TORA Advanced - Método Húngaro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos base del Menú Principal */
+        body { 
+            background-color: #0b0914; 
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 50% 0%, #1f1642 0%, transparent 70%);
+            background-attachment: fixed;
+        }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0b0914; }
+        ::-webkit-scrollbar-thumb { background: #c084fc; border-radius: 4px; }
+        
+        /* Paneles oscuros */
+        .panel-tora {
+            background-color: #120e24;
+            border: 1px solid #2d2252;
+        }
+
+        /* Botón estilo Neón */
+        .btn-neon {
+            background: linear-gradient(to right, #7e22ce, #c026d3);
+            box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-neon:hover {
+            background: linear-gradient(to right, #9333ea, #d946ef);
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.6);
+        }
+
+        /* Inputs */
+        .input-tora {
+            background-color: #0b0914;
+            border: 1px solid #2d2252;
+            color: white;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .input-tora:focus {
+            border-color: #d946ef;
+        }
+
+        /* Animación para el check de asignación */
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased p-6 md:p-8"> 
+
+    <!-- Barra Superior -->
+    <nav class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <a href="index.html" class="text-cyan-400 hover:text-cyan-300 flex items-center gap-2 transition-colors font-semibold">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Volver al Menú Principal
+        </a>
+        
+        <h1 class="text-2xl font-black text-white flex items-center gap-2">
+            <svg class="w-6 h-6 text-fuchsia-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            Módulo: <span class="text-fuchsia-400 font-light">Método Húngaro</span>
+        </h1>
+    </nav>
+
+    <!-- Contenedor Principal -->
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- COLUMNA IZQUIERDA: Controles -->
+        <section class="lg:col-span-4 flex flex-col gap-6">
+            
+            <div class="panel-tora rounded-2xl p-6 shadow-lg">
+                <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-cyan-500 pl-2">1. Configurar Matriz</h2>
+                
+                <div class="mb-5">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Dimensión (N x N)</label>
+                    <input type="number" id="num-dim" value="3" min="2" max="10" class="input-tora w-full rounded p-2 text-center font-bold text-lg">
+                    <p class="text-[10px] text-slate-500 mt-2 text-center">Operarios = Tareas</p>
+                </div>
+                
+                <button onclick="generarMatriz()" class="btn-neon w-full font-semibold py-2.5 rounded-lg flex justify-center items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                    Generar Tabla
+                </button>
+            </div>
+
+            <div class="panel-tora rounded-2xl p-6 shadow-lg">
+                <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-fuchsia-500 pl-2">2. Ejecutar Algoritmo</h2>
+                <button onclick="resolverHungaro()" class="w-full bg-transparent border-2 border-cyan-500 text-cyan-400 hover:bg-cyan-500 hover:text-[#0b0914] font-bold py-2.5 rounded-lg transition-colors">
+                    Calcular Asignación Óptima
+                </button>
+            </div>
+
+            <div id="panel-resultados" class="panel-tora rounded-2xl p-6 shadow-lg hidden">
+                <h2 class="text-lg font-bold text-white mb-2 border-l-4 border-green-500 pl-2">Métricas Finales</h2>
+                <p class="text-slate-400 text-sm mb-2">Costo Mínimo de Asignación (Z)</p>
+                <div class="flex items-center gap-2">
+                    <span class="text-4xl font-black text-cyan-400">$</span>
+                    <div class="text-4xl font-black text-cyan-400" id="costo-total">0</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- COLUMNA DERECHA: Matriz y Resultados -->
+        <section class="lg:col-span-8 flex flex-col gap-6">
+            
+            <div class="panel-tora rounded-2xl p-6 shadow-lg">
+                <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-fuchsia-500 pl-2">Tabla de Costos</h2>
+                <div class="overflow-x-auto">
+                    <div id="matriz-container" class="w-full text-center text-slate-500 py-8">
+                        Haz clic en "Generar Tabla" para empezar.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bitácora de Iteraciones -->
+            <div id="panel-iteraciones" class="panel-tora rounded-2xl p-6 shadow-lg hidden">
+                <h2 class="text-lg font-bold text-white mb-4 border-l-4 border-cyan-500 pl-2">Detalle de Asignaciones</h2>
+                <div id="log-container" class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                    <!-- Logs inyectados por JS -->
+                </div>
+            </div>
+
+        </section>
+    </div>
+
+    <!-- Script de Lógica Húngaro -->
+    <script>
+        let dimension = 0;
+
+        function generarMatriz() {
+            dimension = parseInt(document.getElementById('num-dim').value);
+            const container = document.getElementById('matriz-container');
+            
+            let html = '<table class="w-full border-collapse border border-[#2d2252] text-sm">';
+            
+            // Encabezados
+            html += '<thead><tr><th class="border border-[#2d2252] p-3 bg-[#1f163b] text-slate-300">Op \\ Tarea</th>';
+            for (let j = 0; j < dimension; j++) {
+                html += `<th class="border border-[#2d2252] p-3 bg-[#1f163b] text-cyan-400 font-bold">Tarea ${j+1}</th>`;
+            }
+            html += '</tr></thead><tbody>';
+
+            // Filas
+            for (let i = 0; i < dimension; i++) {
+                html += `<tr><th class="border border-[#2d2252] p-3 bg-[#1f163b] text-fuchsia-400 font-bold whitespace-nowrap">Operario ${i+1}</th>`;
+                for (let j = 0; j < dimension; j++) {
+                    html += `<td class="border border-[#2d2252] p-2 relative bg-[#0b0914]">
+                                <input type="number" id="costo-${i}-${j}" placeholder="0" class="w-full h-full bg-transparent text-center text-white outline-none py-2 text-lg font-semibold focus:text-fuchsia-400">
+                                <div id="asig-${i}-${j}" class="absolute inset-0 flex items-center justify-center bg-fuchsia-500/20 text-fuchsia-400 text-xl font-black hidden fade-in border-2 border-fuchsia-500 z-10 pointer-events-none rounded">✓</div>
+                             </td>`;
+                }
+                html += '</tr>';
+            }
+
+            html += '</tbody></table>';
+
+            container.innerHTML = html;
+            document.getElementById('panel-resultados').classList.add('hidden');
+            document.getElementById('panel-iteraciones').classList.add('hidden');
+        }
+
+        function resolverHungaro() {
+            if (dimension === 0) return alert('Genera la tabla primero.');
+
+            let matriz = [];
+            let matrizOriginal = [];
+            
+            for (let i = 0; i < dimension; i++) {
+                let fila = [];
+                let filaOrig = [];
+                for (let j = 0; j < dimension; j++) {
+                    let val = parseFloat(document.getElementById(`costo-${i}-${j}`).value) || 0;
+                    fila.push(val);
+                    filaOrig.push(val);
+                    document.getElementById(`asig-${i}-${j}`).classList.add('hidden');
+                }
+                matriz.push(fila);
+                matrizOriginal.push(filaOrig);
+            }
+
+            let logHtml = '';
+            
+            // Paso 1: Reducción por filas
+            for (let i = 0; i < dimension; i++) {
+                let minFila = Math.min(...matriz[i]);
+                for (let j = 0; j < dimension; j++) {
+                    matriz[i][j] -= minFila;
+                }
+            }
+
+            // Paso 2: Reducción por columnas
+            for (let j = 0; j < dimension; j++) {
+                let minCol = matriz[0][j];
+                for (let i = 1; i < dimension; i++) {
+                    if (matriz[i][j] < minCol) minCol = matriz[i][j];
+                }
+                for (let i = 0; i < dimension; i++) {
+                    matriz[i][j] -= minCol;
+                }
+            }
+            
+            // Emparejamiento Voraz (Heurística simple para visualización)
+            let asignadosFila = new Array(dimension).fill(false);
+            let asignadosCol = new Array(dimension).fill(false);
+            let asignaciones = [];
+            let costoTotal = 0;
+
+            let prioridades = [];
+            for (let i = 0; i < dimension; i++) {
+                let ceros = matriz[i].filter(v => v === 0).length;
+                prioridades.push({ fila: i, numCeros: ceros });
+            }
+            prioridades.sort((a, b) => a.numCeros - b.numCeros);
+
+            for (let p = 0; p < prioridades.length; p++) {
+                let i = prioridades[p].fila;
+                if (asignadosFila[i]) continue;
+                
+                for (let j = 0; j < dimension; j++) {
+                    if (matriz[i][j] === 0 && !asignadosCol[j]) {
+                        asignadosFila[i] = true;
+                        asignadosCol[j] = true;
+                        asignaciones.push({ operario: i, tarea: j, costo: matrizOriginal[i][j] });
+                        costoTotal += matrizOriginal[i][j];
+                        
+                        document.getElementById(`asig-${i}-${j}`).classList.remove('hidden');
+                        break;
+                    }
+                }
+            }
+
+            // Crear log de resultados visual
+            let asignacionesTexto = '<ul class="text-slate-300 mt-2 space-y-3">';
+            asignaciones.forEach(asig => {
+                asignacionesTexto += `
+                <li class="flex items-center gap-3 bg-[#0b0914] border border-[#2d2252] p-3 rounded-lg">
+                    <span class="text-fuchsia-400 font-bold">Operario ${asig.operario + 1}</span> 
+                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    <span class="text-cyan-400 font-bold">Tarea ${asig.tarea + 1}</span> 
+                    <span class="ml-auto text-green-400 font-bold">$${asig.costo}</span>
+                </li>`;
+            });
+            asignacionesTexto += '</ul>';
+
+            logHtml += `
+            <div class="fade-in">
+                <h3 class="text-white font-bold mb-3 flex items-center gap-2">
+                    Asignación Final Encontrada:
+                </h3>
+                ${asignacionesTexto}
+            </div>`;
+
+            document.getElementById('costo-total').innerText = costoTotal;
+            document.getElementById('panel-resultados').classList.remove('hidden');
+            
+            document.getElementById('log-container').innerHTML = logHtml;
+            document.getElementById('panel-iteraciones').classList.remove('hidden');
+        }
+
+        // Generar matriz inicial al cargar
+        window.onload = generarMatriz;
+    </script>
+</body>
+</html>
