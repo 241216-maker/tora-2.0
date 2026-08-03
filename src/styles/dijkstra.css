@@ -1,242 +1,950 @@
-/* =========================================================
-   VARIABLES DE TEMA (DARK MODE TECNOLÓGICO)
-   ========================================================= */
-/* =========================================================
-   VARIABLES DE TEMA (HEREDADAS DEL INDEX CYBERPUNK)
-   ========================================================= */
+/* ==========================================================
+   ALGORITMO DE DIJKSTRA — ESTILOS CSS
+   (Tema Oscuro Neón & Alta Legibilidad para Proyección)
+   ========================================================== */
+
+/* =========================================
+   1. VARIABLES GLOBALES Y PALETA DE COLORES
+   ========================================= */
 :root {
-    /* Paleta Principal Neon/Tech (Igual al index.css) */
-    --color-accent-1: #53e0dc; /* El turquesa brillante (cyan-primary) */
-    --color-accent-2: #9d4edd; /* Violeta/Magenta dominante (magenta-primary) */
-    
-    /* Fondos Oscuros */
-    --bg-main: #090514;                  /* Fondo ultra oscuro */
-    --bg-sidebar: rgba(18, 11, 36, 0.75); /* Panel lateral */
-    --bg-card: rgba(29, 18, 58, 0.45);    /* Tarjetas oscuras */
-    --bg-input: rgba(18, 11, 36, 0.5);    /* Cajas de texto */
-    
-    /* Textos */
-    --text-main: #f1eef7; /* Blanco lavanda legible */
-    --text-muted: #a39cb5; /* Gris violáceo */
-    --border-color: rgba(114, 9, 183, 0.25);
-    
-    /* Estados */
-    --color-success: #53e0dc;
-    --color-danger: #ff3366; 
-    
-    /* Sombras y Efectos */
-    --shadow-md: 0 4px 15px rgba(0, 0, 0, 0.4);
-    --glow-cyan: 0 0 10px rgba(83, 224, 220, 0.3);
-    --glow-purple: 0 0 15px rgba(157, 78, 221, 0.3);
-    --radius-sm: 6px;
-    --radius-md: 12px;
-    
-    --font-family: 'Inter', sans-serif;
+    --bg-dark-deep: #09090e;
+    --bg-card-surface: #12111c;
+
+    --text-pure-white: #ffffff;
+    --text-muted-gray: #8b8a9f;
+
+    --neon-purple: #bd5bf7;
+    --neon-purple-glow: rgba(189, 91, 247, 0.4);
+
+    --mist-blue: #00f0ff;
+    --mist-blue-glow: rgba(0, 240, 255, 0.5);
+
+    --border-color: #222035;
+
+    --danger-red: #ff4d4d;
+    --danger-red-glow: rgba(255, 77, 77, 0.35);
+
+    --amber-warn: #ffb84d;
+    --amber-warn-glow: rgba(255, 184, 77, 0.35);
+
+    --transition-fast: 0.2s ease;
 }
 
-/* =========================================================
-   RESETEO Y ESTRUCTURA BASE
-   ========================================================= */
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* =========================================
+   2. RESET Y BASES GENERALES
+   ========================================= */
+* {
+    box-sizing: border-box;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
 
 body {
-    font-family: var(--font-family);
-    background-color: var(--bg-main);
-    background-image: linear-gradient(to bottom, rgba(9, 5, 20, 0.85), rgba(20, 10, 38, 0.92)), url('../public/images/tora-bg.jpg'); 
-    background-size: cover; background-position: center; background-attachment: fixed;
-    color: var(--text-main);
-    overflow-x: hidden;
-    height: 100vh;
+    background-color: var(--bg-dark-deep);
+    color: var(--text-pure-white);
+    margin: 0;
+    padding: 25px;
+    min-height: 100vh;
+    line-height: 1.5;
 }
 
-.app-layout { display: flex; width: 100vw; height: 100vh; }
-.main-workspace-wrapper { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: radial-gradient(circle at top right, rgba(83, 224, 220, 0.03), transparent 50%); }
-
-/* =========================================================
-   SIDEBAR (IDENTICA AL INDEX)
-   ========================================================= */
-.sidebar { width: 280px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); backdrop-filter: blur(12px); display: flex; flex-direction: column; padding: 24px; justify-content: space-between; }
-.logo-container { display: flex; align-items: center; gap: 10px; padding-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
-.logo-icon { font-size: 24px; color: var(--color-accent-1); text-shadow: 0 0 10px var(--glow-cyan); }
-.logo-text { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
-.logo-highlight { color: var(--color-accent-2); }
-.sidebar-nav { display: flex; flex-direction: column; margin-top: 30px; flex: 1; }
-.nav-label { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 12px; }
-.mt-30 { margin-top: 30px; }
-.nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; color: var(--text-muted); font-size: 14px; font-weight: 500; text-decoration: none; transition: all 0.2s; }
-.nav-item i { font-size: 18px; }
-.nav-item:hover:not(.disabled) { color: #fff; background: rgba(255,255,255,0.03); }
-.nav-item.active { color: var(--color-accent-1); background: rgba(83, 224, 220, 0.05); font-weight: 600; border: 1px solid rgba(83, 224, 220, 0.15); }
-.nav-item.disabled { opacity: 0.3; cursor: not-allowed; }
-.system-status { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-muted); padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
-.status-dot.online { width: 8px; height: 8px; background: var(--color-accent-1); border-radius: 50%; box-shadow: var(--glow-cyan); }
-
-/* =========================================================
-   GRID CENTRAL
-   ========================================================= */
-.workspace-header { padding: 30px 40px 10px 40px; }
-.welcome-box h1 { font-size: 26px; font-weight: 800; color: #fff; }
-.welcome-box p { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
-
-.dashboard-grid-content { display: grid; grid-template-columns: 1fr 340px; gap: 30px; padding: 20px 40px 40px 40px; align-items: start; }
-.central-algorithms-zone { display: flex; flex-direction: column; gap: 20px; }
-
-/* =========================================================
-   TARJETAS (CARDS)
-   ========================================================= */
-.io-card { background: var(--bg-card); border-radius: var(--radius-md); padding: 24px; border: 1px solid var(--border-color); backdrop-filter: blur(8px); position: relative; overflow: hidden; }
-.io-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, var(--color-accent-1), transparent); }
-.panel-title { font-size: 1.25rem; font-weight: 600; color: #fff; margin-bottom: 6px; }
-.panel-subtitle { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px; }
-
-/* PANEL DERECHO (TEORÍA) */
-.right-recommendations-zone { background: rgba(23, 14, 46, 0.65); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; backdrop-filter: blur(10px); }
-.panel-box-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-.panel-box-icon { font-size: 20px; color: var(--color-accent-2); filter: drop-shadow(0 0 5px var(--color-accent-2)); }
-.panel-box-header h3 { font-size: 15px; font-weight: 700; color: #fff; }
-.panel-box-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;}
-.tips-stack { display: flex; flex-direction: column; gap: 16px; }
-.tip-item { display: flex; gap: 12px; background: rgba(255,255,255,0.01); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); }
-.tip-number { font-size: 12px; font-weight: 800; color: var(--color-accent-2); background: rgba(157, 78, 221, 0.1); width: 24px; height: 24px; border-radius: 6px; display: flex; justify-content: center; align-items: center; }
-.tip-item p { font-size: 12.5px; color: var(--text-muted); line-height: 1.4; flex: 1; }
-.tip-item p strong { color: var(--color-accent-1); font-weight: 600; }
-
-/* =========================================================
-   FORMULARIOS Y BOTONES
-   ========================================================= */
-.form-row-centered { display: flex; align-items: flex-end; gap: 15px; flex-wrap: wrap; }
-.form-row-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-.form-group { display: flex; flex-direction: column; gap: 8px; }
-.group-label { font-size: 0.9rem; font-weight: 500; color: var(--color-accent-1); }
-.form-input, .form-select { padding: 10px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background-color: var(--bg-input); color: var(--text-main); font-family: inherit; font-size: 0.95rem; transition: all 0.3s; }
-.form-input:focus, .form-select:focus { outline: none; border-color: var(--color-accent-1); box-shadow: var(--glow-cyan); }
-.text-center { text-align: center; }
-.mt-20 { margin-top: 20px; }
-
-.btn { padding: 10px 20px; border: none; border-radius: var(--radius-sm); font-family: inherit; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; }
-.btn-primary { background: linear-gradient(135deg, var(--color-accent-2), #7209b7); color: white; box-shadow: var(--glow-purple); }
-.btn-primary:hover { background: linear-gradient(135deg, #b5179e, var(--color-accent-2)); transform: translateY(-1px); }
-.btn-success { background-color: transparent; border: 2px solid var(--color-accent-1); color: var(--color-accent-1); }
-.btn-success:hover { background-color: var(--color-accent-1); color: var(--bg-main); box-shadow: var(--glow-cyan); }
-.btn-danger { background-color: transparent; border: 1px solid var(--color-danger); color: var(--color-danger); }
-.btn-danger:hover { background-color: var(--color-danger); color: white; }
-.action-buttons-group { display: flex; gap: 15px; }
-.flex-grow-1 { flex-grow: 1; } .flex-grow-2 { flex-grow: 2; }
-
-/* =========================================================
-   MATRIZ DE ADYACENCIA Y TABLA
-   ========================================================= */
-.matrix-overflow-container { overflow-x: auto; padding-bottom: 10px; }
-.matrix-table { border-collapse: collapse; width: auto; }
-.matrix-table th { background-color: rgba(255,255,255,0.05); color: var(--text-main); padding: 12px; font-weight: 600; text-align: center; border: 1px solid var(--border-color); }
-.matrix-table td { border: 1px solid var(--border-color); padding: 0; }
-.matrix-input { width: 60px; height: 40px; border: none; text-align: center; font-size: 0.95rem; background-color: transparent; color: var(--color-accent-1); font-weight: bold; }
-.matrix-input:focus { outline: none; background-color: rgba(83, 224, 220, 0.1); }
-.matrix-input:disabled { background-color: rgba(0,0,0,0.3); cursor: not-allowed; color: #475569; }
-
-.table-responsive { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border-color); }
-.data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-.data-table thead { background-color: rgba(255,255,255,0.05); color: var(--color-accent-1); }
-.data-table th, .data-table td { padding: 12px 15px; text-align: center; border-bottom: 1px solid var(--border-color); }
-.data-table tbody tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.02); }
-.data-table tbody tr:hover { background-color: rgba(83, 224, 220, 0.05); }
-
-/* =========================================================
-   GRAFO D3.JS (RESULTADOS) Y SOLUCIÓN DE TEXTO NEGRO
-   ========================================================= */
-.main-visualization { background: var(--bg-card); border-radius: var(--radius-md); border: 1px solid var(--border-color); position: relative; }
-.results-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 24px; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 15px; }
-.result-title-box h2 { color: var(--color-accent-1); margin-bottom: 4px; }
-.cost-box { background-color: rgba(83, 224, 220, 0.05); padding: 10px 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; border: 1px solid var(--color-accent-1); box-shadow: var(--glow-cyan); }
-.cost-label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
-.cost-value { font-size: 1.8rem; font-weight: 800; color: var(--color-accent-1); }
-.results-content-grid { padding: 24px; }
-
-.graph-canvas-container { position: relative; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background-color: rgba(0,0,0,0.3); height: 450px; }
-.svg-wrapper { width: 100%; height: 100%; }
-.floating-legend { position: absolute; bottom: 15px; right: 15px; background-color: rgba(23, 30, 46, 0.9); padding: 15px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); backdrop-filter: blur(4px); }
-.floating-legend h4 { margin-bottom: 8px; color: var(--color-accent-1); }
-.floating-legend ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
-.floating-legend li { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
-.legend-line { width: 20px; height: 3px; display: inline-block; }
-.line-path { background-color: var(--color-danger); height: 4px; box-shadow: 0 0 5px var(--color-danger); }
-.line-normal { background-color: #475569; }
-.legend-node { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-.node-start { background-color: var(--color-accent-1); box-shadow: var(--glow-cyan); }
-.node-end { background-color: var(--color-danger); }
-
-/* ✨ ESTA REGLA ARREGLA EL PROBLEMA DEL TEXTO NEGRO DEL D3.JS ✨ */
-svg text {
-    fill: var(--text-main) !important;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
-    font-weight: bold;
+/* Scrollbar Personalizado */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
 }
 
-/* Modales */
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); }
-.modal-box { background-color: var(--bg-card); padding: 30px; border-radius: var(--radius-md); border: 1px solid var(--border-color); max-width: 400px; width: 90%; text-align: center; border-top: 4px solid var(--color-danger); }
-.error-text { color: var(--color-danger); margin-bottom: 10px; }
-.btn-outline { background-color: transparent; border: 1px solid var(--text-muted); color: var(--text-main); padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; }
-
-.animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-/* =========================================================
-   TABLA DE ITERACIONES
-   ========================================================= */
-.table-responsive { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border-color); }
-.data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-.data-table thead { background-color: var(--bg-input); color: var(--color-accent-1); }
-.data-table th, .data-table td { padding: 12px 15px; text-align: center; border-bottom: 1px solid var(--border-color); }
-.data-table tbody tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.02); }
-.data-table tbody tr:hover { background-color: rgba(0, 229, 255, 0.05); }
-
-/* =========================================================
-   MODAL DE ERROR
-   ========================================================= */
-.modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center;
-    z-index: 1000; backdrop-filter: blur(4px);
+::-webkit-scrollbar-track {
+    background: var(--bg-dark-deep);
 }
-.modal-box {
-    background-color: var(--bg-card); padding: 30px; border-radius: var(--radius-md);
-    border: 1px solid var(--border-color); max-width: 400px; width: 90%; text-align: center;
-    border-top: 4px solid var(--color-danger); box-shadow: 0 0 20px rgba(255, 51, 102, 0.3);
-}
-.error-text { color: var(--color-danger); margin-bottom: 10px; }
-.btn-outline {
-    background-color: transparent; border: 1px solid var(--text-muted); color: var(--text-main);
-    padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer;
-}
-.btn-outline:hover { border-color: var(--text-main); background-color: rgba(255,255,255,0.1); }
 
-/* =========================================================
-   ANIMACIONES
-   ========================================================= */
-.animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--neon-purple);
+}
+
+/* =========================================
+   3. CABECERA (HEADER)
+   ========================================= */
+.app-header {
+    margin-bottom: 25px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 18px;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.main-title {
+    margin: 0;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--neon-purple);
+    text-shadow: 0 0 15px var(--neon-purple-glow);
+    letter-spacing: -0.5px;
+}
+
+.sub-title {
+    margin: 6px 0 0 0;
+    color: var(--text-muted-gray);
+    font-size: 0.95rem;
+}
+
+.header-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.badge {
+    background-color: var(--bg-card-surface);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted-gray);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.badge-primary {
+    border-color: var(--mist-blue);
+    color: var(--mist-blue);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+}
+
+/* =========================================
+   4. LAYOUT Y CLASES DE UTILIDAD
+   ========================================= */
+.app-container-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease forwards;
+}
+
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
 }
-/* =========================================================
-   SUBMENÚ LATERAL (REDES Y RUTAS)
-   ========================================================= */
-.nav-group { display: flex; flex-direction: column; }
-.active-group { color: var(--color-accent-1); font-weight: 600; }
-.sub-nav {
-    display: flex; flex-direction: column; gap: 4px;
-    margin-left: 34px; /* Lo empuja a la derecha para que parezca un subnivel */
-    margin-top: 5px; margin-bottom: 10px;
-    border-left: 1px solid var(--border-color);
-    padding-left: 12px;
+
+.mt-10 { margin-top: 10px; }
+.mt-15 { margin-top: 15px; }
+.mt-20 { margin-top: 20px; }
+
+.flex-grow-1 { flex-grow: 1; }
+.flex-grow-2 { flex-grow: 2; }
+
+/* =========================================
+   5. TARJETAS / PANELES (io-card)
+   ========================================= */
+.io-card {
+    background-color: var(--bg-card-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 22px 24px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    transition: border-color var(--transition-fast);
 }
-.sub-nav-item {
-    font-size: 12.5px; color: var(--text-muted); text-decoration: none;
-    padding: 8px 10px; border-radius: 6px; transition: all 0.2s;
+
+.io-card:hover {
+    border-color: rgba(189, 91, 247, 0.3);
 }
-.sub-nav-item:hover { color: #fff; background: rgba(255,255,255,0.03); }
-.sub-nav-item.active {
-    color: var(--color-accent-1); font-weight: 600;
-    background: rgba(83, 224, 220, 0.05);
+
+.panel-title {
+    margin: 0 0 6px 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    border-left: 4px solid var(--mist-blue);
+    padding-left: 10px;
+    color: var(--text-pure-white);
+}
+
+.panel-subtitle {
+    margin: 6px 0 0 14px;
+    font-size: 0.85rem;
+    color: var(--text-muted-gray);
+}
+
+/* =========================================
+   6. CONTROLES DE FORMULARIO E INPUTS
+   ========================================= */
+.form-row-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.group-label {
+    font-size: 0.82rem;
+    margin-bottom: 6px;
+    color: var(--text-muted-gray);
+    font-weight: 600;
+}
+
+.form-select,
+input[type="text"],
+input[type="number"] {
+    background-color: var(--bg-dark-deep);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text-pure-white);
+    font-size: 0.9rem;
+    width: 100%;
+    transition: all var(--transition-fast);
+}
+
+.select-large {
+    padding: 12px 14px;
+    font-size: 0.95rem;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--mist-blue);
+    box-shadow: 0 0 8px var(--mist-blue-glow);
+}
+
+#node-names-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 15px;
+    padding: 14px;
+    background-color: var(--bg-dark-deep);
+    border: 1px dashed var(--border-color);
+    border-radius: 10px;
+}
+
+/* =========================================
+   7. BOTONES
+   ========================================= */
+.btn {
+    padding: 11px 18px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-large { 
+    padding: 13px 22px; 
+    font-size: 0.95rem; 
+}
+
+.btn-success {
+    background-color: var(--mist-blue);
+    color: #000000;
+}
+.btn-success:hover {
+    background-color: #00d4e0;
+    box-shadow: 0 0 15px var(--mist-blue-glow);
+}
+
+.btn-danger {
+    background-color: transparent;
+    border: 2px solid var(--danger-red);
+    color: var(--danger-red);
+}
+.btn-danger:hover {
+    background-color: var(--danger-red);
+    color: #000000;
+    box-shadow: 0 0 15px var(--danger-red-glow);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--neon-purple);
+    color: var(--text-pure-white);
+}
+.btn-outline:hover {
+    background-color: var(--neon-purple);
+    box-shadow: 0 0 15px var(--neon-purple-glow);
+}
+
+.action-buttons-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+}
+
+/* =========================================
+   8. MATRIZ DE COSTOS E INPUTS
+   ========================================= */
+.matrix-overflow-container {
+    overflow-x: auto;
+    border: 1px dashed var(--border-color);
+    border-radius: 10px;
+    padding: 14px;
+    background-color: var(--bg-dark-deep);
+}
+
+.matrix-table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 480px;
+}
+
+.matrix-table th, .matrix-table td {
+    padding: 6px;
+    text-align: center;
+    font-size: 0.82rem;
+}
+
+.matrix-table thead th {
+    color: var(--mist-blue);
+    border-bottom: 2px solid var(--border-color);
+    font-weight: 700;
+    padding-bottom: 8px;
+}
+
+.matrix-table tbody th {
+    color: var(--neon-purple);
+    font-weight: 700;
+    border-right: 2px solid var(--border-color);
+    padding-right: 8px;
+}
+
+.matrix-input {
+    width: 68px;
+    text-align: center;
+    padding: 8px 4px;
+    background-color: var(--bg-card-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-pure-white);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.matrix-input:disabled {
+    opacity: 0.35;
+    background-color: transparent;
+    border-color: transparent;
+    color: var(--text-muted-gray);
+}
+
+/* =========================================
+   9. PANEL DE RESULTADOS
+   ========================================= */
+.main-visualization {
+    background-color: var(--bg-card-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 22px 24px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+.result-title-box h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: var(--mist-blue);
+    text-shadow: 0 0 10px var(--mist-blue-glow);
+}
+
+.result-title-box p {
+    margin: 4px 0 0 0;
+    font-size: 0.85rem;
+    color: var(--text-muted-gray);
+}
+
+.cost-box {
+    padding: 14px 22px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    background: rgba(0, 240, 255, 0.05);
+    min-width: 160px;
+}
+
+.cost-label {
+    font-size: 0.78rem;
+    color: var(--text-muted-gray);
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cost-value {
+    display: block;
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--mist-blue);
+    text-shadow: 0 0 12px var(--mist-blue-glow);
+}
+
+/* =========================================
+   10. CAJA DE RUTA ÓPTIMA
+   ========================================= */
+.path-summary-box {
+    background-color: var(--bg-dark-deep);
+    border: 1px solid var(--neon-purple);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    font-size: 0.95rem;
+    color: #e2b3ff;
+    line-height: 1.6;
+}
+
+.path-summary-box strong { color: var(--neon-purple); }
+
+.path-chain {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.9rem;
+}
+
+.path-chain-node {
+    background-color: rgba(189, 91, 247, 0.2);
+    border: 1.5px solid var(--neon-purple);
+    color: var(--text-pure-white);
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-weight: 800;
+}
+
+.path-chain-arrow { 
+    color: var(--mist-blue); 
+    font-weight: 800;
+}
+
+/* =========================================
+   11. VISUALIZACIÓN DE GRAFO (AMPLIADO Y LÍNEAS RECTAS)
+   ========================================= */
+.results-content-grid {
+    display: grid;
+    grid-template-columns: 1.8fr 1fr; /* Más espacio al área del grafo */
+    gap: 24px;
+    align-items: start;
+}
+
+.graph-canvas-container {
+    position: relative;
+    background-color: var(--bg-dark-deep);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    height: 700px; /* Altura amplia para proyección en clase */
+    overflow: hidden;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+.svg-wrapper { 
+    width: 100%; 
+    height: 100%; 
+}
+
+#graph-svg-container {
+    width: 100%;
+    min-height: 520px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* --- Estilos para elementos SVG del Grafo --- */
+
+/* Conexiones Rectas Generales */
+.graph-edge {
+    stroke: #334155;
+    stroke-width: 2.5px;
+    stroke-linecap: round;
+    transition: stroke 0.3s ease, stroke-width 0.3s ease;
+}
+
+/* Conexiones de la Ruta Óptima */
+.graph-edge.edge-optimal {
+    stroke: var(--danger-red);
+    stroke-width: 5px;
+    filter: drop-shadow(0 0 6px var(--danger-red-glow));
+}
+
+/* Etiquetas de Ponderaciones / Pesos (Números) */
+.edge-weight-group text {
+    fill: #ffffff;
+    font-size: 15px;
+    font-weight: 800;
+    text-anchor: middle;
+    dominant-baseline: central;
+    paint-order: stroke fill;
+    stroke: var(--bg-dark-deep);
+    stroke-width: 5px;
+    stroke-linejoin: round;
+}
+
+.edge-weight-group.optimal text {
+    fill: var(--mist-blue);
+    font-size: 16px;
+    stroke-width: 6px;
+}
+
+/* Rectángulo de fondo opcional para legibilidad extrema */
+.edge-weight-bg {
+    fill: var(--bg-card-surface);
+    stroke: var(--border-color);
+    stroke-width: 1px;
+    rx: 4px;
+    ry: 4px;
+}
+
+/* Círculos de los Nodos */
+.graph-node {
+    stroke-width: 3px;
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.graph-node:hover {
+    filter: brightness(1.2);
+}
+
+.graph-node.node-start {
+    fill: #2563eb;
+    stroke: #60a5fa;
+    filter: drop-shadow(0 0 10px rgba(37, 99, 235, 0.6));
+}
+
+.graph-node.node-end {
+    fill: var(--danger-red);
+    stroke: #fca5a5;
+    filter: drop-shadow(0 0 10px var(--danger-red-glow));
+}
+
+.graph-node.node-optimal-path {
+    fill: var(--neon-purple);
+    stroke: #e9d5ff;
+    filter: drop-shadow(0 0 10px var(--neon-purple-glow));
+}
+
+.graph-node.node-regular {
+    fill: #1e293b;
+    stroke: #64748b;
+}
+
+/* Textos dentro/junto a los nodos */
+.node-title-text {
+    fill: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    text-anchor: middle;
+    dominant-baseline: central;
+    pointer-events: none;
+}
+
+/* Etiqueta del Método de Taha [Distancia, Predecesor] */
+.node-taha-label {
+    fill: var(--mist-blue);
+    font-size: 15px;
+    font-weight: 800;
+    font-family: monospace;
+    text-anchor: middle;
+    paint-order: stroke fill;
+    stroke: var(--bg-dark-deep);
+    stroke-width: 5px;
+    stroke-linejoin: round;
+}
+
+/* Leyenda Flotante */
+.floating-legend {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    background: rgba(18, 17, 28, 0.9);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 12px 16px;
+    backdrop-filter: blur(8px);
+    z-index: 10;
+}
+
+.floating-legend h4 {
+    margin: 0 0 8px 0;
+    font-size: 0.8rem;
+    color: var(--text-muted-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.floating-legend ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.floating-legend li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.82rem;
+    color: var(--text-pure-white);
+    font-weight: 500;
+}
+
+.legend-line { 
+    width: 24px; 
+    height: 4px; 
+    display: inline-block; 
+    border-radius: 2px; 
+}
+
+.line-path { background-color: var(--danger-red); box-shadow: 0 0 8px var(--danger-red-glow); }
+.line-normal { background-color: #334155; }
+
+.legend-node { 
+    width: 14px; 
+    height: 14px; 
+    border-radius: 50%; 
+    display: inline-block; 
+    border: 2px solid; 
+}
+
+.node-start { background-color: #2563eb; border-color: #60a5fa; }
+.node-end { background-color: var(--danger-red); border-color: #fca5a5; }
+
+/* =========================================
+   12. TABLA RESUMEN DE ITERACIONES
+   ========================================= */
+.table-section h3, .iterations-detail-section h3 {
+    font-size: 1.1rem;
+    color: var(--mist-blue);
+    margin: 0 0 4px 0;
+}
+
+.section-desc {
+    font-size: 0.83rem;
+    color: var(--text-muted-gray);
+    margin: 0 0 14px 0;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    max-height: 620px;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    text-align: center;
+    background-color: var(--bg-dark-deep);
+}
+
+.data-table th {
+    background-color: var(--bg-card-surface);
+    color: var(--text-pure-white);
+    padding: 12px 10px;
+    border-bottom: 2px solid var(--border-color);
+    font-weight: 700;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.data-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-pure-white);
+    white-space: nowrap;
+}
+
+.data-table tr:hover td { 
+    background-color: rgba(255, 255, 255, 0.03); 
+}
+
+.label-perm {
+    color: var(--text-muted-gray);
+    font-weight: 600;
+}
+
+.label-new-perm {
+    background-color: rgba(0, 240, 255, 0.12);
+    border: 1px solid var(--mist-blue);
+    color: var(--mist-blue) !important;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-weight: 800;
+    display: inline-block;
+}
+
+.label-temp {
+    color: var(--text-pure-white);
+    opacity: 0.9;
+}
+
+.label-tie {
+    border: 1px dashed var(--amber-warn);
+    color: var(--amber-warn) !important;
+    padding: 3px 7px;
+    border-radius: 5px;
+}
+
+.label-unreached {
+    color: var(--text-muted-gray);
+    opacity: 0.35;
+}
+
+/* =========================================
+   13. TARJETAS PASO A PASO (MÉTODO TAHA)
+   ========================================= */
+.iterations-detail-section { margin-top: 30px; }
+
+.iteration-card {
+    background-color: var(--bg-dark-deep);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+    transition: border-color var(--transition-fast);
+}
+
+.iteration-card:hover {
+    border-color: rgba(0, 240, 255, 0.4);
+}
+
+.iteration-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.iteration-badge {
+    background-color: rgba(189, 91, 247, 0.15);
+    border: 1px solid var(--neon-purple);
+    color: var(--neon-purple);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-weight: 800;
+    font-size: 0.88rem;
+}
+
+.iteration-selected-tag {
+    font-size: 0.88rem;
+    color: var(--mist-blue);
+    font-weight: 700;
+}
+
+.iteration-explain {
+    font-size: 0.86rem;
+    color: var(--text-muted-gray);
+    line-height: 1.6;
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    background-color: rgba(255, 255, 255, 0.02);
+    border-left: 4px solid var(--mist-blue);
+    border-radius: 4px;
+}
+
+.iteration-explain strong { color: var(--text-pure-white); }
+
+.iteration-mini-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.iteration-mini-table th {
+    text-align: left;
+    color: var(--text-muted-gray);
+    font-weight: 700;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.iteration-mini-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    color: var(--text-pure-white);
+}
+
+.iteration-mini-table tr.row-permanent td { color: var(--text-muted-gray); }
+
+.iteration-mini-table tr.row-new-permanent td {
+    color: var(--mist-blue);
+    font-weight: 800;
+    background-color: rgba(0, 240, 255, 0.06);
+}
+
+.iteration-mini-table tr.row-tie td { color: var(--amber-warn); }
+
+.status-pill {
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.status-pill.permanent { background: rgba(0, 240, 255, 0.15); color: var(--mist-blue); }
+.status-pill.temporal { background: rgba(255, 255, 255, 0.06); color: var(--text-muted-gray); }
+.status-pill.no-label { background: transparent; color: var(--text-muted-gray); opacity: 0.4; }
+
+/* =========================================
+   14. SECCIÓN INSIGHTS / DETALLES CLAVE
+   ========================================= */
+.insight-box {
+    background-color: rgba(189, 91, 247, 0.06);
+    border: 1px solid var(--neon-purple);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-top: 24px;
+}
+
+.insight-box h4 {
+    margin: 0 0 12px 0;
+    color: var(--neon-purple);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.insight-box ul {
+    margin: 0;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.insight-box li {
+    font-size: 0.88rem;
+    color: var(--text-muted-gray);
+    line-height: 1.55;
+}
+
+.insight-box li strong { color: var(--text-pure-white); }
+
+/* =========================================
+   15. MODAL DE ERROR
+   ========================================= */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    backdrop-filter: blur(5px);
+}
+
+.modal-box {
+    background-color: var(--bg-card-surface);
+    border: 1px solid var(--danger-red);
+    border-radius: 12px;
+    padding: 26px 28px;
+    max-width: 440px;
+    width: 90%;
+    box-shadow: 0 0 30px rgba(255, 77, 77, 0.3);
+}
+
+.modal-title {
+    margin: 0 0 12px 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.error-text { color: var(--danger-red); }
+
+#error-message {
+    font-size: 0.92rem;
+    color: var(--text-muted-gray);
+    line-height: 1.55;
+    margin: 0;
+}
+
+/* =========================================
+   16. MEDIA QUERIES (ADAPTABILIDAD RESPONSIVA)
+   ========================================= */
+@media (max-width: 1100px) {
+    .results-content-grid { 
+        grid-template-columns: 1fr; 
+    }
+    
+    .graph-canvas-container { 
+        height: 550px; 
+    }
+}
+
+@media (max-width: 640px) {
+    body { 
+        padding: 12px; 
+    }
+    
+    .main-title { 
+        font-size: 1.75rem; 
+    }
+    
+    .graph-canvas-container { 
+        height: 450px; 
+    }
+    
+    .results-header { 
+        flex-direction: column; 
+        align-items: flex-start; 
+    }
+    
+    .cost-box { 
+        width: 100%; 
+    }
+    
+    .action-buttons-group { 
+        flex-direction: column; 
+    }
+    
+    .btn { 
+        width: 100%; 
+    }
 }

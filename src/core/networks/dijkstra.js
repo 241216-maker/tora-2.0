@@ -1,489 +1,753 @@
-// ==========================================
-// 1. ELEMENTOS DEL DOM
-// ==========================================
-//Le indican al navegador que es un documento web moderno 
-// (HTML5) y que su contenido está en español.
-const DOM = {//
-    get nodeCountInput() { return document.getElementById('node-count'); },
-    get btnGenerateMatrix() { return document.getElementById('btn-generate-matrix'); },
-    
-    matrixSection: document.getElementById('matrix-section'),
-    matrixWrapper: document.getElementById('matrix-wrapper'),
-    
-    executionSection: document.getElementById('execution-section'),
-    startNodeSelect: document.getElementById('dijkstra-start-node'),
-    endNodeSelect: document.getElementById('dijkstra-end-node'),
-    btnCalculate: document.getElementById('btn-calculate'),
-    btnResetAll: document.getElementById('btn-reset-all'),
-    
-    resultsPanel: document.getElementById('results-panel'),
-    totalCostSpan: document.getElementById('total-minimum-cost'),
-    svgContainer: document.getElementById('graph-svg-container'),
-    
-    tableHeader: document.getElementById('dijkstra-table-header'),
-    tableBody: document.getElementById('dijkstra-table-body'),
-    
-    errorModal: document.getElementById('error-modal'),
-    errorMessage: document.getElementById('error-message'),
-    btnCloseModal: document.getElementById('btn-close-modal')
-};
+// ==========================================================
+// ALGORITMO DE DIJKSTRA — Método de Etiquetado de Taha
+// (Investigación de Operaciones, Taha, 9na ed., cap. 6.3)
+// ==========================================================
 
-// ==========================================
-// 2. ESTADO GLOBAL
-// ==========================================
-let numNodes = 0;
-let adjMatrix = [];
-const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+document.addEventListener('DOMContentLoaded', () => {
+    // ==========================================
+    // 1. ELEMENTOS DEL DOM
+    // ==========================================
+    const DOM = {
+        nodeCountInput: document.getElementById('node-count'),
+        weightTypeSelect: document.getElementById('matrix-weight-type'),
+        btnLoadPreset: document.getElementById('btn-load-preset'),
+        btnGenerateMatrix: document.getElementById('btn-generate-matrix'),
 
-// ==========================================
-// 3. GENERACIÓN DE INTERFAZ (MATRIZ)
-// ==========================================
+        nodeNamesContainer: document.getElementById('node-names-container'),
+        matrixSection: document.getElementById('matrix-section'),
+        matrixWrapper: document.getElementById('matrix-wrapper'),
 
-DOM.btnGenerateMatrix.addEventListener('click', () => {
-    numNodes = parseInt(DOM.nodeCountInput.value);
-    
-    if (isNaN(numNodes) || numNodes < 2 || numNodes > 15) {
-        showError("Por favor, ingrese un número de nodos válido (entre 2 y 15).");
-        return;
-    }
+        executionSection: document.getElementById('execution-section'),
+        startNodeSelect: document.getElementById('dijkstra-start-node'),
+        endNodeSelect: document.getElementById('dijkstra-end-node'),
+        btnCalculate: document.getElementById('btn-calculate'),
+        btnResetAll: document.getElementById('btn-reset-all'),
 
-    generateMatrixUI();
-    updateSelectDropdowns();
-    
-    DOM.matrixSection.style.display = 'block';
-    DOM.executionSection.style.display = 'block';
-    DOM.resultsPanel.style.display = 'none';
-});
+        resultsPanel: document.getElementById('results-panel'),
+        totalCostSpan: document.getElementById('total-minimum-cost'),
+        svgContainer: document.getElementById('graph-svg-container'),
+        pathSummaryBox: document.getElementById('path-summary-box'),
 
-function generateMatrixUI() {
-    // Cabeceras (Columnas: "A")
-    let tableHTML = '<table class="matrix-table"><thead><tr><th>De \\ A</th>';
-    for (let i = 0; i < numNodes; i++) {
-        tableHTML += `<th>${ALPHABET[i]}</th>`;
-    }
-    tableHTML += '</tr></thead><tbody>';
+        tableHeader: document.getElementById('dijkstra-table-header'),
+        tableBody: document.getElementById('dijkstra-table-body'),
+        iterationsDetailContainer: document.getElementById('iterations-detail-container'),
 
-    // Filas (Cabeceras: "De")
-    for (let i = 0; i < numNodes; i++) {
-        tableHTML += `<tr><th>${ALPHABET[i]}</th>`;
-        for (let j = 0; j < numNodes; j++) {
-            if (i === j) {
-                tableHTML += `<td><input type="text" class="matrix-input" disabled value="0"></td>`;
-            } else {
-                tableHTML += `<td><input type="number" class="matrix-input" id="cell-${i}-${j}" min="0" placeholder="-"></td>`;
-            }
+        errorModal: document.getElementById('error-modal'),
+        errorMessage: document.getElementById('error-message'),
+        btnCloseModal: document.getElementById('btn-close-modal')
+    };
+
+    // ==========================================
+    // 2. ESTADO GLOBAL Y DATOS PREDEFINIDOS
+    // ==========================================
+    let numNodes = 0;
+    let adjMatrix = [];
+    let nodeCustomNames = [];
+    let currentUnit = "KM";
+
+    // Ejemplo predefinido con nombres de nodos limpios
+    const PRESET_EXAMPLE = {
+        nodes: ["N_1", "N_2", "N_3", "N_4", "N_5"],
+        edges: [
+            { from: 0, to: 1, dist: 1.3, timeNormal: 4.75, timeEmergencia: 2.75 },
+            { from: 0, to: 2, dist: 3.1, timeNormal: 11.0, timeEmergencia: 6.00 },
+            { from: 0, to: 3, dist: 2.6, timeNormal: 10.0, timeEmergencia: 5.50 },
+            { from: 0, to: 4, dist: 4.5, timeNormal: 15.0, timeEmergencia: 8.75 },
+            { from: 1, to: 2, dist: 2.0, timeNormal: 7.25, timeEmergencia: 4.25 },
+            { from: 1, to: 3, dist: 1.8, timeNormal: 6.75, timeEmergencia: 4.00 },
+            { from: 1, to: 4, dist: 4.2, timeNormal: 14.0, timeEmergencia: 8.50 },
+            { from: 2, to: 3, dist: 0.8, timeNormal: 4.00, timeEmergencia: 1.75 },
+            { from: 2, to: 4, dist: 3.0, timeNormal: 10.25, timeEmergencia: 6.00 },
+            { from: 3, to: 4, dist: 3.8, timeNormal: 13.0, timeEmergencia: 7.50 }
+        ]
+    };
+
+    // Función Helper para obtener nombre formateado y limpio del nodo
+    function getNodeName(index) {
+        if (nodeCustomNames[index] && nodeCustomNames[index].trim() !== '') {
+            return nodeCustomNames[index].trim();
         }
-        tableHTML += '</tr>';
+        return `N_${index + 1}`;
     }
-    tableHTML += '</tbody></table>';
-    
-    DOM.matrixWrapper.innerHTML = tableHTML;
-}
 
-function updateSelectDropdowns() {
-    DOM.startNodeSelect.innerHTML = '';
-    DOM.endNodeSelect.innerHTML = '';
-    
-    for (let i = 0; i < numNodes; i++) {
-        const option1 = document.createElement('option');
-        option1.value = i;
-        option1.text = `Nodo ${ALPHABET[i]}`;
-        DOM.startNodeSelect.appendChild(option1);
-        
-        const option2 = document.createElement('option');
-        option2.value = i;
-        option2.text = `Nodo ${ALPHABET[i]}`;
-        DOM.endNodeSelect.appendChild(option2);
+    function updateUnit() {
+        if (!DOM.weightTypeSelect) return;
+        const val = DOM.weightTypeSelect.value;
+        currentUnit = (val === 'tiempo' || val === 'tiempo_emergencia') ? "MIN" : "KM";
     }
-    // Seleccionar el último nodo por defecto para el destino
-    DOM.endNodeSelect.value = numNodes - 1;
-}
 
-function extractMatrix() {
-    adjMatrix = [];
-    for (let i = 0; i < numNodes; i++) {
-        let row = [];
-        for (let j = 0; j < numNodes; j++) {
-            if (i === j) {
-                row.push(0);
-            } else {
-                const cellValue = document.getElementById(`cell-${i}-${j}`).value;
-                row.push(cellValue === "" ? Infinity : parseFloat(cellValue));
+    // ==========================================
+    // 3. GENERACIÓN DE INTERFAZ Y MANEJO DE NODOS
+    // ==========================================
+
+    if (DOM.btnGenerateMatrix) {
+        DOM.btnGenerateMatrix.addEventListener('click', () => {
+            numNodes = parseInt(DOM.nodeCountInput.value);
+
+            if (isNaN(numNodes) || numNodes < 2 || numNodes > 15) {
+                showError("Por favor, ingrese un número de nodos válido (entre 2 y 15).");
+                return;
             }
-        }
-        adjMatrix.push(row);
+
+            nodeCustomNames = Array.from({ length: numNodes }, (_, i) => nodeCustomNames[i] || `N_${i + 1}`);
+            updateUnit();
+
+            generateNodeNamesUI();
+            generateMatrixUI();
+            updateSelectDropdowns();
+
+            DOM.matrixSection.style.display = 'block';
+            DOM.executionSection.style.display = 'block';
+            DOM.resultsPanel.style.display = 'none';
+        });
     }
-}
 
-// ==========================================
-// 4. LÓGICA DEL ALGORITMO (MÉTODO TAHA)
-// ==========================================
+    if (DOM.btnLoadPreset) {
+        DOM.btnLoadPreset.addEventListener('click', () => {
+            loadPresetData();
+        });
+    }
 
-function solveDijkstra(matrix, start, end) {
-    // 1. INICIALIZACIÓN DE VARIABLES
-    // Creamos arreglos del tamaño del total de nodos
-    let dist = Array(numNodes).fill(Infinity); // Todas las distancias iniciales son infinitas
-    let pred = Array(numNodes).fill(null);     // Nadie tiene un nodo predecesor al inicio
-    let perm = Array(numNodes).fill(false);    // Ningún nodo es permanente/visitado aún
-    
-    // La distancia del nodo origen a sí mismo siempre es 0
-    dist[start] = 0;
-    let iterations = []; // Almacenará el historial de cada paso para pintar la tabla en la interfaz
+    if (DOM.weightTypeSelect) {
+        DOM.weightTypeSelect.addEventListener('change', () => {
+            updateUnit();
+            if (numNodes > 0) {
+                generateMatrixUI();
+            }
+        });
+    }
 
-    // 2. BUCLE PRINCIPAL (Se ejecuta una vez por cada nodo del grafo)
-    for (let step = 0; step < numNodes; step++) {
-        
-        // PARTE A: Buscar el nodo no permanente con la menor distancia acumulada
-        let u = -1;
-        let minDist = Infinity;
+    function loadPresetData() {
+        updateUnit();
+        const weightType = DOM.weightTypeSelect ? DOM.weightTypeSelect.value : 'distancia';
+        numNodes = PRESET_EXAMPLE.nodes.length;
+        if (DOM.nodeCountInput) DOM.nodeCountInput.value = numNodes;
+
+        nodeCustomNames = [...PRESET_EXAMPLE.nodes];
+
+        generateNodeNamesUI();
+        generateMatrixUI();
+        updateSelectDropdowns();
+
+        PRESET_EXAMPLE.edges.forEach(edge => {
+            let val;
+            if (weightType === 'tiempo_emergencia') {
+                val = edge.timeEmergencia;
+            } else if (weightType === 'tiempo') {
+                val = edge.timeNormal;
+            } else {
+                val = edge.dist;
+            }
+
+            const cellDirect = document.getElementById(`cell-${edge.from}-${edge.to}`);
+            const cellReverse = document.getElementById(`cell-${edge.to}-${edge.from}`);
+
+            if (cellDirect) cellDirect.value = val;
+            if (cellReverse) cellReverse.value = val;
+        });
+
+        DOM.matrixSection.style.display = 'block';
+        DOM.executionSection.style.display = 'block';
+        DOM.resultsPanel.style.display = 'none';
+    }
+
+    function generateNodeNamesUI() {
+        let html = '';
         for (let i = 0; i < numNodes; i++) {
-            // Si el nodo 'i' no es permanente y su distancia es menor a la mínima encontrada...
-            if (!perm[i] && dist[i] < minDist) {
-                minDist = dist[i]; // Actualizamos la distancia mínima temporal
-                u = i;             // Guardamos el índice del nodo ganador
+            html += `
+                <div class="form-group">
+                    <label class="group-label">Etiqueta Nodo ${i + 1}:</label>
+                    <input type="text" class="form-select node-name-input" data-index="${i}" value="${getNodeName(i)}" placeholder="Ej. N_${i+1}">
+                </div>
+            `;
+        }
+        DOM.nodeNamesContainer.innerHTML = html;
+
+        document.querySelectorAll('.node-name-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const idx = parseInt(e.target.dataset.index);
+                nodeCustomNames[idx] = e.target.value;
+                updateSelectDropdowns();
+                updateMatrixHeaders();
+            });
+        });
+    }
+
+    function generateMatrixUI() {
+        let tableHTML = `<table class="matrix-table"><thead><tr><th>De \\ A (${currentUnit})</th>`;
+        for (let i = 0; i < numNodes; i++) {
+            tableHTML += `<th id="header-col-${i}">${getNodeName(i)}</th>`;
+        }
+        tableHTML += '</tr></thead><tbody>';
+
+        for (let i = 0; i < numNodes; i++) {
+            tableHTML += `<tr><th id="header-row-${i}">${getNodeName(i)}</th>`;
+            for (let j = 0; j < numNodes; j++) {
+                if (i === j) {
+                    tableHTML += `<td><input type="text" class="matrix-input" disabled value="0"></td>`;
+                } else {
+                    tableHTML += `<td>
+                        <input type="number" step="any" min="0" class="matrix-input" id="cell-${i}-${j}" placeholder="-" 
+                               oninput="if(this.value < 0) this.value = '';">
+                    </td>`;
+                }
+            }
+            tableHTML += '</tr>';
+        }
+        tableHTML += '</tbody></table>';
+
+        DOM.matrixWrapper.innerHTML = tableHTML;
+    }
+
+    function updateMatrixHeaders() {
+        for (let i = 0; i < numNodes; i++) {
+            const colHead = document.getElementById(`header-col-${i}`);
+            const rowHead = document.getElementById(`header-row-${i}`);
+            if (colHead) colHead.textContent = getNodeName(i);
+            if (rowHead) rowHead.textContent = getNodeName(i);
+        }
+    }
+
+    function updateSelectDropdowns() {
+        const prevStart = DOM.startNodeSelect.value;
+        const prevEnd = DOM.endNodeSelect.value;
+
+        DOM.startNodeSelect.innerHTML = '';
+        DOM.endNodeSelect.innerHTML = '';
+
+        for (let i = 0; i < numNodes; i++) {
+            const option1 = document.createElement('option');
+            option1.value = i;
+            option1.text = getNodeName(i);
+            DOM.startNodeSelect.appendChild(option1);
+
+            const option2 = document.createElement('option');
+            option2.value = i;
+            option2.text = getNodeName(i);
+            DOM.endNodeSelect.appendChild(option2);
+        }
+
+        DOM.startNodeSelect.value = prevStart !== "" && prevStart < numNodes ? prevStart : 0;
+        DOM.endNodeSelect.value = prevEnd !== "" && prevEnd < numNodes ? prevEnd : numNodes - 1;
+    }
+
+    function extractMatrix() {
+        adjMatrix = [];
+        for (let i = 0; i < numNodes; i++) {
+            let row = [];
+            for (let j = 0; j < numNodes; j++) {
+                if (i === j) {
+                    row.push(0);
+                } else {
+                    const cell = document.getElementById(`cell-${i}-${j}`);
+                    const cellValue = cell ? cell.value.trim() : "";
+                    if (cellValue === "") {
+                        row.push(Infinity);
+                    } else {
+                        const val = parseFloat(cellValue);
+                        if (isNaN(val) || val < 0) {
+                            throw new Error(`Restricción: No se permiten distancias o costos negativos (celda ${getNodeName(i)} → ${getNodeName(j)}).`);
+                        }
+                        row.push(val);
+                    }
+                }
+            }
+            adjMatrix.push(row);
+        }
+    }
+
+    // ==========================================
+    // 4. LÓGICA DEL ALGORITMO (MÉTODO TAHA)
+    // ==========================================
+
+    function solveDijkstra(matrix, start, end) {
+        let dist = Array(numNodes).fill(Infinity);
+        let pred = Array(numNodes).fill(null);
+        let perm = Array(numNodes).fill(false);
+        let everLabeled = Array(numNodes).fill(false);
+
+        dist[start] = 0;
+        everLabeled[start] = true;
+
+        let iterations = [];
+
+        for (let step = 1; step <= numNodes; step++) {
+            let minDist = Infinity;
+            for (let i = 0; i < numNodes; i++) {
+                if (!perm[i] && dist[i] < minDist) minDist = dist[i];
+            }
+            if (minDist === Infinity) break;
+
+            const tieCandidates = [];
+            for (let i = 0; i < numNodes; i++) {
+                if (!perm[i] && dist[i] === minDist) tieCandidates.push(i);
+            }
+            const u = tieCandidates[0];
+            const wasTie = tieCandidates.length > 1;
+            perm[u] = true;
+
+            const relaxedNodes = [];
+            for (let v = 0; v < numNodes; v++) {
+                if (v === u) continue;
+                const w = matrix[u][v];
+                if (w !== Infinity && w >= 0 && !perm[v]) {
+                    const candidate = dist[u] + w;
+                    if (candidate < dist[v]) {
+                        const wasNew = dist[v] === Infinity;
+                        relaxedNodes.push({ node: v, oldDist: dist[v], newDist: candidate, wasNew });
+                        dist[v] = candidate;
+                        pred[v] = u;
+                        everLabeled[v] = true;
+                    }
+                }
+            }
+
+            const labelsSnapshot = [];
+            for (let i = 0; i < numNodes; i++) {
+                let state;
+                if (i === u) state = 'new-permanent';
+                else if (perm[i]) state = 'permanent';
+                else if (everLabeled[i]) state = 'temporal';
+                else state = 'none';
+
+                labelsSnapshot.push({
+                    node: i,
+                    dist: dist[i],
+                    pred: pred[i],
+                    state,
+                    justRelaxed: relaxedNodes.some(r => r.node === i)
+                });
+            }
+
+            iterations.push({
+                number: step,
+                selectedNode: u,
+                wasTie,
+                tieCandidates,
+                relaxedNodes,
+                labels: labelsSnapshot
+            });
+
+            if (u === end) break;
+        }
+
+        let path = [];
+        let curr = end;
+        while (curr !== null && curr !== start) {
+            path.unshift(curr);
+            curr = pred[curr];
+        }
+        if (curr === start) {
+            path.unshift(start);
+        } else {
+            path = [];
+        }
+
+        return {
+            totalDistance: dist[end],
+            path,
+            iterations,
+            finalLabels: dist.map((d, i) => ({ dist: d, pred: pred[i] }))
+        };
+    }
+
+    // ==========================================
+    // 5. RENDERIZADO — TABLA RESUMEN LIMPIA
+    // ==========================================
+
+    function buildSummaryTable(iterations) {
+        DOM.tableHeader.innerHTML = '<th>Iteración (Nodo permanente)</th>';
+        for (let i = 0; i < numNodes; i++) {
+            DOM.tableHeader.innerHTML += `<th>${getNodeName(i)}</th>`;
+        }
+
+        DOM.tableBody.innerHTML = '';
+
+        iterations.forEach((iter) => {
+            const tr = document.createElement('tr');
+
+            const tdIter = document.createElement('td');
+            tdIter.innerHTML = `<strong>Paso ${iter.number} (${getNodeName(iter.selectedNode)})</strong>`;
+            tr.appendChild(tdIter);
+
+            iter.labels.forEach((label) => {
+                const td = document.createElement('td');
+
+                if (label.state === 'none') {
+                    td.innerHTML = `<span class="label-unreached">—</span>`;
+                    tr.appendChild(td);
+                    return;
+                }
+
+                const distText = label.dist === Infinity ? '∞' : label.dist;
+                const predText = label.pred === null ? '-' : getNodeName(label.pred);
+                const cellContent = `[${distText}, ${predText}]`;
+
+                if (label.state === 'new-permanent') {
+                    td.innerHTML = `<span class="label-new-perm">${cellContent}</span>`;
+                } else if (label.state === 'permanent') {
+                    td.innerHTML = `<span class="label-perm">${cellContent}</span>`;
+                } else if (label.justRelaxed) {
+                    td.innerHTML = `<span class="label-tie">${cellContent}</span>`;
+                } else {
+                    td.innerHTML = `<span class="label-temp">${cellContent}</span>`;
+                }
+
+                tr.appendChild(td);
+            });
+
+            DOM.tableBody.appendChild(tr);
+        });
+    }
+
+    // ==========================================
+    // 6. RENDERIZADO — DETALLE PASO A PASO
+    // ==========================================
+
+    function buildIterationCards(iterations, start, end) {
+        DOM.iterationsDetailContainer.innerHTML = '';
+
+        iterations.forEach((iter) => {
+            const card = document.createElement('div');
+            card.className = 'iteration-card';
+
+            const selLabel = iter.labels.find(l => l.node === iter.selectedNode);
+            const selPredText = selLabel && selLabel.pred !== null ? getNodeName(selLabel.pred) : '-';
+            const selDistText = selLabel ? selLabel.dist : 0;
+
+            const header = document.createElement('div');
+            header.className = 'iteration-card-header';
+            header.innerHTML = `
+                <span class="iteration-badge">Iteración ${iter.number}</span>
+                <span class="iteration-selected-tag">Nodo permanente: <strong>${getNodeName(iter.selectedNode)}</strong> — etiqueta [${selDistText}, ${selPredText}]</span>
+            `;
+            card.appendChild(header);
+
+            const explain = document.createElement('div');
+            explain.className = 'iteration-explain';
+
+            let text = '';
+            if (iter.number === 1) {
+                text += `Se inicia fijando el nodo de origen <strong>${getNodeName(start)}</strong> con la etiqueta permanente <strong>[0, -]</strong>. `;
+            } else {
+                text += `El nodo <strong>${getNodeName(iter.selectedNode)}</strong> posee la menor distancia acumulada entre las etiquetas temporales y pasa a ser <strong>permanente</strong>. `;
+            }
+
+            if (iter.wasTie) {
+                const others = iter.tieCandidates.filter(n => n !== iter.selectedNode).map(getNodeName).join(', ');
+                text += `<strong>Ocurrió un empate</strong> con ${others}; se arbitró por orden de índice. `;
+            }
+
+            if (iter.relaxedNodes.length > 0) {
+                const list = iter.relaxedNodes.map(r => {
+                    return r.wasNew
+                        ? `${getNodeName(r.node)} (nueva etiqueta temporal = [${r.newDist} ${currentUnit}, ${getNodeName(iter.selectedNode)}])`
+                        : `${getNodeName(r.node)} (actualizada a ${r.newDist} ${currentUnit})`;
+                }).join('; ');
+                text += `Evaluación de arcos desde ${getNodeName(iter.selectedNode)}: ${list}.`;
+            } else {
+                text += `No existen arcos hacia nodos temporales por actualizar.`;
+            }
+
+            explain.innerHTML = text;
+            card.appendChild(explain);
+
+            const table = document.createElement('table');
+            table.className = 'iteration-mini-table';
+            table.innerHTML = `<thead><tr><th>Nodo</th><th>Etiqueta [distancia (${currentUnit}), predecesor]</th><th>Estado</th></tr></thead>`;
+            const tbody = document.createElement('tbody');
+
+            iter.labels.forEach(label => {
+                if (label.state === 'none') return;
+                const tr = document.createElement('tr');
+
+                let rowClass = (label.state === 'new-permanent') ? 'row-new-permanent' : 
+                               (label.state === 'permanent') ? 'row-permanent' : 
+                               (label.justRelaxed) ? 'row-tie' : '';
+                               
+                let statusHTML = (label.state === 'new-permanent' || label.state === 'permanent') 
+                    ? `<span class="status-pill permanent">Permanente</span>`
+                    : `<span class="status-pill temporal">Temporal</span>`;
+
+                const distText = label.dist === Infinity ? '∞' : label.dist;
+                const predText = label.pred === null ? '-' : getNodeName(label.pred);
+
+                tr.className = rowClass;
+                tr.innerHTML = `
+                    <td><strong>${getNodeName(label.node)}</strong></td>
+                    <td>[${distText}, ${predText}]</td>
+                    <td>${statusHTML}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            table.appendChild(tbody);
+            card.appendChild(table);
+            DOM.iterationsDetailContainer.appendChild(card);
+        });
+    }
+
+    // ==========================================
+    // 7. RENDERIZADO — RESUMEN DE RUTA FINAL
+    // ==========================================
+
+    function buildPathSummary(result, start, end) {
+        if (result.path.length === 0) {
+            DOM.pathSummaryBox.innerHTML = '<div class="error-text">No existe una ruta posible entre el origen y destino seleccionados.</div>';
+            return;
+        }
+
+        let forwardChain = result.path.map(n => `
+            <span class="path-chain-node">${getNodeName(n)}</span>
+        `).join('<span class="path-chain-arrow">→</span>');
+
+        let backwardParts = [];
+        let curr = end;
+        while (curr !== null) {
+            const info = result.finalLabels[curr];
+            const predText = info.pred === null ? '-' : getNodeName(info.pred);
+            backwardParts.push(`(${getNodeName(curr)}) → [${info.dist}, ${predText}]`);
+            curr = info.pred;
+        }
+        const backwardTrace = backwardParts.join(' → ');
+
+        DOM.pathSummaryBox.innerHTML = `
+            <div><strong>Trazado inverso de etiquetas permanentes:</strong></div>
+            <div class="mt-10" style="font-family: monospace; font-size: 0.9rem; color: #8b8a9f;">
+                ${backwardTrace}
+            </div>
+            <div class="path-chain mt-15">${forwardChain}</div>
+            <div class="mt-10" style="font-size: 1.05rem;">Ruta Óptima: <strong>${result.path.map(getNodeName).join(' → ')}</strong> con un total de 
+            <strong>${result.totalDistance} ${currentUnit}</strong>.</div>
+        `;
+    }
+
+    // ==========================================
+    // 8. VISUALIZACIÓN DEL GRAFO (AMPLIO D3.JS)
+    // ==========================================
+
+    function drawGraph(matrix, result, startNode, endNode) {
+        DOM.svgContainer.innerHTML = '';
+
+        // Lienzo en alta resolución de 1000 x 650 px para desplegar con soltura
+        const width = 1000;
+        const height = 650;
+
+        if (typeof d3 === 'undefined') {
+            DOM.svgContainer.innerHTML = '<p style="color:#ff4d4d; padding: 20px;">Error: La librería D3.js no se ha cargado en la página.</p>';
+            return;
+        }
+
+        const svg = d3.select("#graph-svg-container")
+            .append("svg")
+            .attr("width", "100%")
+            .attr("height", "100%")
+            .attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("preserveAspectRatio", "xMidYMid meet");
+
+        const defs = svg.append("defs");
+
+        // Definición de puntas de flecha acorde al tema oscuro neón
+        defs.append("marker")
+            .attr("id", "arrow-normal")
+            .attr("viewBox", "0 -5 10 10")
+            .attr("refX", 32)
+            .attr("refY", 0)
+            .attr("markerWidth", 7)
+            .attr("markerHeight", 7)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M0,-5L10,0L0,5")
+            .attr("fill", "#64748b");
+
+        defs.append("marker")
+            .attr("id", "arrow-path")
+            .attr("viewBox", "0 -5 10 10")
+            .attr("refX", 34)
+            .attr("refY", 0)
+            .attr("markerWidth", 8)
+            .attr("markerHeight", 8)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M0,-5L10,0L0,5")
+            .attr("fill", "#ff4d4d");
+
+        // Posicionamiento de nodos ampliado (Radio de 230px)
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const radius = 230;
+
+        let nodesData = [];
+        for (let i = 0; i < numNodes; i++) {
+            const angle = (2 * Math.PI * i) / numNodes - (Math.PI / 2);
+            nodesData.push({
+                id: i,
+                name: getNodeName(i),
+                x: centerX + radius * Math.cos(angle),
+                y: centerY + radius * Math.sin(angle)
+            });
+        }
+
+        const pathEdges = new Set();
+        if (result.path && result.path.length > 0) {
+            for (let i = 0; i < result.path.length - 1; i++) {
+                pathEdges.add(`${result.path[i]}-${result.path[i + 1]}`);
             }
         }
 
-        // Si 'u' sigue siendo -1, significa que los nodos restantes son inalcanzables. Rompemos el ciclo.
-        if (u === -1) break; 
-
-        // Marcamos el nodo elegido 'u' como PERMANENTE (su distancia ya es la óptima final)
-        perm[u] = true;
-
-        // REGISTRO DE ESTADO: Guardamos una foto de este momento para renderizarla en la UI
-        let currentState = {
-            selected: u,
-            labels: dist.map((d, idx) => ({
-                dist: d,
-                pred: pred[idx],
-                isPerm: perm[idx],
-                justBecamePerm: idx === u 
-            }))
-        };
-
-        // PARTE B: RELAJACIÓN DE ARISTAS (Actualizar los costos de los vecinos del nodo 'u')
-        for (let v = 0; v < numNodes; v++) {
-            // Verificamos tres condiciones indispensables:
-            // 1. Que exista conexión directa en la matriz (distinta a Infinity)
-            // 2. Que el costo de la conexión sea mayor a 0 (evita ciclos sobre sí mismo)
-            // 3. Que el vecino 'v' no sea ya permanente
-            if (matrix[u][v] !== Infinity && matrix[u][v] > 0 && !perm[v]) {
-                
-                // Evaluamos: ¿El camino actual (distancia a 'u' + peso hacia 'v') es más corto que el que ya conocíamos para 'v'?
-                if (dist[u] + matrix[u][v] < dist[v]) {
-                    dist[v] = dist[u] + matrix[u][v]; // Actualizamos con el nuevo costo menor
-                    pred[v] = u;                      // Guardamos que a 'v' se llega de forma óptima pasando por 'u'
+        let linksData = [];
+        for (let i = 0; i < numNodes; i++) {
+            for (let j = 0; j < numNodes; j++) {
+                if (matrix[i][j] !== Infinity && matrix[i][j] > 0) {
+                    const isOptimal = pathEdges.has(`${i}-${j}`);
+                    linksData.push({
+                        source: nodesData[i],
+                        target: nodesData[j],
+                        weight: matrix[i][j],
+                        isOptimal
+                    });
                 }
             }
         }
-        
-        iterations.push(currentState); // Guardamos la iteración procesada
-        
-        // Optimización: Si el nodo que acabamos de hacer permanente es nuestro destino, terminamos antes.
-        if (u === end) break; 
-    }
 
-    // 3. RECONSTRUCCIÓN DE LA RUTA ÓPTIMA (Caminata hacia atrás)
-    let path = [];
-    let curr = end; // Empezamos desde el nodo final
-    
-    // Mientras el nodo actual tenga un predecesor y no hayamos regresado al origen...
-    while (curr !== null && curr !== start) {
-        path.unshift(curr); // Insertamos el nodo al inicio del arreglo para mantener el orden correcto
-        curr = pred[curr];  // Saltamos al predecesor
-    }
-    
-    // Si logramos conectar de vuelta con el inicio, agregamos el origen y la ruta es válida
-    if (curr === start) {
-        path.unshift(start);
-    } else {
-        path = []; // Si no conecta con el origen, significa que no existe ninguna ruta válida
-    }
+        // Renderizado de Aristas (Curvas bézier para evitar superposición)
+        const linkGroup = svg.append("g").attr("class", "links-layer");
 
-    // Retornamos un objeto estructurado con todos los datos calculados
-    return { 
-        totalDistance: dist[end], // El costo total mínimo hacia el destino
-        path: path,               // El arreglo con la secuencia de nodos de la ruta
-        iterations: iterations,   // El historial paso a paso para la tabla dinámica
-        finalLabels: dist.map((d, i) => ({ dist: d, pred: pred[i] })) // Etiquetas finales de control
-    };
-}
-
-// ==========================================
-// 5. RENDERIZADO DE TABLA (FORMATO TAHA)
-// ==========================================
-
-function buildTable(iterations) {
-    // Cabecera: Iteración + Nodos
-    DOM.tableHeader.innerHTML = '<th>Iteración (Nodo Seleccionado)</th>';
-    for (let i = 0; i < numNodes; i++) {
-        DOM.tableHeader.innerHTML += `<th>${ALPHABET[i]}</th>`;
-    }
-
-    DOM.tableBody.innerHTML = '';
-
-    iterations.forEach((iter, index) => {
-        const tr = document.createElement('tr');
-        
-        // Celda de iteración
-        const tdIter = document.createElement('td');
-        tdIter.innerHTML = `<strong>Paso ${index + 1} (Nodo ${ALPHABET[iter.selected]})</strong>`;
-        tr.appendChild(tdIter);
-
-        // Celdas de nodos
-        iter.labels.forEach((label, i) => {
-            const td = document.createElement('td');
-            
-            let distText = label.dist === Infinity ? '∞' : label.dist;
-            let predText = label.pred === null ? '-' : ALPHABET[label.pred];
-            
-            // Formato [Distancia, Predecesor]
-            let cellContent = `[${distText}, ${predText}]`;
-
-            if (label.justBecamePerm) {
-                td.innerHTML = `<span style="background-color: var(--color-light-blue); padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid var(--color-mid-blue);">${cellContent}</span>`;
-            } else if (label.isPerm) {
-                td.innerHTML = `<strong>${cellContent}</strong>`;
-                td.style.color = "var(--text-muted)";
-            } else {
-                td.textContent = cellContent;
-            }
-            
-            tr.appendChild(td);
-        });
-        
-        DOM.tableBody.appendChild(tr);
-    });
-}
-
-// ==========================================
-// 6. RENDERIZADO DEL GRAFO (D3.JS CON FLECHAS)
-// ==========================================
-
-function drawGraph(matrix, result, startNode, endNode) {
-    DOM.svgContainer.innerHTML = '';
-    
-    const width = DOM.svgContainer.clientWidth || 800;
-    const height = DOM.svgContainer.clientHeight || 450;
-    
-    const svg = d3.select("#graph-svg-container")
-        .append("svg")
-        .attr("width", "100%")
-        .attr("height", "100%")
-        .attr("viewBox", `0 0 ${width} ${height}`);
-
-    // Definir marcadores (Flechas)
-    const defs = svg.append("defs");
-    
-    // Flecha normal
-    defs.append("marker")
-        .attr("id", "arrow-normal")
-        .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 22) // Ajustado al borde del nodo
-        .attr("refY", 0)
-        .attr("markerWidth", 6)
-        .attr("markerHeight", 6)
-        .attr("orient", "auto")
-        .append("path")
-        .attr("d", "M0,-5L10,0L0,5")
-        .attr("fill", "#CBD5E1");
-
-    // Flecha ruta óptima (ROJA)
-    defs.append("marker")
-        .attr("id", "arrow-path")
-        .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 22)
-        .attr("refY", 0)
-        .attr("markerWidth", 6)
-        .attr("markerHeight", 6)
-        .attr("orient", "auto")
-        .append("path")
-        .attr("d", "M0,-5L10,0L0,5")
-        .attr("fill", "var(--color-danger)");
-
-    let nodesData = [];
-    let linksData = [];
-
-    // Nodos
-    for (let i = 0; i < numNodes; i++) {
-        nodesData.push({ id: i, name: ALPHABET[i] });
-    }
-
-    // Aristas (Grafos dirigidos)
-    const pathEdges = new Set();
-    if (result.path.length > 0) {
-        for (let i = 0; i < result.path.length - 1; i++) {
-            pathEdges.add(`${result.path[i]}-${result.path[i+1]}`);
-        }
-    }
-
-    for (let i = 0; i < numNodes; i++) {
-        for (let j = 0; j < numNodes; j++) {
-            if (matrix[i][j] !== Infinity && matrix[i][j] > 0) {
-                const isOptimal = pathEdges.has(`${i}-${j}`);
-                linksData.push({
-                    source: i,
-                    target: j,
-                    weight: matrix[i][j],
-                    isOptimal: isOptimal
-                });
-            }
-        }
-    }
-
-    const simulation = d3.forceSimulation(nodesData)
-        .force("link", d3.forceLink(linksData).id(d => d.id).distance(120))
-        .force("charge", d3.forceManyBody().strength(-800))
-        .force("center", d3.forceCenter(width / 2, height / 2));
-
-    // Dibujar líneas (Aristas)
-    const link = svg.append("g")
-        .selectAll("path")
-        .data(linksData)
-        .enter()
-        .append("path")
-        .attr("fill", "none")
-        .attr("stroke", d => d.isOptimal ? "var(--color-danger)" : "#CBD5E1") // Ruta óptima en ROJO
-        .attr("stroke-width", d => d.isOptimal ? 4 : 2)
-        .attr("marker-end", d => d.isOptimal ? "url(#arrow-path)" : "url(#arrow-normal)");
-
-    // Textos de los pesos
-    const linkText = svg.append("g")
-        .selectAll("text")
-        .data(linksData)
-        .enter()
-        .append("text")
-        .attr("font-size", "12px")
-        .attr("fill", d => d.isOptimal ? "var(--color-danger)" : "#6B7280")
-        .attr("font-weight", d => d.isOptimal ? "bold" : "normal")
-        .attr("dy", -5)
-        .text(d => d.weight);
-
-    // Grupos de nodos
-    const node = svg.append("g")
-        .selectAll("g")
-        .data(nodesData)
-        .enter()
-        .append("g")
-        .call(d3.drag()
-            .on("start", dragstarted)
-            .on("drag", dragged)
-            .on("end", dragended));
-
-    // Círculos
-    node.append("circle")
-        .attr("r", 18)
-        .attr("fill", d => {
-            if (d.id === startNode) return "#3B82F6"; // Origen
-            if (d.id === endNode) return "var(--color-danger)"; // Destino
-            if (result.path.includes(d.id)) return "var(--color-danger)"; // Nodos intermedios ruta
-            return "#FFFFFF";
-        })
-        .attr("stroke", d => result.path.includes(d.id) ? "var(--color-danger)" : "var(--color-mid-blue)")
-        .attr("stroke-width", 3);
-
-    // Letra del nodo (A, B, C...)
-    node.append("text")
-        .attr("dy", 5)
-        .attr("text-anchor", "middle")
-        .attr("fill", d => (d.id === startNode || result.path.includes(d.id)) ? '#FFFFFF' : '#1E293B')
-        .attr("font-weight", "bold")
-        .text(d => d.name);
-
-    // Etiquetas Taha [Distancia, Predecesor] flotando al lado del nodo
-    node.append("text")
-        .attr("dx", 22)
-        .attr("dy", -15)
-        .attr("font-size", "11px")
-        .attr("font-weight", "bold")
-        .attr("fill", "var(--color-purple)")
-        .text(d => {
-            let info = result.finalLabels[d.id];
-            if (!info || info.dist === Infinity) return "";
-            let pName = info.pred === null ? "-" : ALPHABET[info.pred];
-            return `[${info.dist}, ${pName}]`;
-        });
-
-    simulation.on("tick", () => {
-        // Actualizar aristas (curvas ligeras para grafos bidireccionales, rectas para unidireccionales)
-        link.attr("d", d => {
+        linksData.forEach(d => {
             const dx = d.target.x - d.source.x;
             const dy = d.target.y - d.source.y;
-            const dr = Math.sqrt(dx * dx + dy * dy) * 2; // Ligera curva
-            return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            const curveOffset = 36;
+            const midX = (d.source.x + d.target.x) / 2 + (dy / dist) * curveOffset;
+            const midY = (d.source.y + d.target.y) / 2 - (dx / dist) * curveOffset;
+
+            const pathStr = `M${d.source.x},${d.source.y} Q${midX},${midY} ${d.target.x},${d.target.y}`;
+
+            linkGroup.append("path")
+                .attr("d", pathStr)
+                .attr("fill", "none")
+                .attr("class", d.isOptimal ? "graph-edge edge-optimal" : "graph-edge")
+                .attr("marker-end", d.isOptimal ? "url(#arrow-path)" : "url(#arrow-normal)");
+
+            // Badge/Rectángulo de lectura del peso
+            const textBgX = (d.source.x + 2 * midX + d.target.x) / 4;
+            const textBgY = (d.source.y + 2 * midY + d.target.y) / 4;
+
+            const weightG = linkGroup.append("g")
+                .attr("class", d.isOptimal ? "edge-weight-group optimal" : "edge-weight-group")
+                .attr("transform", `translate(${textBgX}, ${textBgY})`);
+
+            weightG.append("rect")
+                .attr("class", "edge-weight-bg")
+                .attr("x", -24)
+                .attr("y", -11)
+                .attr("width", 48)
+                .attr("height", 22)
+                .attr("rx", 5);
+
+            weightG.append("text")
+                .text(`${d.weight}`);
         });
 
-        // Actualizar posición de pesos
-        linkText
-            .attr("x", d => (d.source.x + d.target.x) / 2)
-            .attr("y", d => (d.source.y + d.target.y) / 2);
+        // Renderizado de Nodos
+        const nodeGroup = svg.append("g")
+            .attr("class", "nodes-layer")
+            .selectAll("g")
+            .data(nodesData)
+            .enter()
+            .append("g")
+            .attr("transform", d => `translate(${d.x},${d.y})`);
 
-        // Actualizar posición de nodos
-        node.attr("transform", d => `translate(${d.x},${d.y})`);
-    });
+        nodeGroup.append("circle")
+            .attr("r", 26)
+            .attr("class", d => {
+                if (d.id === startNode) return "graph-node node-start";
+                if (d.id === endNode) return "graph-node node-end";
+                if (result.path.includes(d.id)) return "graph-node node-optimal-path";
+                return "graph-node node-regular";
+            });
 
-    function dragstarted(event, d) {
-        if (!event.active) simulation.alphaTarget(0.3).restart();
-        d.fx = d.x;
-        d.fy = d.y;
+        // Nombre del nodo en el centro del círculo
+        nodeGroup.append("text")
+            .attr("class", "node-title-text")
+            .text(d => d.name);
+
+        // Etiqueta del Método de Taha [distancia, predecesor] arriba de cada nodo
+        nodeGroup.append("text")
+            .attr("class", "node-taha-label")
+            .attr("dy", -36)
+            .text(d => {
+                let info = result.finalLabels[d.id];
+                if (!info || info.dist === Infinity) return "[∞, -]";
+                let pName = info.pred === null ? "-" : getNodeName(info.pred);
+                return `[${info.dist}, ${pName}]`;
+            });
     }
 
-    function dragged(event, d) {
-        d.fx = event.x;
-        d.fy = event.y;
+    // ==========================================
+    // 9. EVENTOS Y CONTROLADORES
+    // ==========================================
+
+    if (DOM.btnCalculate) {
+        DOM.btnCalculate.addEventListener('click', () => {
+            try {
+                updateUnit();
+                extractMatrix();
+                const startNode = parseInt(DOM.startNodeSelect.value);
+                const endNode = parseInt(DOM.endNodeSelect.value);
+
+                if (startNode === endNode) {
+                    showError("El nodo de origen y destino no pueden ser iguales.");
+                    return;
+                }
+
+                const result = solveDijkstra(adjMatrix, startNode, endNode);
+
+                if (result.totalDistance === Infinity) {
+                    showError("No existe una ruta o camino posible entre el origen y destino seleccionados.");
+                    return;
+                }
+
+                DOM.totalCostSpan.textContent = `${result.totalDistance} ${currentUnit}`;
+                buildSummaryTable(result.iterations);
+                buildIterationCards(result.iterations, startNode, endNode);
+                buildPathSummary(result, startNode, endNode);
+
+                DOM.resultsPanel.style.display = 'block';
+                DOM.resultsPanel.scrollIntoView({ behavior: 'smooth' });
+
+                drawGraph(adjMatrix, result, startNode, endNode);
+            } catch (err) {
+                showError(err.message);
+            }
+        });
     }
 
-    function dragended(event, d) {
-        if (!event.active) simulation.alphaTarget(0);
-        d.fx = null;
-        d.fy = null;
+    if (DOM.btnResetAll) {
+        DOM.btnResetAll.addEventListener('click', () => {
+            if (DOM.nodeCountInput) DOM.nodeCountInput.value = '5';
+            DOM.matrixSection.style.display = 'none';
+            DOM.executionSection.style.display = 'none';
+            DOM.resultsPanel.style.display = 'none';
+            adjMatrix = [];
+            nodeCustomNames = [];
+            numNodes = 0;
+        });
     }
-}
 
-// ==========================================
-// 7. EVENTOS PRINCIPALES (BOTONES)
-// ==========================================
+    if (DOM.btnCloseModal) {
+        DOM.btnCloseModal.addEventListener('click', () => {
+            DOM.errorModal.style.display = 'none';
+        });
+    }
 
-DOM.btnCalculate.addEventListener('click', () => {
-    extractMatrix();
-    const startNode = parseInt(DOM.startNodeSelect.value);
-    const endNode = parseInt(DOM.endNodeSelect.value);
-    
-    if (startNode === endNode) {
-        showError("El nodo de origen y destino no pueden ser el mismo.");
-        return;
+    function showError(message) {
+        if (DOM.errorMessage && DOM.errorModal) {
+            DOM.errorMessage.textContent = message;
+            DOM.errorModal.style.display = 'flex';
+        } else {
+            alert(message);
+        }
     }
-    
-    const result = solveDijkstra(adjMatrix, startNode, endNode);
-    
-    if (result.totalDistance === Infinity) {
-        showError("No existe una ruta posible (dirigida) entre el origen y el destino.");
-        return;
-    }
-    
-    // Renderizar resultados
-    DOM.totalCostSpan.textContent = result.totalDistance.toString();
-    buildTable(result.iterations);
-    drawGraph(adjMatrix, result, startNode, endNode);
-    
-    DOM.resultsPanel.style.display = 'block';
-    DOM.resultsPanel.scrollIntoView({ behavior: 'smooth' });
 });
-
-DOM.btnResetAll.addEventListener('click', () => {
-    DOM.nodeCountInput.value = '';
-    DOM.matrixSection.style.display = 'none';
-    DOM.executionSection.style.display = 'none';
-    DOM.resultsPanel.style.display = 'none';
-    adjMatrix = [];
-    numNodes = 0;
-});
-
-DOM.btnCloseModal.addEventListener('click', () => {
-    DOM.errorModal.style.display = 'none';
-});
-
-function showError(message) {
-    DOM.errorMessage.textContent = message;
-    DOM.errorModal.style.display = 'flex';
-}
