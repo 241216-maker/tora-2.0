@@ -1,6 +1,7 @@
 // ==========================================================
 // ALGORITMO DE DIJKSTRA — Método de Etiquetado de Taha
-// (Investigación de Operaciones, Taha, 9na ed., cap. 6.3)
+// Adaptado con Nodos Base: N_1 (Hospital), N_2 (Comisaría), N_3 (Bomberos)
+// Visualización: Diagrama de Red Superior y Tabla Resumen Inferior
 // ==========================================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -10,7 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const DOM = {
         nodeCountInput: document.getElementById('node-count'),
         weightTypeSelect: document.getElementById('matrix-weight-type'),
-        btnLoadPreset: document.getElementById('btn-load-preset'),
+        
+        btnPresetN1: document.getElementById('btn-preset-n1'),
+        btnPresetN2: document.getElementById('btn-preset-n2'),
+        btnPresetN3: document.getElementById('btn-preset-n3'),
         btnGenerateMatrix: document.getElementById('btn-generate-matrix'),
 
         nodeNamesContainer: document.getElementById('node-names-container'),
@@ -45,9 +49,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let nodeCustomNames = [];
     let currentUnit = "KM";
 
-    // Ejemplo predefinido con nombres de nodos limpios
+    // Datos del Cuadro de Red de Emergencia
     const PRESET_EXAMPLE = {
-        nodes: ["N_1", "N_2", "N_3", "N_4", "N_5"],
+        nodes: [
+            "N_1 (Hospital ESSALUD)",
+            "N_2 (Comisaría Bellavista)",
+            "N_3 (Bomberos N° 68)",
+            "N_4 (Mercado Central)",
+            "N_5 (Universidad UNAMBA)"
+        ],
         edges: [
             { from: 0, to: 1, dist: 1.3, timeNormal: 4.75, timeEmergencia: 2.75 },
             { from: 0, to: 2, dist: 3.1, timeNormal: 11.0, timeEmergencia: 6.00 },
@@ -62,7 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     };
 
-    // Función Helper para obtener nombre formateado y limpio del nodo
     function getNodeName(index) {
         if (nodeCustomNames[index] && nodeCustomNames[index].trim() !== '') {
             return nodeCustomNames[index].trim();
@@ -77,8 +86,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 3. GENERACIÓN DE INTERFAZ Y MANEJO DE NODOS
+    // 3. GENERACIÓN DE INTERFAZ Y MANEJO DE PRESETS
     // ==========================================
+
+    if (DOM.btnPresetN1) {
+        DOM.btnPresetN1.addEventListener('click', () => loadPresetData(0, 4));
+    }
+    if (DOM.btnPresetN2) {
+        DOM.btnPresetN2.addEventListener('click', () => loadPresetData(1, 4));
+    }
+    if (DOM.btnPresetN3) {
+        DOM.btnPresetN3.addEventListener('click', () => loadPresetData(2, 0));
+    }
 
     if (DOM.btnGenerateMatrix) {
         DOM.btnGenerateMatrix.addEventListener('click', () => {
@@ -102,12 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (DOM.btnLoadPreset) {
-        DOM.btnLoadPreset.addEventListener('click', () => {
-            loadPresetData();
-        });
-    }
-
     if (DOM.weightTypeSelect) {
         DOM.weightTypeSelect.addEventListener('change', () => {
             updateUnit();
@@ -117,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function loadPresetData() {
+    function loadPresetData(startNodeIdx = 0, defaultEndNodeIdx = 4) {
         updateUnit();
         const weightType = DOM.weightTypeSelect ? DOM.weightTypeSelect.value : 'distancia';
         numNodes = PRESET_EXAMPLE.nodes.length;
@@ -145,6 +158,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (cellDirect) cellDirect.value = val;
             if (cellReverse) cellReverse.value = val;
         });
+
+        DOM.startNodeSelect.value = startNodeIdx;
+        DOM.endNodeSelect.value = defaultEndNodeIdx;
 
         DOM.matrixSection.style.display = 'block';
         DOM.executionSection.style.display = 'block';
@@ -246,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         const val = parseFloat(cellValue);
                         if (isNaN(val) || val < 0) {
-                            throw new Error(`Restricción: No se permiten distancias o costos negativos (celda ${getNodeName(i)} → ${getNodeName(j)}).`);
+                            throw new Error(`Restricción: No se permiten distancias o costos negativos.`);
                         }
                         row.push(val);
                     }
@@ -352,7 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 5. RENDERIZADO — TABLA RESUMEN LIMPIA
+    // 5. RENDERIZADO — TABLA RESUMEN Y DETALLES
     // ==========================================
 
     function buildSummaryTable(iterations) {
@@ -400,10 +416,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ==========================================
-    // 6. RENDERIZADO — DETALLE PASO A PASO
-    // ==========================================
-
     function buildIterationCards(iterations, start, end) {
         DOM.iterationsDetailContainer.innerHTML = '';
 
@@ -431,11 +443,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 text += `Se inicia fijando el nodo de origen <strong>${getNodeName(start)}</strong> con la etiqueta permanente <strong>[0, -]</strong>. `;
             } else {
                 text += `El nodo <strong>${getNodeName(iter.selectedNode)}</strong> posee la menor distancia acumulada entre las etiquetas temporales y pasa a ser <strong>permanente</strong>. `;
-            }
-
-            if (iter.wasTie) {
-                const others = iter.tieCandidates.filter(n => n !== iter.selectedNode).map(getNodeName).join(', ');
-                text += `<strong>Ocurrió un empate</strong> con ${others}; se arbitró por orden de índice. `;
             }
 
             if (iter.relaxedNodes.length > 0) {
@@ -487,10 +494,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ==========================================
-    // 7. RENDERIZADO — RESUMEN DE RUTA FINAL
-    // ==========================================
-
     function buildPathSummary(result, start, end) {
         if (result.path.length === 0) {
             DOM.pathSummaryBox.innerHTML = '<div class="error-text">No existe una ruta posible entre el origen y destino seleccionados.</div>';
@@ -523,18 +526,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 8. VISUALIZACIÓN DEL GRAFO (AMPLIO D3.JS)
+    // 6. VISUALIZACIÓN DEL GRAFO (D3.JS EN LA PARTE SUPERIOR)
     // ==========================================
 
     function drawGraph(matrix, result, startNode, endNode) {
         DOM.svgContainer.innerHTML = '';
-
-        // Lienzo en alta resolución de 1000 x 650 px para desplegar con soltura
+        
+        // Dimensiones adaptadas para el banner superior
         const width = 1000;
-        const height = 650;
+        const height = 520;
 
         if (typeof d3 === 'undefined') {
-            DOM.svgContainer.innerHTML = '<p style="color:#ff4d4d; padding: 20px;">Error: La librería D3.js no se ha cargado en la página.</p>';
+            DOM.svgContainer.innerHTML = '<p style="color:#ff4d4d; padding: 20px;">Error: La librería D3.js no está disponible.</p>';
             return;
         }
 
@@ -547,7 +550,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const defs = svg.append("defs");
 
-        // Definición de puntas de flecha acorde al tema oscuro neón
         defs.append("marker")
             .attr("id", "arrow-normal")
             .attr("viewBox", "0 -5 10 10")
@@ -572,10 +574,9 @@ document.addEventListener('DOMContentLoaded', () => {
             .attr("d", "M0,-5L10,0L0,5")
             .attr("fill", "#ff4d4d");
 
-        // Posicionamiento de nodos ampliado (Radio de 230px)
         const centerX = width / 2;
         const centerY = height / 2;
-        const radius = 230;
+        const radius = 200;
 
         let nodesData = [];
         for (let i = 0; i < numNodes; i++) {
@@ -610,7 +611,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Renderizado de Aristas (Curvas bézier para evitar superposición)
         const linkGroup = svg.append("g").attr("class", "links-layer");
 
         linksData.forEach(d => {
@@ -618,7 +618,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const dy = d.target.y - d.source.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
 
-            const curveOffset = 36;
+            const curveOffset = 32;
             const midX = (d.source.x + d.target.x) / 2 + (dy / dist) * curveOffset;
             const midY = (d.source.y + d.target.y) / 2 - (dx / dist) * curveOffset;
 
@@ -630,7 +630,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 .attr("class", d.isOptimal ? "graph-edge edge-optimal" : "graph-edge")
                 .attr("marker-end", d.isOptimal ? "url(#arrow-path)" : "url(#arrow-normal)");
 
-            // Badge/Rectángulo de lectura del peso
             const textBgX = (d.source.x + 2 * midX + d.target.x) / 4;
             const textBgY = (d.source.y + 2 * midY + d.target.y) / 4;
 
@@ -646,11 +645,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 .attr("height", 22)
                 .attr("rx", 5);
 
-            weightG.append("text")
-                .text(`${d.weight}`);
+            weightG.append("text").text(`${d.weight}`);
         });
 
-        // Renderizado de Nodos
         const nodeGroup = svg.append("g")
             .attr("class", "nodes-layer")
             .selectAll("g")
@@ -668,25 +665,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 return "graph-node node-regular";
             });
 
-        // Nombre del nodo en el centro del círculo
         nodeGroup.append("text")
             .attr("class", "node-title-text")
-            .text(d => d.name);
+            .text(d => d.name.split(' ')[0]);
 
-        // Etiqueta del Método de Taha [distancia, predecesor] arriba de cada nodo
         nodeGroup.append("text")
             .attr("class", "node-taha-label")
-            .attr("dy", -36)
+            .attr("dy", -34)
             .text(d => {
                 let info = result.finalLabels[d.id];
                 if (!info || info.dist === Infinity) return "[∞, -]";
-                let pName = info.pred === null ? "-" : getNodeName(info.pred);
+                let pName = info.pred === null ? "-" : getNodeName(info.pred).split(' ')[0];
                 return `[${info.dist}, ${pName}]`;
             });
     }
 
     // ==========================================
-    // 9. EVENTOS Y CONTROLADORES
+    // 7. EVENTOS Y CONTROLADORES
     // ==========================================
 
     if (DOM.btnCalculate) {
@@ -710,13 +705,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 DOM.totalCostSpan.textContent = `${result.totalDistance} ${currentUnit}`;
+                
+                // Renders
+                buildPathSummary(result, startNode, endNode);
                 buildSummaryTable(result.iterations);
                 buildIterationCards(result.iterations, startNode, endNode);
-                buildPathSummary(result, startNode, endNode);
 
                 DOM.resultsPanel.style.display = 'block';
                 DOM.resultsPanel.scrollIntoView({ behavior: 'smooth' });
 
+                // Dibujar el grafo en la sección superior
                 drawGraph(adjMatrix, result, startNode, endNode);
             } catch (err) {
                 showError(err.message);
